@@ -4,3 +4,5 @@ Questions
 - Is it a good idea to push every register modified by a procedure. Maybe there are more efficient alternatives? In particular do I really need to push ax?
 - Figure out how to add debug information to the build.
 - How does the LEA opcode works exactly?
+- Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory?
+- Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
