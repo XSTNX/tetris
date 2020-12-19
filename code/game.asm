@@ -9,23 +9,27 @@ code segment public
 
 main proc
 	; Save previous video mode.
-	mov ah,FUNC_BIOS_VIDEO_GET_VIDEO_MODE
-	int INT_BIOS_VIDEO
-	mov [PrevVideoMode],al
+	mov ah,BIOS_FUNC_VIDEO_GET_VIDEO_MODE
+	int BIOS_INT_VIDEO
+	push ax
+
+	; Set graphics mode.
+	mov al,BIOS_VIDEO_MODE_320_200_4_BURST_ON
+	mov ah,BIOS_FUNC_VIDEO_SET_VIDEO_MODE
+	int BIOS_INT_VIDEO
 
 	; Restore previous video mode.
-	mov al,[PrevVideoMode]
-	mov ah,FUNC_BIOS_VIDEO_SET_VIDEO_MODE
-	int INT_BIOS_VIDEO
+	pop ax
+	mov ah,BIOS_FUNC_VIDEO_SET_VIDEO_MODE
+	int BIOS_INT_VIDEO
 
 	; Quit.
-	int INT_DOS_COM_TERMINATION
+	int DOS_INT_COM_TERMINATION
 main endp
 
 code ends
 
 data segment public
-	PrevVideoMode		db ?
 data ends
 
 	end main

@@ -1,5 +1,5 @@
-Questions
----------
+ASM
+---
 - Near and Far in procedures how are they used exactly?
 - Is it a good idea to push every register modified by a procedure. Maybe there are more efficient alternatives? In particular do I really need to push ax?
 - Figure out how to add debug information to the build.
@@ -9,4 +9,8 @@ Questions
 
 IBM PC
 ------
+- How do I check before setting the video mode that the desire mode is supported?
+
+LINKS
+-----
 https://stanislavs.org/helppc/int_table.html
