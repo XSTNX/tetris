@@ -1,3 +1,4 @@
+include ascii.inc
 include bios.inc
 include dos.inc
 
@@ -8,6 +9,9 @@ code segment public
 	org 100h
 
 main proc
+	call testKeyboard
+	int DOS_COM_TERMINATION_INT
+
 	; Save previous video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
@@ -41,10 +45,10 @@ main proc
 
 	; Check if any key was pressed before continuing.
 checkKeypress:	
-	mov ah,DOS_REQUEST_SERVICE_FUNC_INPUT_STATUS
-	int DOS_REQUEST_SERVICE_INT
+	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
+	int DOS_REQUEST_INT
 	test al,al
-	jz checkKeypress
+	jz short checkKeypress
 
 	; Restore previous video mode.
 	pop ax
@@ -61,9 +65,63 @@ drawLoop:
 	int BIOS_VIDEO_INT
 	inc cx
 	cmp cx,bx
-	jb drawLoop
+	jb short drawLoop
 	ret
 drawHorizLine endp
+
+testKeyboard proc
+nextKey:
+	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
+	int BIOS_KEYBOARD_INT
+
+	; Print scancode.
+	push ax
+	mov dl,ah
+	call printByte
+
+	; Print ascii.
+	mov dl,' '
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+	pop ax
+	mov dl,al
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+
+	; Go to next line.
+	mov dl,ASCII_CR
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+	mov dl,ASCII_LF
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+
+	jmp short nextkey
+testKeyboard endp
+
+printNibbleInHex proc
+	and dl,0fh
+	cmp dl,10
+	jb short noLetter
+	add dl,'A'-10
+	jmp short printChar
+noLetter:
+	add dl,'0'
+printChar:
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+	ret
+printNibbleInHex endp
+
+printByte proc
+	mov ch,dl
+	mov cl,4
+	shr dl,cl
+	call printNibbleInHex
+	mov dl,ch
+	call printNibbleInHex
+	ret
+printByte endp
 
 code ends
 

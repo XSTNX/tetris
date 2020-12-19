@@ -1,3 +1,5 @@
-DOS_COM_TERMINATION_INT                 equ 020h
-DOS_REQUEST_SERVICE_INT                 equ 021h
-DOS_REQUEST_SERVICE_FUNC_INPUT_STATUS   equ 00bh
+DOS_COM_TERMINATION_INT             equ 020h
+
+DOS_REQUEST_INT                     equ 021h
+DOS_REQUEST_FUNC_PRINT_CHAR         equ 002h
+DOS_REQUEST_FUNC_INPUT_STATUS       equ 00bh
