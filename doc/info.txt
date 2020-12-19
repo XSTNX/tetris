@@ -10,6 +10,7 @@ ASM
 IBM PC
 ------
 - How do I check before setting the video mode that the desire mode is supported?
+- When I call an interrupt what registers can I expect to be saved?
 
 LINKS
 -----

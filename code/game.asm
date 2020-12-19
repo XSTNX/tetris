@@ -9,23 +9,57 @@ code segment public
 
 main proc
 	; Save previous video mode.
-	mov ah,BIOS_FUNC_VIDEO_GET_VIDEO_MODE
-	int BIOS_INT_VIDEO
+	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
+	int BIOS_VIDEO_INT
 	push ax
 
 	; Set graphics mode.
 	mov al,BIOS_VIDEO_MODE_320_200_4_BURST_ON
-	mov ah,BIOS_FUNC_VIDEO_SET_VIDEO_MODE
-	int BIOS_INT_VIDEO
+	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
+	int BIOS_VIDEO_INT
+
+	; Test writing pixels.
+	mov al,1
+	mov cx,0
+	mov bx,320
+	mov dx,50
+	call drawHorizLine
+	mov al,2
+	mov cx,0
+	mov bx,320
+	mov dx,100
+	call drawHorizLine
+	mov al,3
+	mov cx,0
+	mov bx,320
+	mov dx,150
+	call drawHorizLine
+
+	; Check if any key was pressed before continuing.
+checkKeypress:	
+	mov ah,DOS_REQUEST_SERVICE_FUNC_INPUT_STATUS
+	int DOS_REQUEST_SERVICE_INT
+	test al,al
+	jz checkKeypress
 
 	; Restore previous video mode.
 	pop ax
-	mov ah,BIOS_FUNC_VIDEO_SET_VIDEO_MODE
-	int BIOS_INT_VIDEO
+	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
+	int BIOS_VIDEO_INT
 
 	; Quit.
-	int DOS_INT_COM_TERMINATION
+	int DOS_COM_TERMINATION_INT
 main endp
+
+drawHorizLine proc
+drawLoop:
+	mov ah,BIOS_VIDEO_FUNC_SET_PIXEL
+	int BIOS_VIDEO_INT
+	inc cx
+	cmp cx,bx
+	jb drawLoop
+	ret
+drawHorizLine endp
 
 code ends
 

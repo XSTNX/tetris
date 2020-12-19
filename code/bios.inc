@@ -1,7 +1,9 @@
-BIOS_INT_VIDEO                      equ 010h
-BIOS_FUNC_VIDEO_SET_VIDEO_MODE      equ 000h
-BIOS_FUNC_VIDEO_GET_VIDEO_MODE      equ 00fh
+; Video.
+BIOS_VIDEO_INT                      equ 010h
 
-; Video modes.
+BIOS_VIDEO_FUNC_SET_VIDEO_MODE      equ 000h
+BIOS_VIDEO_FUNC_SET_PIXEL           equ 00ch
+BIOS_VIDEO_FUNC_GET_VIDEO_MODE      equ 00fh
+
 BIOS_VIDEO_MODE_320_200_4_BURST_ON  equ 004h
 BIOS_VIDEO_MODE_320_200_4_BURST_OFF equ 005h
