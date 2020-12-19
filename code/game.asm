@@ -9,7 +9,7 @@ code segment public
 	org 100h
 
 main proc
-	call testKeyboard
+	call testKeyboard2
 	int DOS_COM_TERMINATION_INT
 
 	; Save previous video mode.
@@ -98,6 +98,24 @@ nextKey:
 
 	jmp short nextkey
 testKeyboard endp
+
+testKeyboard2 proc
+nextKey:
+	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
+	int BIOS_KEYBOARD_INT
+	mov dl,al
+	call printByte
+
+	; Go to next line.
+	mov dl,ASCII_CR
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+	mov dl,ASCII_LF
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+
+	jmp short nextkey
+testKeyboard2 endp
 
 printNibbleInHex proc
 	and dl,0fh
