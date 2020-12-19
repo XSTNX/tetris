@@ -9,7 +9,7 @@ code segment public
 	org 100h
 
 main proc
-	call testKeyboard2
+	call testKeyboard1
 	int DOS_COM_TERMINATION_INT
 
 	; Save previous video mode.
@@ -69,10 +69,12 @@ drawLoop:
 	ret
 drawHorizLine endp
 
-testKeyboard proc
+testKeyboard1 proc
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
 	int BIOS_KEYBOARD_INT
+	cmp al,3
+	je quit
 
 	; Print scancode.
 	push ax
@@ -97,7 +99,10 @@ nextKey:
 	int DOS_REQUEST_INT
 
 	jmp short nextkey
-testKeyboard endp
+
+quit:
+	int DOS_COM_TERMINATION_INT
+testKeyboard1 endp
 
 testKeyboard2 proc
 nextKey:
