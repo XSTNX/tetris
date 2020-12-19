@@ -1,0 +1,3 @@
+INT_BIOS_VIDEO                      equ 010h
+FUNC_BIOS_VIDEO_SET_VIDEO_MODE      equ 000h
+FUNC_BIOS_VIDEO_GET_VIDEO_MODE      equ 00fh
