@@ -11,6 +11,7 @@ IBM PC
 ------
 - How do I check before setting the video mode that the desire mode is supported?
 - When I call an interrupt what registers can I expect to be saved?
+- Color 3 in Palette 0 can be brown or yellow, apparently. What decides that exactly?
 
 LINKS
 -----

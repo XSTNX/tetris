@@ -16,6 +16,10 @@ main proc
 	; Set graphics mode.
 	mov al,BIOS_VIDEO_MODE_320_200_4_BURST_ON
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
+	int BIOS_VIDEO_INT	
+	; Set palette 0.
+	mov bx,100h
+	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
 	int BIOS_VIDEO_INT
 
 	; Test writing pixels.
