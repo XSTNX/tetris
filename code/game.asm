@@ -9,6 +9,9 @@ code segment public
 	org 100h
 
 main proc
+	call testDOSVersion
+	int DOS_COM_TERMINATION_INT
+
 	; Save previous video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
@@ -185,6 +188,46 @@ testVideo2 proc
 
 	ret
 testVideo2 endp
+
+testDOSVersion proc
+	mov ah,DOS_REQUEST_FUNC_GET_VERSION_NUM
+	int DOS_REQUEST_INT
+	push bx
+	push ax	
+
+	mov dx,strVer
+	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
+	int DOS_REQUEST_INT
+	
+	; Major version.
+	pop dx
+	push dx
+	call printByte
+	
+	mov dl,'.'
+	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
+	int DOS_REQUEST_INT
+	
+	; Minor version.
+	pop dx
+	mov dl,dh
+	call printByte
+	
+	mov dx,strDOSType
+	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
+	int DOS_REQUEST_INT
+
+	; Dos type.
+	pop dx
+	mov dl,dh
+	call printByte
+
+	ret
+strVer:
+	db 'Ver: $'
+strDOSType:
+	db ' DosType: $'
+testDOSVersion endp
 
 code ends
 
