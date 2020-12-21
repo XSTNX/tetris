@@ -113,6 +113,17 @@ drawHorizLine proc
 drawHorizLine endp
 
 drawBox proc
+	push ax
+	push cx
+	push dx
+	mov dh,al
+	call drawHorizLine
+	pop dx
+	pop cx
+	pop ax
+	inc dl
+	cmp dl,dh
+	jb short drawBox
 	ret
 drawBox endp
 
@@ -270,6 +281,18 @@ testVideo3 proc
 	; Color.
 	mov dh,3
 	call drawPixel
+
+	; Start posX.
+	mov cx,0
+	; End posX.
+	mov bx,320
+	; Start posY.
+	mov dl,102
+	; End posY.
+	mov dh,105
+	; Color.
+	mov al,3
+	call drawBox	
 
 	ret
 testVideo3 endp
