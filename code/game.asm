@@ -9,9 +9,6 @@ code segment public
 	org 100h
 
 main proc
-	call testDOSVersion
-	int DOS_COM_TERMINATION_INT
-
 	; Save previous video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
@@ -27,7 +24,7 @@ main proc
 	int BIOS_VIDEO_INT
 
 	; Test writing pixels.
-	call testVideo2
+	call testVideo3
 
 	; Check if any key was pressed before continuing.
 checkKeypress:	
@@ -69,13 +66,33 @@ printByte proc
 	ret
 printByte endp
 
+drawPixel proc
+	xor bx,bx
+	shr dl,1
+	jnc notOddLine
+	mov bh,20h
+notOddLine:
+	mov al,80
+	mul dl
+	or bx,ax
+	shr cx,1
+	shr cx,1
+	add bx,cx
+	mov al,es:[bx]
+	and al,00111111b
+	mov cl,6
+	shl dh,cl
+	or al,dh
+	mov es:[bx],al
+	ret
+drawPixel endp
+
 drawHorizLine proc
-drawLoop:
 	mov ah,BIOS_VIDEO_FUNC_SET_PIXEL
 	int BIOS_VIDEO_INT
 	inc cx
 	cmp cx,bx
-	jb short drawLoop
+	jb short drawHorizLine
 	ret
 drawHorizLine endp
 
@@ -188,6 +205,41 @@ testVideo2 proc
 
 	ret
 testVideo2 endp
+
+testVideo3 proc
+	mov al,1
+	mov cx,1
+	mov bx,2
+	mov dx,99
+	call drawHorizLine
+	mov al,1
+	mov cx,3
+	mov bx,4
+	mov dx,99
+	call drawHorizLine
+	mov al,1
+	mov cx,0
+	mov bx,320
+	mov dx,100
+	call drawHorizLine
+	mov al,2
+	mov cx,0
+	mov bx,320
+	mov dx,101
+	call drawHorizLine
+
+	mov ax,0b800h
+	mov es,ax
+	; PosX.
+	mov cx,4
+	; PosY.
+	mov dl,100
+	; Color.
+	mov dh,3
+	call drawPixel
+
+	ret
+testVideo3 endp
 
 testDOSVersion proc
 	mov ah,DOS_REQUEST_FUNC_GET_VERSION_NUM
