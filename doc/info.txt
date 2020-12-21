@@ -18,5 +18,7 @@ IBM PC
 
 LINKS
 -----
-https://stanislavs.org/helppc/int_table.html
+https://stanislavs.org/helppc/int_table.html (interrupts)
+http://www.delorie.com/djgpp/doc/rbinter/ (interrupts)
 https://www.phatcode.net/articles.php
+http://qzx.com/pc-gpe/
