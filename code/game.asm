@@ -99,13 +99,22 @@ notOddRow:
 drawPixel endp
 
 drawHorizLine proc
-	mov ah,BIOS_VIDEO_FUNC_SET_PIXEL
-	int BIOS_VIDEO_INT
+	push bx
+	push cx
+	push dx
+	call drawPixel
+	pop dx
+	pop cx
+	pop bx
 	inc cx
 	cmp cx,bx
 	jb short drawHorizLine
 	ret
 drawHorizLine endp
+
+drawBox proc
+	ret
+drawBox endp
 
 testKeyboard1 proc
 nextKey:
@@ -218,29 +227,42 @@ testVideo2 proc
 testVideo2 endp
 
 testVideo3 proc
-	mov al,1
-	mov cx,1
-	mov bx,2
-	mov dx,99
-	call drawHorizLine
-	mov al,1
-	mov cx,3
-	mov bx,4
-	mov dx,99
-	call drawHorizLine
-	mov al,1
-	mov cx,0
-	mov bx,320
-	mov dx,100
-	call drawHorizLine
-	mov al,2
-	mov cx,0
-	mov bx,320
-	mov dx,101
-	call drawHorizLine
-
 	mov ax,0b800h
 	mov es,ax
+
+	; PosX.
+	mov cx,1
+	; PosY.
+	mov dl,99
+	; Color.
+	mov dh,1
+	call drawPixel
+	; PosX.
+	mov cx,3
+	; PosY.
+	mov dl,99
+	; Color.
+	mov dh,1
+	call drawPixel
+	; Start posX.
+	mov cx,0
+	; End posX.
+	mov bx,320
+	; PosY.
+	mov dl,100
+	; Color.
+	mov dh,1
+	call drawHorizLine
+	; Start posX.
+	mov cx,0
+	; End posX.
+	mov bx,320
+	; PosY.
+	mov dl,101
+	; Color.
+	mov dh,2
+	call drawHorizLine
+
 	; PosX.
 	mov cx,1
 	; PosY.
