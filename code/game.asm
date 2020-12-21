@@ -373,7 +373,7 @@ testGameplayUpdate proc
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
 
-	; Check if left is pressed.
+	; Check if left key is pressed.
 	test al,2
 	jz skipMoveLeft
 	; Compute new posX.
@@ -392,7 +392,7 @@ skipLimitPosXLeft:
 	mov [TestGameplayPosXHigh],dx
 skipMoveLeft:
 
-	; Check if right is pressed.
+	; Check if right key is pressed.
 	test al,1
 	jz skipMoveRight
 	; Compute new posX.
