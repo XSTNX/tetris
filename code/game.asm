@@ -3,15 +3,15 @@ include bios.inc
 include dos.inc
 
 TEST_GAMEPLAY_BOX_WIDTH 		equ 8
-TEST_GAMEPLAY_BOX_HEIGHT 		equ 16
+TEST_GAMEPLAY_BOX_HEIGHT 		equ 12
 TEST_GAMEPLAY_POSX_START 		equ 160
 TEST_GAMEPLAY_POSX_LIMIT_LEFT 	equ 30
 TEST_GAMEPLAY_POSX_LIMIT_RIGHT 	equ 290
-TEST_GAMEPLAY_POSY 				equ 180
+TEST_GAMEPLAY_POSY 				equ 190
 TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT/2)
 TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
-TEST_GAMEPLAY_SPEEDX_LOW 		equ 02000h
-TEST_GAMEPLAY_SPEEDX_HIGH 		equ 1
+TEST_GAMEPLAY_SPEEDX_LOW 		equ 0
+TEST_GAMEPLAY_SPEEDX_HIGH 		equ 4
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -37,7 +37,7 @@ main proc
 	call testGameplayInit
 	call testGameplayRender
 gameLoop:
-	call testGameplayUpdate
+	call testGameplayUpdate	
 	call testGameplayRender
 	; Don't quit the gameloop until a key is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
@@ -415,6 +415,17 @@ skipMoveRight:
 testGameplayUpdate endp
 
 testGameplayRender proc
+	; Vsync
+	mov dx,3dah
+vsync0:
+	in al,dx
+	test al,8
+	jnz vsync0
+vsync1:
+	in al,dx
+	test al,8
+	jz vsync1
+
 	; --- Erase previous box. ---
 	; Start posX.
 	mov cx,[TestGameplayPrevPosXHigh]
