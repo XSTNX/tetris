@@ -18,6 +18,7 @@ IBM PC
 
 LINKS
 -----
+https://www.pcjs.org/machines/pcx86/ibm/5160/cga/ (web emulator)
 https://stanislavs.org/helppc/int_table.html (interrupts)
 http://www.delorie.com/djgpp/doc/rbinter/ (interrupts)
 https://www.phatcode.net/articles.php

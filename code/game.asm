@@ -81,7 +81,8 @@ printByte proc
 	ret
 printByte endp
 
-drawPixel proc
+DRAW_PIXEL macro
+local notOddRow
 	xor bx,bx
 	; Divide posY by two, since the even rows go in one bank and the odd rows in another.
 	shr dl,1
@@ -110,14 +111,13 @@ notOddRow:
 	or al,dh
 	; Write the updated byte to video memory.
 	mov es:[bx],al
-	ret
-drawPixel endp
+endm
 
 drawHorizLine proc
 	push bx
 	push cx
 	push dx
-	call drawPixel
+	DRAW_PIXEL
 	pop dx
 	pop cx
 	pop bx
@@ -268,14 +268,14 @@ testVideo3 proc
 	mov dl,99
 	; Color.
 	mov dh,1
-	call drawPixel
+	DRAW_PIXEL
 	; PosX.
 	mov cx,3
 	; PosY.
 	mov dl,99
 	; Color.
 	mov dh,1
-	call drawPixel
+	DRAW_PIXEL
 	; Start posX.
 	mov cx,0
 	; End posX.
@@ -301,7 +301,7 @@ testVideo3 proc
 	mov dl,100
 	; Color.
 	mov dh,3
-	call drawPixel
+	DRAW_PIXEL
 
 	; Start posX.
 	mov cx,0
