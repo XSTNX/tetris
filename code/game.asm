@@ -2,6 +2,17 @@ include ascii.inc
 include bios.inc
 include dos.inc
 
+TEST_GAMEPLAY_BOX_WIDTH 		equ 8
+TEST_GAMEPLAY_BOX_HEIGHT 		equ 16
+TEST_GAMEPLAY_POSX_START 		equ 160
+TEST_GAMEPLAY_POSX_LIMIT_LEFT 	equ 30
+TEST_GAMEPLAY_POSX_LIMIT_RIGHT 	equ 290
+TEST_GAMEPLAY_POSY 				equ 180
+TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT/2)
+TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
+TEST_GAMEPLAY_SPEEDX_LOW 		equ 02000h
+TEST_GAMEPLAY_SPEEDX_HIGH 		equ 1
+
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
 
@@ -23,15 +34,16 @@ main proc
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
 	int BIOS_VIDEO_INT
 
-	; Test writing pixels.
-	call testVideo3
-
-	; Check if any key was pressed before continuing.
-checkKeypress:	
+	call testGameplayInit
+	call testGameplayRender
+gameLoop:
+	call testGameplayUpdate
+	call testGameplayRender
+	; Don't quit the gameloop until a key is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
 	int DOS_REQUEST_INT
 	test al,al
-	jz short checkKeypress
+	jz short gameLoop
 
 	; Restore previous video mode.
 	pop ax
@@ -177,7 +189,13 @@ nextKey:
 	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
 	int DOS_REQUEST_INT
 
-	jmp short nextkey
+	; Continue until a key is pressed.
+	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
+	int DOS_REQUEST_INT
+	test al,al
+	jz short nextKey
+
+	ret
 testKeyboard2 endp
 
 testVideo1 proc
@@ -292,7 +310,7 @@ testVideo3 proc
 	mov dh,105
 	; Color.
 	mov al,3
-	call drawBox	
+	call drawBox
 
 	ret
 testVideo3 endp
@@ -337,11 +355,103 @@ strDOSType:
 	db ' DosType: $'
 testDOSVersion endp
 
+testGameplayInit proc
+	mov ax,0b800h
+	mov es,ax
+	mov [TestGameplayPosXLow],0
+	mov ax,TEST_GAMEPLAY_POSX_START
+	mov [TestGameplayPosXHigh],ax
+	mov [TestGameplayPrevPosXHigh],ax
+testGameplayInit endp
+
+testGameplayUpdate proc
+	; Save prev posX.
+	mov ax,[TestGameplayPosXHigh]
+	mov [TestGameplayPrevPosXHigh],ax
+
+	; Poll keyboard.
+	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
+	int BIOS_KEYBOARD_INT
+
+	; Check if left is pressed.
+	test al,2
+	jz skipMoveLeft
+	; Compute new posX.
+	mov cx,[TestGameplayPosXLow]
+	sub cx,TEST_GAMEPLAY_SPEEDX_LOW
+	mov dx,[TestGameplayPosXHigh]
+	sbb dx,TEST_GAMEPLAY_SPEEDX_HIGH
+	; Limit posX if needed.
+	cmp dx,TEST_GAMEPLAY_POSX_LIMIT_LEFT
+	jae skipLimitPosXLeft
+	xor cx,cx
+	mov dx,TEST_GAMEPLAY_POSX_LIMIT_LEFT
+skipLimitPosXLeft:
+	; Save new posX.
+	mov [TestGameplayPosXLow],cx
+	mov [TestGameplayPosXHigh],dx
+skipMoveLeft:
+
+	; Check if right is pressed.
+	test al,1
+	jz skipMoveRight
+	; Compute new posX.
+	mov cx,[TestGameplayPosXLow]
+	add cx,TEST_GAMEPLAY_SPEEDX_LOW
+	mov dx,[TestGameplayPosXHigh]
+	adc dx,TEST_GAMEPLAY_SPEEDX_HIGH
+	; Limit posX if needed.
+	cmp dx,TEST_GAMEPLAY_POSX_LIMIT_RIGHT
+	jb skipLimitPosXRight
+	xor cx,cx
+	mov dx,TEST_GAMEPLAY_POSX_LIMIT_RIGHT
+skipLimitPosXRight:
+	; Save new posX.
+	mov [TestGameplayPosXLow],cx
+	mov [TestGameplayPosXHigh],dx
+skipMoveRight:
+
+	ret
+testGameplayUpdate endp
+
+testGameplayRender proc
+	; --- Erase previous box. ---
+	; Start posX.
+	mov cx,[TestGameplayPrevPosXHigh]
+	sub cx,TEST_GAMEPLAY_BOX_WIDTH/2
+	; End posX.
+	mov bx,cx
+	add bx,TEST_GAMEPLAY_BOX_WIDTH
+	; Start/end posY.
+	mov dx,TEST_GAMEPLAY_POSY_BOX_START + (TEST_GAMEPLAY_POSY_BOX_END * 256)
+	; Color.
+	mov al,0
+	call drawBox
+
+	; --- Draw current box. ---
+	; Start posX.
+	mov cx,[TestGameplayPosXHigh]
+	sub cx,TEST_GAMEPLAY_BOX_WIDTH/2
+	; End posX.
+	mov bx,cx
+	add bx,TEST_GAMEPLAY_BOX_WIDTH
+	; Start/end posY.
+	mov dx,TEST_GAMEPLAY_POSY_BOX_START + (TEST_GAMEPLAY_POSY_BOX_END * 256)
+	; Color.
+	mov al,3
+	call drawBox
+
+	ret
+testGameplayRender endp
+
 code ends
 
 data segment public
-	DrawPixelMask db 00111111b, 11001111b, 11110011b, 11111100b
-	DrawPixelShift db 6, 4, 2, 0
+	DrawPixelMask				db 00111111b, 11001111b, 11110011b, 11111100b
+	DrawPixelShift 				db 6, 4, 2, 0
+	TestGameplayPosXLow			dw ?
+	TestGameplayPosXHigh		dw ?
+	TestGameplayPrevPosXHigh	dw ?
 data ends
 
 	end main
