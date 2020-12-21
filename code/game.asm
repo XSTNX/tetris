@@ -78,23 +78,23 @@ notOddRow:
 	mov al,80
 	mul dl
 	or bx,ax
-	; Save the last two bits of posX, since it's needed to know which bits in the video memory byte the pixel belong to.
-	mov dl,cl
-	and dl,2
+	; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
+	mov si,cx
+	and si,11b
 	; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
 	shr cx,1
 	shr cx,1	
 	add bx,cx
 	; Read the byte in video memory where the pixel is.
-	mov al,[bx]
+	mov al,es:[bx]
 	; Mask the previous pixel.
-	and al,00111111b
-	; Put the new pixel.
-	mov cl,6
+	and al,DrawPixelMask[si]
+	; Add the new pixel.
+	mov cl,DrawPixelShift[si]
 	shl dh,cl
 	or al,dh
 	; Write the updated byte to video memory.
-	mov [bx],al
+	mov es:[bx],al
 	ret
 drawPixel endp
 
@@ -239,17 +239,15 @@ testVideo3 proc
 	mov dx,101
 	call drawHorizLine
 
-	push ds
 	mov ax,0b800h
-	mov ds,ax
+	mov es,ax
 	; PosX.
-	mov cx,4
+	mov cx,1
 	; PosY.
 	mov dl,100
 	; Color.
 	mov dh,3
 	call drawPixel
-	pop ds
 
 	ret
 testVideo3 endp
@@ -297,6 +295,8 @@ testDOSVersion endp
 code ends
 
 data segment public
+	DrawPixelMask db 00111111b, 11001111b, 11110011b, 11111100b
+	DrawPixelShift db 6, 4, 2, 0
 data ends
 
 	end main
