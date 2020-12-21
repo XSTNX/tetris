@@ -11,7 +11,7 @@ TEST_GAMEPLAY_POSY 				equ 190
 TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT/2)
 TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
 TEST_GAMEPLAY_SPEEDX_LOW 		equ 0
-TEST_GAMEPLAY_SPEEDX_HIGH 		equ 4
+TEST_GAMEPLAY_SPEEDX_HIGH 		equ 5
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -420,14 +420,14 @@ testGameplayUpdate endp
 testGameplayRender proc
 	; Vsync.
 	mov dx,3dah
-vsync0:
+vsyncWait0:
 	in al,dx
 	test al,8
-	jnz vsync0
-vsync1:
+	jnz vsyncWait0
+vsyncWait1:
 	in al,dx
 	test al,8
-	jz vsync1
+	jz vsyncWait1
 
 	; --- Erase previous box. ---
 	; Start posX.
