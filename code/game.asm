@@ -415,7 +415,7 @@ skipMoveRight:
 testGameplayUpdate endp
 
 testGameplayRender proc
-	; Vsync
+	; Vsync.
 	mov dx,3dah
 vsync0:
 	in al,dx
