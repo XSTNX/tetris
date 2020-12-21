@@ -68,22 +68,33 @@ printByte endp
 
 drawPixel proc
 	xor bx,bx
+	; Divide posY by two, since the even rows go in one bank and the odd rows in another.
 	shr dl,1
-	jnc notOddLine
+	jnc notOddRow
+	; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
 	mov bh,20h
-notOddLine:
+notOddRow:
+	; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
 	mov al,80
 	mul dl
 	or bx,ax
+	; Save the last two bits of posX, since it's needed to know which bits in the video memory byte the pixel belong to.
+	mov dl,cl
+	and dl,2
+	; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
 	shr cx,1
-	shr cx,1
+	shr cx,1	
 	add bx,cx
-	mov al,es:[bx]
+	; Read the byte in video memory where the pixel is.
+	mov al,[bx]
+	; Mask the previous pixel.
 	and al,00111111b
+	; Put the new pixel.
 	mov cl,6
 	shl dh,cl
 	or al,dh
-	mov es:[bx],al
+	; Write the updated byte to video memory.
+	mov [bx],al
 	ret
 drawPixel endp
 
@@ -228,8 +239,9 @@ testVideo3 proc
 	mov dx,101
 	call drawHorizLine
 
+	push ds
 	mov ax,0b800h
-	mov es,ax
+	mov ds,ax
 	; PosX.
 	mov cx,4
 	; PosY.
@@ -237,6 +249,7 @@ testVideo3 proc
 	; Color.
 	mov dh,3
 	call drawPixel
+	pop ds
 
 	ret
 testVideo3 endp
