@@ -44,6 +44,9 @@ gameLoop:
 	int DOS_REQUEST_INT
 	test al,al
 	jz short gameLoop
+	; Seems like the keypress has to be read, otherwise it will show up in the DOS prompt.
+	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
+	int BIOS_KEYBOARD_INT
 
 	; Restore previous video mode.
 	pop ax

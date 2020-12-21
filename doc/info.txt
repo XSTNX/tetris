@@ -14,6 +14,7 @@ IBM PC
 - Color 3 in Palette 0 can be brown or yellow, apparently. What decides that exactly?
 - Make sure I understand which version of DOS is required to run the game.
 - See if I can find proper documentation on how vsync works.
+- Seems like the keypress has to be read before quitting, otherwise it will show up in the DOS prompt.
 
 LINKS
 -----
