@@ -103,11 +103,11 @@ divide:
 	inc cx
 	test al,al
 	jne divide
-	mov bl,3
-	sub bl,cl
+	mov bx,3
+	sub bx,cx
 	jz nextDigit
-leadingZeroes:	
-	xor dl,dl	
+leadingZeroes:
+	xor dl,dl
 	call printNibbleHex
 	dec bx
 	jnz leadingZeroes
@@ -140,6 +140,7 @@ divide:
 	inc cx
 	test ax,ax
 	jne divide
+	; Setting bl is enough since bh is zero.
 	mov bl,5
 	sub bl,cl
 	jz nextDigit
@@ -409,7 +410,7 @@ testDOSVersion proc
 	mov dx,strVer
 	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
 	int DOS_REQUEST_INT
-	
+
 	; Major version.
 	pop dx
 	push dx
