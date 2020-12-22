@@ -4,9 +4,9 @@ include dos.inc
 
 TEST_GAMEPLAY_BOX_WIDTH 		equ 8
 TEST_GAMEPLAY_BOX_HEIGHT 		equ 12
-TEST_GAMEPLAY_POSX_START 		equ 160
 TEST_GAMEPLAY_POSX_LIMIT_LEFT 	equ 30
 TEST_GAMEPLAY_POSX_LIMIT_RIGHT 	equ 290
+TEST_GAMEPLAY_POSX_START 		equ 160
 TEST_GAMEPLAY_POSY 				equ 190
 TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT/2)
 TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
@@ -93,8 +93,29 @@ printChar:
 printNibbleHex endp
 
 printByte proc
-	xor dh,dh
-	call printWord
+	mov al,dl
+	mov bl,10
+	xor cx,cx
+divide:
+	xor ah,ah
+	div bl
+	push ax
+	inc cx
+	test al,al
+	jne divide
+	mov bl,3
+	sub bl,cl
+	jz nextDigit
+leadingZeroes:	
+	xor dl,dl	
+	call printNibbleHex
+	dec bx
+	jnz leadingZeroes
+nextDigit:
+	pop dx
+	mov dl,dh
+	call printNibbleHex
+	loop nextDigit
 	ret
 printByte endp
 
@@ -119,6 +140,14 @@ divide:
 	inc cx
 	test ax,ax
 	jne divide
+	mov bl,5
+	sub bl,cl
+	jz nextDigit
+leadingZeroes:	
+	xor dl,dl
+	call printNibbleHex
+	dec bx
+	jnz leadingZeroes
 nextDigit:
 	pop dx
 	call printNibbleHex
