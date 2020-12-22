@@ -57,6 +57,27 @@ gameLoop:
 	int DOS_COM_TERMINATION_INT
 main endp
 
+WAIT_VSYNC macro
+local vsyncWait0, vsyncWait1
+	mov dx,3dah
+vsyncWait0:
+	in al,dx
+	test al,8
+	jnz vsyncWait0
+vsyncWait1:
+	in al,dx
+	test al,8
+	jz vsyncWait1
+endm
+
+setCursorPos proc near
+    ; Use page number 0.
+    xor bh,bh
+    mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
+    int BIOS_VIDEO_INT
+    ret
+setCursorPos endp
+
 printNibbleInHex proc
 	and dl,0fh
 	cmp dl,10
@@ -80,6 +101,14 @@ printByte proc
 	call printNibbleInHex
 	ret
 printByte endp
+
+printWord proc
+	xchg dl,dh
+	call printByte
+	mov dl,dh
+	call printByte
+	ret
+printWord endp
 
 DRAW_PIXEL macro
 local notOddRow
@@ -418,16 +447,14 @@ skipMoveRight:
 testGameplayUpdate endp
 
 testGameplayRender proc
-	; Vsync.
-	mov dx,3dah
-vsyncWait0:
-	in al,dx
-	test al,8
-	jnz vsyncWait0
-vsyncWait1:
-	in al,dx
-	test al,8
-	jz vsyncWait1
+	WAIT_VSYNC
+	; Print frame number.
+	xor dx,dx
+	call setCursorPos
+	mov dx,[FrameNum]
+	inc dx
+	mov [FrameNum],dx
+	call printWord
 
 	; --- Erase previous box. ---
 	; Start posX.
@@ -463,6 +490,7 @@ code ends
 data segment public
 	DrawPixelMask				db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 				db 6, 4, 2, 0
+	FrameNum					dw 0
 	TestGameplayPosXLow			dw ?
 	TestGameplayPosXHigh		dw ?
 	TestGameplayPrevPosXHigh	dw ?
