@@ -78,7 +78,7 @@ setCursorPos proc near
     ret
 setCursorPos endp
 
-printNibbleInHex proc
+printNibbleHex proc
 	and dl,0fh
 	cmp dl,10
 	jb short noLetter
@@ -90,25 +90,49 @@ printChar:
 	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
 	int DOS_REQUEST_INT
 	ret
-printNibbleInHex endp
+printNibbleHex endp
 
 printByte proc
-	mov ch,dl
-	mov cl,4
-	shr dl,cl
-	call printNibbleInHex
-	mov dl,ch
-	call printNibbleInHex
+	xor dh,dh
+	call printWord
 	ret
 printByte endp
 
+printByteHex proc
+	mov ch,dl
+	mov cl,4
+	shr dl,cl
+	call printNibbleHex
+	mov dl,ch
+	call printNibbleHex
+	ret
+printByteHex endp
+
 printWord proc
-	xchg dl,dh
-	call printByte
-	mov dl,dh
-	call printByte
+	mov ax,dx
+	mov bx,10
+	xor cx,cx
+divide:
+	xor dx,dx
+	div bx
+	push dx
+	inc cx
+	test ax,ax
+	jne divide
+nextDigit:
+	pop dx
+	call printNibbleHex
+	loop nextDigit
 	ret
 printWord endp
+
+printWordHex proc
+	xchg dl,dh
+	call printByteHex
+	mov dl,dh
+	call printByteHex
+	ret
+printWordHex endp
 
 DRAW_PIXEL macro
 local notOddRow
@@ -181,7 +205,7 @@ nextKey:
 	; Print scancode.
 	push ax
 	mov dl,ah
-	call printByte
+	call printByteHex
 
 	; Print ascii.
 	mov dl,' '
@@ -211,7 +235,7 @@ nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
 	mov dl,al
-	call printByte
+	call printByteHex
 
 	; Go to next line.
 	mov dl,ASCII_CR
@@ -378,7 +402,7 @@ testDOSVersion proc
 	; Dos type.
 	pop dx
 	mov dl,dh
-	call printByte
+	call printByteHex
 
 	ret
 strVer:
@@ -448,12 +472,9 @@ testGameplayUpdate endp
 
 testGameplayRender proc
 	WAIT_VSYNC
-	; Print frame number.
 	xor dx,dx
 	call setCursorPos
-	mov dx,[FrameNum]
-	inc dx
-	mov [FrameNum],dx
+	mov dx,[TestGameplayPosXHigh]
 	call printWord
 
 	; --- Erase previous box. ---
@@ -490,7 +511,6 @@ code ends
 data segment public
 	DrawPixelMask				db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 				db 6, 4, 2, 0
-	FrameNum					dw 0
 	TestGameplayPosXLow			dw ?
 	TestGameplayPosXHigh		dw ?
 	TestGameplayPrevPosXHigh	dw ?
