@@ -457,10 +457,21 @@ testGameplayUpdate proc
 	; Poll keyboard.
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
-
+	
+	xor bx,bx
 	; Check if left key is pressed.
 	test al,2
-	jz skipMoveLeft
+	jz skipDirLeft
+	dec bx
+skipDirLeft:
+	; Check if right key is pressed.
+	test al,1
+	jz skipDirRight
+	inc bx
+skipDirRight:
+
+	cmp bl,0ffh
+	jne skipMoveLeft
 	; Compute new posX.
 	mov cx,[TestGameplayPosXLow]
 	sub cx,TEST_GAMEPLAY_SPEEDX_LOW
@@ -477,9 +488,8 @@ skipLimitPosXLeft:
 	mov [TestGameplayPosXHigh],dx
 skipMoveLeft:
 
-	; Check if right key is pressed.
-	test al,1
-	jz skipMoveRight
+	cmp bl,1
+	jne skipMoveRight
 	; Compute new posX.
 	mov cx,[TestGameplayPosXLow]
 	add cx,TEST_GAMEPLAY_SPEEDX_LOW
