@@ -39,14 +39,15 @@ main proc
 gameLoop:
 	call testGameplayUpdate	
 	call testGameplayRender
-	; Don't quit the gameloop until a key is pressed.
+	; Don't quit the gameloop until ESC is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
 	int DOS_REQUEST_INT
 	test al,al
 	jz short gameLoop
-	; Seems like the keypress has to be read, otherwise it will show up in the DOS prompt.
 	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
 	int BIOS_KEYBOARD_INT
+	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
+	jne short gameLoop
 
 	; Restore previous video mode.
 	pop ax
@@ -225,7 +226,7 @@ drawBox proc
 	ret
 drawBox endp
 
-testKeyboard1 proc
+testKeyboardScancode proc
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
 	int BIOS_KEYBOARD_INT
@@ -258,9 +259,9 @@ nextKey:
 
 quit:
 	int DOS_COM_TERMINATION_INT
-testKeyboard1 endp
+testKeyboardScancode endp
 
-testKeyboard2 proc
+testKeyboardFlags proc
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
@@ -282,7 +283,7 @@ nextKey:
 	jz short nextKey
 
 	ret
-testKeyboard2 endp
+testKeyboardFlags endp
 
 testVideo1 proc
 	mov al,1
@@ -459,14 +460,13 @@ testGameplayUpdate proc
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
 	
+	; Reg bx is set to the direction of movement.
 	xor bx,bx
-	; Check if left key is pressed.
-	test al,2
+	test al,BIOS_KEYBOARD_FLAGS_LEFT_SHIFT
 	jz skipDirLeft
 	dec bx
 skipDirLeft:
-	; Check if right key is pressed.
-	test al,1
+	test al,BIOS_KEYBOARD_FLAGS_RIGHT_SHIFT
 	jz skipDirRight
 	inc bx
 skipDirRight:
