@@ -561,7 +561,9 @@ skipMoveRight:
 	mov [TestGameplayShotCooldown],TEST_GAMEPLAY_SHOT_COOLDOWN
 	mov ax,[TestGameplayPosXHigh]
 	xor bh,bh
-	mov [TestGameplayShotPosX + bx],ax
+	mov si,bx
+	shl si,1
+	mov [TestGameplayShotPosX + si],ax
 	mov [TestGameplayShotPosYLow + bx],bh
 	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
 	mov [TestGameplayShotPrevPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
@@ -593,7 +595,9 @@ loopShot:
 	push cx
 
 	; Erase previous shot.
-	mov cx,[TestGameplayShotPosX + si]
+	mov di,si
+	shl di,1
+	mov cx,[TestGameplayShotPosX + di]
 	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_SHOT_WIDTH
@@ -602,12 +606,12 @@ loopShot:
 	mov dh,dl
 	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
 	mov al,0
-	push si	
+	push si
 	call drawBox
 	pop si
 
 	; Draw current shot.
-	mov cx,[TestGameplayShotPosX + si]
+	mov cx,[TestGameplayShotPosX + di]
 	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_SHOT_WIDTH
