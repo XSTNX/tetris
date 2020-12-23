@@ -18,7 +18,7 @@ TEST_GAMEPLAY_SHOT_WIDTH		equ 2
 TEST_GAMEPLAY_SHOT_HALF_WIDTH	equ TEST_GAMEPLAY_SHOT_WIDTH / 2
 TEST_GAMEPLAY_SHOT_HEIGHT		equ 6
 TEST_GAMEPLAY_SHOT_HALF_HEIGHT	equ TEST_GAMEPLAY_SHOT_HEIGHT / 2
-TEST_GAMEPLAY_SHOT_POSY_START 	equ 155
+TEST_GAMEPLAY_SHOT_POSY_START 	equ TEST_GAMEPLAY_POSY_BOX_START - TEST_GAMEPLAY_SHOT_HALF_HEIGHT
 TEST_GAMEPLAY_SHOT_SPEED_LOW	equ 0
 TEST_GAMEPLAY_SHOT_SPEED_HIGH	equ 7
 TEST_GAMEPLAY_SHOT_COOLDOWN 	equ 10
@@ -585,22 +585,22 @@ testGameplayRender proc
 	mov cl,[TestGameplayShotCount]
 	test cl,cl
 	jz loopShotDone
-	xor bx,bx
+	xor si,si
 	xor ch,ch
 loopShot:
 	push cx
-	mov cx,[TestGameplayShotPosX + bx]
+	mov cx,[TestGameplayShotPosX + si]
 	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_SHOT_WIDTH
-	mov dl,[TestGameplayShotPosYHigh + bx]
+	mov dl,[TestGameplayShotPosYHigh + si]
 	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
 	mov dh,dl
 	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
 	; Color.
 	mov al,1
 	call drawBox
-	inc bx
+	inc si
 	pop cx
 	loop loopShot
 loopShotDone:
@@ -641,9 +641,9 @@ data segment public
 	DrawPixelShift 				db 6, 4, 2, 0
 	TestGameplayShotCooldown	db ?	
 	TestGameplayShotCount		db ?
-	TestGameplayShotPosX		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayShotPosYLow		db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayShotPosYHigh	db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPosX		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)	
 	TestGameplayPosXLow			dw ?
 	TestGameplayPosXHigh		dw ?
 	TestGameplayPrevPosXHigh	dw ?
