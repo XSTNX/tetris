@@ -597,9 +597,11 @@ loopShot:
 	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
 	mov dh,dl
 	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
+	push si
 	; Color.
 	mov al,1
 	call drawBox
+	pop si
 	inc si
 	pop cx
 	loop loopShot
