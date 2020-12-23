@@ -3,16 +3,22 @@ include bios.inc
 include dos.inc
 
 TEST_GAMEPLAY_BOX_WIDTH 		equ 8
+TEST_GAMEPLAY_BOX_HALF_WIDTH 	equ TEST_GAMEPLAY_BOX_WIDTH / 2
 TEST_GAMEPLAY_BOX_HEIGHT 		equ 12
+TEST_GAMEPLAY_BOX_HALF_HEIGHT 	equ TEST_GAMEPLAY_BOX_HEIGHT / 2
 TEST_GAMEPLAY_POSX_LIMIT_LEFT 	equ 30
 TEST_GAMEPLAY_POSX_LIMIT_RIGHT 	equ 290
 TEST_GAMEPLAY_POSX_START 		equ 160
 TEST_GAMEPLAY_POSY 				equ 190
-TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT/2)
+TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT / 2)
 TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
 TEST_GAMEPLAY_SPEEDX_LOW 		equ 0
 TEST_GAMEPLAY_SPEEDX_HIGH 		equ 5
-TEST_GAMEPLAY_SHOT_POSX_START 	equ 155
+TEST_GAMEPLAY_SHOT_WIDTH		equ 2
+TEST_GAMEPLAY_SHOT_HALF_WIDTH	equ TEST_GAMEPLAY_SHOT_WIDTH / 2
+TEST_GAMEPLAY_SHOT_HEIGHT		equ 6
+TEST_GAMEPLAY_SHOT_HALF_HEIGHT	equ TEST_GAMEPLAY_SHOT_HEIGHT / 2
+TEST_GAMEPLAY_SHOT_POSY_START 	equ 155
 TEST_GAMEPLAY_SHOT_SPEED_LOW	equ 0
 TEST_GAMEPLAY_SHOT_SPEED_HIGH	equ 7
 TEST_GAMEPLAY_SHOT_COOLDOWN 	equ 10
@@ -556,7 +562,7 @@ skipMoveRight:
 	xor bh,bh
 	mov [TestGameplayShotPosX + bx],ax
 	mov [TestGameplayShotPosYLow + bx],bh
-	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSX_START
+	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
 	inc bx
 	mov [TestGameplayShotCount],bl
 skipShot:
@@ -575,10 +581,34 @@ testGameplayRender proc
 	mov dl,[TestGameplayShotCooldown]
 	call printByte
 
+	; Render shots.
+	mov cl,[TestGameplayShotCount]
+	test cl,cl
+	jz loopShotDone
+	xor bx,bx
+	xor ch,ch
+loopShot:
+	push cx
+	mov cx,[TestGameplayShotPosX + bx]
+	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
+	mov bx,cx
+	add bx,TEST_GAMEPLAY_SHOT_WIDTH
+	mov dl,[TestGameplayShotPosYHigh + bx]
+	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
+	mov dh,dl
+	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
+	; Color.
+	mov al,1
+	call drawBox
+	inc bx
+	pop cx
+	loop loopShot
+loopShotDone:
+
 	; --- Erase previous box. ---
 	; Start posX.
 	mov cx,[TestGameplayPrevPosXHigh]
-	sub cx,TEST_GAMEPLAY_BOX_WIDTH/2
+	sub cx,TEST_GAMEPLAY_BOX_HALF_WIDTH
 	; End posX.
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_BOX_WIDTH
@@ -591,7 +621,7 @@ testGameplayRender proc
 	; --- Draw current box. ---
 	; Start posX.
 	mov cx,[TestGameplayPosXHigh]
-	sub cx,TEST_GAMEPLAY_BOX_WIDTH/2
+	sub cx,TEST_GAMEPLAY_BOX_HALF_WIDTH
 	; End posX.
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_BOX_WIDTH
