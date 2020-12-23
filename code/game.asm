@@ -490,6 +490,7 @@ loopShot:
 	sub al,TEST_GAMEPLAY_SHOT_SPEED_LOW
 	mov [TestGameplayShotPosYLow + bx],al
 	mov al,[TestGameplayShotPosYHigh + bx]
+	mov [TestGameplayShotPrevPosYHigh + bx],al
 	sbb al,TEST_GAMEPLAY_SHOT_SPEED_High
 	mov [TestGameplayShotPosYHigh + bx],al
 	inc bx
@@ -563,6 +564,7 @@ skipMoveRight:
 	mov [TestGameplayShotPosX + bx],ax
 	mov [TestGameplayShotPosYLow + bx],bh
 	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
+	mov [TestGameplayShotPrevPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
 	inc bx
 	mov [TestGameplayShotCount],bl
 skipShot:
@@ -589,6 +591,22 @@ testGameplayRender proc
 	xor ch,ch
 loopShot:
 	push cx
+
+	; Erase previous shot.
+	mov cx,[TestGameplayShotPosX + si]
+	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
+	mov bx,cx
+	add bx,TEST_GAMEPLAY_SHOT_WIDTH
+	mov dl,[TestGameplayShotPrevPosYHigh + si]
+	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
+	mov dh,dl
+	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
+	mov al,0
+	push si	
+	call drawBox
+	pop si
+
+	; Draw current shot.
 	mov cx,[TestGameplayShotPosX + si]
 	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
 	mov bx,cx
@@ -597,39 +615,31 @@ loopShot:
 	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
 	mov dh,dl
 	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
-	push si
-	; Color.
 	mov al,1
+	push si
 	call drawBox
 	pop si
+
 	inc si
 	pop cx
 	loop loopShot
 loopShotDone:
 
-	; --- Erase previous box. ---
-	; Start posX.
+	; Erase previous box.
 	mov cx,[TestGameplayPrevPosXHigh]
 	sub cx,TEST_GAMEPLAY_BOX_HALF_WIDTH
-	; End posX.
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_BOX_WIDTH
-	; Start/end posY.
 	mov dx,TEST_GAMEPLAY_POSY_BOX_START + (TEST_GAMEPLAY_POSY_BOX_END * 256)
-	; Color.
 	mov al,0
 	call drawBox
 
-	; --- Draw current box. ---
-	; Start posX.
+	; Draw current box.
 	mov cx,[TestGameplayPosXHigh]
 	sub cx,TEST_GAMEPLAY_BOX_HALF_WIDTH
-	; End posX.
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_BOX_WIDTH
-	; Start/end posY.
 	mov dx,TEST_GAMEPLAY_POSY_BOX_START + (TEST_GAMEPLAY_POSY_BOX_END * 256)
-	; Color.
 	mov al,3
 	call drawBox
 
@@ -639,16 +649,17 @@ testGameplayRender endp
 code ends
 
 data segment public
-	DrawPixelMask				db 00111111b, 11001111b, 11110011b, 11111100b
-	DrawPixelShift 				db 6, 4, 2, 0
-	TestGameplayShotCooldown	db ?	
-	TestGameplayShotCount		db ?
-	TestGameplayShotPosYLow		db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayShotPosYHigh	db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayShotPosX		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)	
-	TestGameplayPosXLow			dw ?
-	TestGameplayPosXHigh		dw ?
-	TestGameplayPrevPosXHigh	dw ?
+	DrawPixelMask					db 00111111b, 11001111b, 11110011b, 11111100b
+	DrawPixelShift 					db 6, 4, 2, 0
+	TestGameplayShotCooldown		db ?
+	TestGameplayShotCount			db ?
+	TestGameplayShotPosYLow			db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPosYHigh		db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPrevPosYHigh	db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPosX			dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayPosXLow				dw ?
+	TestGameplayPosXHigh			dw ?
+	TestGameplayPrevPosXHigh		dw ?
 data ends
 
 	end main
