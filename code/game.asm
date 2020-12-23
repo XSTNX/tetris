@@ -13,6 +13,8 @@ TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX
 TEST_GAMEPLAY_SPEEDX_LOW 		equ 0
 TEST_GAMEPLAY_SPEEDX_HIGH 		equ 5
 TEST_GAMEPLAY_SHOT_POSX_START 	equ 155
+TEST_GAMEPLAY_SHOT_SPEED_LOW	equ 0
+TEST_GAMEPLAY_SHOT_SPEED_HIGH	equ 7
 TEST_GAMEPLAY_SHOT_COOLDOWN 	equ 10
 TEST_GAMEPLAY_SHOT_MAX_COUNT 	equ 4
 
@@ -470,6 +472,23 @@ testGameplayUpdate proc
 	dec ax
 	mov [TestGameplayShotCooldown],al
 skipShotCoolDownDecrement:
+
+	; Update shots.	
+	mov cl,[TestGameplayShotCount]
+	test cl,cl
+	jz loopShotDone
+	xor bx,bx
+	xor ch,ch
+loopShot:
+	mov al,[TestGameplayShotPosYLow + bx]
+	sub al,TEST_GAMEPLAY_SHOT_SPEED_LOW
+	mov [TestGameplayShotPosYLow + bx],al
+	mov al,[TestGameplayShotPosYHigh + bx]
+	sbb al,TEST_GAMEPLAY_SHOT_SPEED_High
+	mov [TestGameplayShotPosYHigh + bx],al
+	inc bx
+	loop loopShot
+loopShotDone:
 
 	; Poll keyboard.
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
