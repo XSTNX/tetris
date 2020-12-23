@@ -12,6 +12,9 @@ TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT/
 TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
 TEST_GAMEPLAY_SPEEDX_LOW 		equ 0
 TEST_GAMEPLAY_SPEEDX_HIGH 		equ 5
+TEST_GAMEPLAY_SHOT_POSX_START 	equ 155
+TEST_GAMEPLAY_SHOT_COOLDOWN 	equ 10
+TEST_GAMEPLAY_SHOT_MAX_COUNT 	equ 4
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -71,13 +74,13 @@ vsyncWait1:
 	jz vsyncWait1
 endm
 
-setCursorPos proc near
+; Input: dh (row), dl (col)
+SET_CURSOR_POS macro
     ; Use page number 0.
     xor bh,bh
     mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     int BIOS_VIDEO_INT
-    ret
-setCursorPos endp
+endm
 
 printNibbleHex proc
 	and dl,0fh
@@ -445,10 +448,14 @@ testDOSVersion endp
 testGameplayInit proc
 	mov ax,0b800h
 	mov es,ax
+
 	mov [TestGameplayPosXLow],0
 	mov ax,TEST_GAMEPLAY_POSX_START
 	mov [TestGameplayPosXHigh],ax
 	mov [TestGameplayPrevPosXHigh],ax
+
+	mov [TestGameplayShotCooldown],0
+	mov [TestGameplayShotCount],0
 testGameplayInit endp
 
 testGameplayUpdate proc
@@ -456,11 +463,19 @@ testGameplayUpdate proc
 	mov ax,[TestGameplayPosXHigh]
 	mov [TestGameplayPrevPosXHigh],ax
 
+	; Update cooldown.
+	mov al,[TestGameplayShotCooldown]
+	test al,al
+	jz skipShotCoolDownDecrement
+	dec ax
+	mov [TestGameplayShotCooldown],al
+skipShotCoolDownDecrement:
+
 	; Poll keyboard.
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
 	
-	; Reg bx is set to the direction of movement.
+	; Figure out direction of movement.
 	xor bx,bx
 	test al,BIOS_KEYBOARD_FLAGS_LEFT_SHIFT
 	jz skipDirLeft
@@ -471,6 +486,7 @@ skipDirLeft:
 	inc bx
 skipDirRight:
 
+	; Move left.
 	cmp bl,0ffh
 	jne skipMoveLeft
 	; Compute new posX.
@@ -489,6 +505,7 @@ skipLimitPosXLeft:
 	mov [TestGameplayPosXHigh],dx
 skipMoveLeft:
 
+	; Move right.
 	cmp bl,1
 	jne skipMoveRight
 	; Compute new posX.
@@ -507,15 +524,37 @@ skipLimitPosXRight:
 	mov [TestGameplayPosXHigh],dx
 skipMoveRight:
 
+	; Shoot.
+	test al,BIOS_KEYBOARD_FLAGS_CTRL
+	jz skipShot
+	mov bl,[TestGameplayShotCount]
+	cmp bl,TEST_GAMEPLAY_SHOT_MAX_COUNT
+	jae skipShot
+	cmp [TestGameplayShotCooldown],0
+	jne skipShot
+	mov [TestGameplayShotCooldown],TEST_GAMEPLAY_SHOT_COOLDOWN
+	mov ax,[TestGameplayPosXHigh]
+	xor bh,bh
+	mov [TestGameplayShotPosX + bx],ax
+	mov [TestGameplayShotPosYLow + bx],bh
+	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSX_START
+	inc bx
+	mov [TestGameplayShotCount],bl
+skipShot:
+
 	ret
 testGameplayUpdate endp
 
 testGameplayRender proc
 	WAIT_VSYNC
 	xor dx,dx
-	call setCursorPos
-	mov dx,[TestGameplayPosXHigh]
-	call printWord
+	SET_CURSOR_POS
+	mov dl,[TestGameplayShotCount]
+	call printByte
+	mov dx,100h
+	SET_CURSOR_POS
+	mov dl,[TestGameplayShotCooldown]
+	call printByte
 
 	; --- Erase previous box. ---
 	; Start posX.
@@ -551,6 +590,11 @@ code ends
 data segment public
 	DrawPixelMask				db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 				db 6, 4, 2, 0
+	TestGameplayShotCooldown	db ?	
+	TestGameplayShotCount		db ?
+	TestGameplayShotPosX		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPosYLow		db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPosYHigh	db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayPosXLow			dw ?
 	TestGameplayPosXHigh		dw ?
 	TestGameplayPrevPosXHigh	dw ?
