@@ -6,6 +6,7 @@ ASM
 - How does the LEA opcode works exactly?
 - Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory? How does DOS make sure in general there is enough memory to run the game?
 - Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
+- Is there an assert directive I can use?
 
 IBM PC
 ------

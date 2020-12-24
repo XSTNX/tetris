@@ -23,8 +23,9 @@ TEST_GAMEPLAY_SHOT_SPEED_LOW	equ 0
 TEST_GAMEPLAY_SHOT_SPEED_HIGH	equ 7
 TEST_GAMEPLAY_SHOT_COOLDOWN 	equ 10
 TEST_GAMEPLAY_SHOT_MAX_COUNT 	equ 4
+; assert(TEST_GAMEPLAY_SHOT_MAX_COUNT < 256)
 
-allSegments group code, data
+allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
@@ -457,13 +458,14 @@ testGameplayInit proc
 	mov ax,0b800h
 	mov es,ax
 
-	mov [TestGameplayPosXLow],0
+	xor ax,ax
+	mov [TestGameplayShotCooldown],al
+	mov [TestGameplayShotCount],ax
+	mov [TestGameplayPosXLow],ax
+
 	mov ax,TEST_GAMEPLAY_POSX_START
 	mov [TestGameplayPosXHigh],ax
 	mov [TestGameplayPrevPosXHigh],ax
-
-	mov [TestGameplayShotCooldown],0
-	mov [TestGameplayShotCount],0
 testGameplayInit endp
 
 testGameplayUpdate proc
@@ -479,12 +481,11 @@ testGameplayUpdate proc
 	mov [TestGameplayShotCooldown],al
 skipShotCoolDownDecrement:
 
-	; Update shots.	
-	mov cl,[TestGameplayShotCount]
-	test cl,cl
+	; Update shots.
+	mov cx,[TestGameplayShotCount]
+	test cx,cx
 	jz loopShotDone
 	xor bx,bx
-	xor ch,ch
 loopShot:
 	mov al,[TestGameplayShotPosYLow + bx]
 	sub al,TEST_GAMEPLAY_SHOT_SPEED_LOW
@@ -553,22 +554,23 @@ skipMoveRight:
 	; Shoot.
 	test al,BIOS_KEYBOARD_FLAGS_CTRL
 	jz skipShot
-	mov bl,[TestGameplayShotCount]
-	cmp bl,TEST_GAMEPLAY_SHOT_MAX_COUNT
+	mov bx,[TestGameplayShotCount]
+	cmp bx,TEST_GAMEPLAY_SHOT_MAX_COUNT
 	jae skipShot
 	cmp [TestGameplayShotCooldown],0
 	jne skipShot
 	mov [TestGameplayShotCooldown],TEST_GAMEPLAY_SHOT_COOLDOWN
 	mov ax,[TestGameplayPosXHigh]
-	xor bh,bh
 	mov si,bx
 	shl si,1
 	mov [TestGameplayShotPosX + si],ax
+	; Register bh is guaranteed to be zero because TEST_GAMEPLAY_SHOT_MAX_COUNT is smaller than 256.
 	mov [TestGameplayShotPosYLow + bx],bh
 	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
 	mov [TestGameplayShotPrevPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
 	inc bx
-	mov [TestGameplayShotCount],bl
+	; Register bh is guaranteed to be zero because TEST_GAMEPLAY_SHOT_MAX_COUNT is smaller than 256.
+	mov byte ptr [TestGameplayShotCount],bl
 skipShot:
 
 	ret
@@ -578,7 +580,7 @@ testGameplayRender proc
 	WAIT_VSYNC
 	xor dx,dx
 	SET_CURSOR_POS
-	mov dl,[TestGameplayShotCount]
+	mov dl,byte ptr [TestGameplayShotCount]
 	call printByte
 	mov dx,100h
 	SET_CURSOR_POS
@@ -586,11 +588,10 @@ testGameplayRender proc
 	call printByte
 
 	; Render shots.
-	mov cl,[TestGameplayShotCount]
-	test cl,cl
+	mov cx,[TestGameplayShotCount]
+	test cx,cx
 	jz loopShotDone
 	xor si,si
-	xor ch,ch
 loopShot:
 	push cx
 
@@ -652,14 +653,17 @@ testGameplayRender endp
 
 code ends
 
-data segment public
+constData segment public
 	DrawPixelMask					db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 					db 6, 4, 2, 0
+constData ends
+
+data segment public
 	TestGameplayShotCooldown		db ?
-	TestGameplayShotCount			db ?
 	TestGameplayShotPosYLow			db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayShotPosYHigh		db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayShotPrevPosYHigh	db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotCount			dw ?	
 	TestGameplayShotPosX			dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayPosXLow				dw ?
 	TestGameplayPosXHigh			dw ?
