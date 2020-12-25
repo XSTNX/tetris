@@ -48,9 +48,9 @@ main proc
 	int BIOS_VIDEO_INT
 
 	call testGameplayInit
-	call testGameplayRender
+	call testGameplayInitRender
 gameLoop:
-	call testGameplayUpdate	
+	call testGameplayUpdate
 	call testGameplayRender
 	; Don't quit the gameloop until ESC is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
@@ -299,27 +299,7 @@ nextKey:
 testKeyboardFlags endp
 
 testVideo1 proc
-	mov al,1
-	mov cx,0
-	mov bx,320
-	mov dx,50
-	call drawHorizLine
-	mov al,2
-	mov cx,0
-	mov bx,320
-	mov dx,100
-	call drawHorizLine
-	mov al,3
-	mov cx,0
-	mov bx,320
-	mov dx,150
-	call drawHorizLine
-
-	ret
-testVideo1 endp
-
-testVideo2 proc
-	mov ax,0b800h
+	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 	cld
 	
@@ -353,10 +333,10 @@ testVideo2 proc
 	rep stosw
 
 	ret
-testVideo2 endp
+testVideo1 endp
 
-testVideo3 proc
-	mov ax,0b800h
+testVideo2 proc
+	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 
 	; PosX.
@@ -376,7 +356,7 @@ testVideo3 proc
 	; Start posX.
 	mov cx,0
 	; End posX.
-	mov bx,320
+	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
 	; PosY.
 	mov dl,100
 	; Color.
@@ -385,7 +365,7 @@ testVideo3 proc
 	; Start posX.
 	mov cx,0
 	; End posX.
-	mov bx,320
+	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
 	; PosY.
 	mov dl,101
 	; Color.
@@ -403,7 +383,7 @@ testVideo3 proc
 	; Start posX.
 	mov cx,0
 	; End posX.
-	mov bx,320
+	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
 	; Start posY.
 	mov dl,102
 	; End posY.
@@ -413,7 +393,7 @@ testVideo3 proc
 	call drawBox
 
 	ret
-testVideo3 endp
+testVideo2 endp
 
 testDOSVersion proc
 	mov ah,DOS_REQUEST_FUNC_GET_VERSION_NUM
@@ -627,8 +607,19 @@ testGameplayDeleteShot proc
 	ret
 testGameplayDeleteShot endp
 
+testGameplayInitRender proc
+	call testGameplayRender
+	; Execute code after the regular render function so the ES segment is set to video memory.
+	mov cx,0
+	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
+	mov dl,TEST_GAMEPLAY_POSY_BOX_END
+	mov dh,2
+	call drawHorizLine
+	ret
+testGameplayInitRender endp
+
 testGameplayRender proc
-	mov ax,0b800h
+	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 
 	WAIT_VSYNC
@@ -640,7 +631,7 @@ testGameplayRender proc
 	SET_CURSOR_POS
 	mov dl,[TestGameplayShotCooldown]
 	call printByte
-
+	
 	; Clear deleted sprites.
 	mov cx,[TestGameplayRenderDeleteCount]
 	test cx,cx
