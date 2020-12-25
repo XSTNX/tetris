@@ -16,6 +16,7 @@ IBM PC
 - Make sure I understand which version of DOS is required to run the game.
 - See if I can find proper documentation on how vsync works.
 - Seems like the keypress has to be read before quitting, otherwise it will show up in the DOS prompt.
+- Should I worry about alignment? The PC and XT will not care about it, because they use an 8088, but newer models do. Probably the code would run fast enough to not care about the penalty?
 
 LINKS
 -----

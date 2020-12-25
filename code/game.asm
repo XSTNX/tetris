@@ -2,27 +2,27 @@ include ascii.inc
 include bios.inc
 include dos.inc
 
-TEST_GAMEPLAY_BOX_WIDTH 		equ 8
-TEST_GAMEPLAY_BOX_HALF_WIDTH 	equ TEST_GAMEPLAY_BOX_WIDTH / 2
-TEST_GAMEPLAY_BOX_HEIGHT 		equ 12
-TEST_GAMEPLAY_BOX_HALF_HEIGHT 	equ TEST_GAMEPLAY_BOX_HEIGHT / 2
-TEST_GAMEPLAY_POSX_LIMIT_LEFT 	equ 30
-TEST_GAMEPLAY_POSX_LIMIT_RIGHT 	equ 290
-TEST_GAMEPLAY_POSX_START 		equ 160
-TEST_GAMEPLAY_POSY 				equ 190
-TEST_GAMEPLAY_POSY_BOX_START	equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT / 2)
-TEST_GAMEPLAY_POSY_BOX_END		equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
-TEST_GAMEPLAY_SPEEDX_LOW 		equ 0
-TEST_GAMEPLAY_SPEEDX_HIGH 		equ 5
-TEST_GAMEPLAY_SHOT_WIDTH		equ 2
-TEST_GAMEPLAY_SHOT_HALF_WIDTH	equ TEST_GAMEPLAY_SHOT_WIDTH / 2
-TEST_GAMEPLAY_SHOT_HEIGHT		equ 6
-TEST_GAMEPLAY_SHOT_HALF_HEIGHT	equ TEST_GAMEPLAY_SHOT_HEIGHT / 2
-TEST_GAMEPLAY_SHOT_POSY_START 	equ TEST_GAMEPLAY_POSY_BOX_START - TEST_GAMEPLAY_SHOT_HALF_HEIGHT
-TEST_GAMEPLAY_SHOT_SPEED_LOW	equ 0
-TEST_GAMEPLAY_SHOT_SPEED_HIGH	equ 7
-TEST_GAMEPLAY_SHOT_COOLDOWN 	equ 10
-TEST_GAMEPLAY_SHOT_MAX_COUNT 	equ 4
+TEST_GAMEPLAY_BOX_WIDTH 				equ 8
+TEST_GAMEPLAY_BOX_HALF_WIDTH 			equ TEST_GAMEPLAY_BOX_WIDTH / 2
+TEST_GAMEPLAY_BOX_HEIGHT 				equ 12
+TEST_GAMEPLAY_BOX_HALF_HEIGHT 			equ TEST_GAMEPLAY_BOX_HEIGHT / 2
+TEST_GAMEPLAY_POSX_LIMIT_LEFT 			equ 30
+TEST_GAMEPLAY_POSX_LIMIT_RIGHT 			equ 290
+TEST_GAMEPLAY_POSX_START 				equ 160
+TEST_GAMEPLAY_POSY 						equ 190
+TEST_GAMEPLAY_POSY_BOX_START			equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT / 2)
+TEST_GAMEPLAY_POSY_BOX_END				equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
+TEST_GAMEPLAY_SPEEDX_LOW 				equ 0
+TEST_GAMEPLAY_SPEEDX_HIGH 				equ 5
+TEST_GAMEPLAY_SHOT_WIDTH				equ 2
+TEST_GAMEPLAY_SHOT_HALF_WIDTH			equ TEST_GAMEPLAY_SHOT_WIDTH / 2
+TEST_GAMEPLAY_SHOT_HEIGHT				equ 6
+TEST_GAMEPLAY_SHOT_HALF_HEIGHT			equ TEST_GAMEPLAY_SHOT_HEIGHT / 2
+TEST_GAMEPLAY_SHOT_POSY_START 			equ TEST_GAMEPLAY_POSY_BOX_START - TEST_GAMEPLAY_SHOT_HALF_HEIGHT
+TEST_GAMEPLAY_SHOT_POSY_START_PACKED 	equ TEST_GAMEPLAY_SHOT_POSY_START * 256
+TEST_GAMEPLAY_SHOT_SPEED_PACKED			equ 400h
+TEST_GAMEPLAY_SHOT_COOLDOWN 			equ 10
+TEST_GAMEPLAY_SHOT_MAX_COUNT 			equ 5
 ; assert(TEST_GAMEPLAY_SHOT_MAX_COUNT < 256)
 
 allSegments group code, constData, data
@@ -455,8 +455,7 @@ strDOSType:
 testDOSVersion endp
 
 testGameplayInit proc
-	mov ax,0b800h
-	mov es,ax
+	cld
 
 	xor ax,ax
 	mov [TestGameplayShotCooldown],al
@@ -469,6 +468,9 @@ testGameplayInit proc
 testGameplayInit endp
 
 testGameplayUpdate proc
+	mov ax,ds
+	mov es,ax
+
 	; Save prev posX.
 	mov ax,[TestGameplayPosXHigh]
 	mov [TestGameplayPrevPosXHigh],ax
@@ -485,16 +487,22 @@ skipShotCoolDownDecrement:
 	mov cx,[TestGameplayShotCount]
 	test cx,cx
 	jz loopShotDone
-	xor bx,bx
+	mov dx,TEST_GAMEPLAY_SHOT_SPEED_PACKED
+	mov si,offset TestGameplayShotPosYPacked
+	mov di,si
 loopShot:
-	mov al,[TestGameplayShotPosYLow + bx]
-	sub al,TEST_GAMEPLAY_SHOT_SPEED_LOW
-	mov [TestGameplayShotPosYLow + bx],al
-	mov al,[TestGameplayShotPosYHigh + bx]
-	mov [TestGameplayShotPrevPosYHigh + bx],al
-	sbb al,TEST_GAMEPLAY_SHOT_SPEED_High
-	mov [TestGameplayShotPosYHigh + bx],al
-	inc bx
+	lodsw
+	cmp ax,dx
+	jb short loopDelete
+	mov byte ptr [(TestGameplayShotPrevPosY - TestGameplayShotPosYPacked) + di],ah
+	sub ax,dx
+	stosw
+	jmp short loopShotNext
+loopDelete:
+	call testGameplayDeleteShot
+	dec si
+	dec si
+loopShotNext:
 	loop loopShot
 loopShotDone:
 
@@ -554,29 +562,49 @@ skipMoveRight:
 	; Shoot.
 	test al,BIOS_KEYBOARD_FLAGS_CTRL
 	jz skipShot
-	mov bx,[TestGameplayShotCount]
-	cmp bx,TEST_GAMEPLAY_SHOT_MAX_COUNT
-	jae skipShot
+	mov cx,[TestGameplayShotCount]
+	cmp cx,TEST_GAMEPLAY_SHOT_MAX_COUNT
+	je skipShot
 	cmp [TestGameplayShotCooldown],0
 	jne skipShot
 	mov [TestGameplayShotCooldown],TEST_GAMEPLAY_SHOT_COOLDOWN
-	mov ax,[TestGameplayPosXHigh]
-	mov si,bx
-	shl si,1
-	mov [TestGameplayShotPosX + si],ax
-	; Register bh is guaranteed to be zero because TEST_GAMEPLAY_SHOT_MAX_COUNT is smaller than 256.
-	mov [TestGameplayShotPosYLow + bx],bh
-	mov [TestGameplayShotPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
-	mov [TestGameplayShotPrevPosYHigh + bx],TEST_GAMEPLAY_SHOT_POSY_START
-	inc bx
-	; Register bh is guaranteed to be zero because TEST_GAMEPLAY_SHOT_MAX_COUNT is smaller than 256.
-	mov byte ptr [TestGameplayShotCount],bl
+	; Don't need to read this again if dx is not overriden.
+	mov dx,[TestGameplayPosXHigh]
+	mov di,cx
+	shl di,1
+	mov [TestGameplayShotPosX + di],dx
+	mov [TestGameplayShotPosYPacked + di],TEST_GAMEPLAY_SHOT_POSY_START_PACKED
+	; If the shot was updated after this, setting prev pos wouldn't be needed, is it worth doing?
+	mov byte ptr [TestGameplayShotPrevPosY + di],TEST_GAMEPLAY_SHOT_POSY_START
+	inc cx
+	mov byte ptr [TestGameplayShotCount],cl
 skipShot:
 
 	ret
 testGameplayUpdate endp
 
+; Input: di (pointer to the position in TestGameplayShotPosYPacked of the shot to be deleted)
+testGameplayDeleteShot proc
+	; Decrement shot count.
+	mov bx,[TestGameplayShotCount]
+	dec bx
+	mov [TestGameplayShotCount],bx
+	; Compute index of the last shot.
+	shl bx,1
+	; Copy data from last shot over deleted shot.
+	mov ax,[TestGameplayShotPosX + bx]
+	mov [(TestGameplayShotPosX - TestGameplayShotPosYPacked) + di],ax
+	mov ax,[TestGameplayShotPosYPacked + bx]
+	mov [di],ax
+	mov al,byte ptr [TestGameplayShotPrevPosY + bx]
+	mov byte ptr[(TestGameplayShotPrevPosY - TestGameplayShotPosYPacked) + di],al
+	ret
+testGameplayDeleteShot endp
+
 testGameplayRender proc
+	mov ax,0b800h
+	mov es,ax
+
 	WAIT_VSYNC
 	xor dx,dx
 	SET_CURSOR_POS
@@ -591,41 +619,36 @@ testGameplayRender proc
 	mov cx,[TestGameplayShotCount]
 	test cx,cx
 	jz loopShotDone
-	xor si,si
+	xor di,di
 loopShot:
 	push cx
 
 	; Erase previous shot.
-	mov di,si
-	shl di,1
 	mov cx,[TestGameplayShotPosX + di]
 	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_SHOT_WIDTH
-	mov dl,[TestGameplayShotPrevPosYHigh + si]
+	mov dl,byte ptr [TestGameplayShotPrevPosY + di]
 	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
 	mov dh,dl
 	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
 	mov al,0
-	push si
 	call drawBox
-	pop si
 
 	; Draw current shot.
 	mov cx,[TestGameplayShotPosX + di]
 	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
 	mov bx,cx
 	add bx,TEST_GAMEPLAY_SHOT_WIDTH
-	mov dl,[TestGameplayShotPosYHigh + si]
+	mov dl,byte ptr [(TestGameplayShotPosYPacked + 1) + di]
 	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
 	mov dh,dl
 	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
 	mov al,1
-	push si
 	call drawBox
-	pop si
 
-	inc si
+	inc di
+	inc di
 	pop cx
 	loop loopShot
 loopShotDone:
@@ -660,11 +683,12 @@ constData ends
 
 data segment public
 	TestGameplayShotCooldown		db ?
-	TestGameplayShotPosYLow			db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayShotPosYHigh		db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayShotPrevPosYHigh	db TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayShotCount			dw ?	
+	; The shot count will be stored in the LSB, the MSB will remain at zero.
+	TestGameplayShotCount			dw ?
 	TestGameplayShotPosX			dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	TestGameplayShotPosYPacked		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	; The prev pos will be stored in the LSB, the MSB is unused.
+	TestGameplayShotPrevPosY		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayPosXLow				dw ?
 	TestGameplayPosXHigh			dw ?
 	TestGameplayPrevPosXHigh		dw ?
