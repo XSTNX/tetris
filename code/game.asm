@@ -24,6 +24,7 @@ TEST_GAMEPLAY_SHOT_SPEED_PACKED			equ 400h
 TEST_GAMEPLAY_SHOT_COOLDOWN 			equ 10
 TEST_GAMEPLAY_SHOT_MAX_COUNT 			equ 5
 ; assert(TEST_GAMEPLAY_SHOT_MAX_COUNT < 256)
+TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT	equ TEST_GAMEPLAY_SHOT_MAX_COUNT * 2
 
 allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
@@ -219,7 +220,7 @@ drawHorizLine proc
 	pop bx
 	inc cx
 	cmp cx,bx
-	jb short drawHorizLine
+	jne short drawHorizLine
 	ret
 drawHorizLine endp
 
@@ -234,7 +235,7 @@ drawBox proc
 	pop ax
 	inc dl
 	cmp dl,dh
-	jb short drawBox
+	jne short drawBox
 	ret
 drawBox endp
 
@@ -461,6 +462,11 @@ testGameplayInit proc
 	mov [TestGameplayShotCooldown],al
 	mov [TestGameplayShotCount],ax
 	mov [TestGameplayPosXLow],ax
+	mov [TestGameplayRenderDeleteCount],ax
+	; Zero out both TestGameplayRenderDeleteWidth and TestGameplayRenderDeleteHeight
+	mov cx,TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT * 2
+	mov di,offset TestGameplayRenderDeleteWidth
+	rep stosw
 
 	mov ax,TEST_GAMEPLAY_POSX_START
 	mov [TestGameplayPosXHigh],ax
@@ -591,13 +597,33 @@ testGameplayDeleteShot proc
 	mov [TestGameplayShotCount],bx
 	; Compute index of the last shot.
 	shl bx,1
+	; Increment render delete count.
+	mov ax,[TestGameplayRenderDeleteCount]
+	push si
+	mov si,ax
+	inc ax
+	mov [TestGameplayRenderDeleteCount],ax
+	shl si,1
+	; Copy data to wipe shot from video memory on the next call to render.
+	mov ax,[(TestGameplayShotPosX - TestGameplayShotPosYPacked) + di]
+	sub ax,TEST_GAMEPLAY_SHOT_HALF_WIDTH
+	mov [TestGameplayRenderDeletePosX + si],ax
+	mov al,byte ptr [di + 1]
+	sub al,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
+	mov byte ptr [TestGameplayRenderDeletePosY + si],al
+	mov al,TEST_GAMEPLAY_SHOT_WIDTH
+	mov byte ptr [TestGameplayRenderDeleteWidth + si],al
+	mov al,TEST_GAMEPLAY_SHOT_HEIGHT
+	mov byte ptr [TestGameplayRenderDeleteHeight + si],al
 	; Copy data from last shot over deleted shot.
 	mov ax,[TestGameplayShotPosX + bx]
 	mov [(TestGameplayShotPosX - TestGameplayShotPosYPacked) + di],ax
 	mov ax,[TestGameplayShotPosYPacked + bx]
 	mov [di],ax
 	mov al,byte ptr [TestGameplayShotPrevPosY + bx]
-	mov byte ptr[(TestGameplayShotPrevPosY - TestGameplayShotPosYPacked) + di],al
+	mov byte ptr [(TestGameplayShotPrevPosY - TestGameplayShotPosYPacked) + di],al
+	pop si
+
 	ret
 testGameplayDeleteShot endp
 
@@ -614,6 +640,32 @@ testGameplayRender proc
 	SET_CURSOR_POS
 	mov dl,[TestGameplayShotCooldown]
 	call printByte
+
+	; Clear deleted sprites.
+	mov cx,[TestGameplayRenderDeleteCount]
+	test cx,cx
+	jz loopDeleteDone
+	xor di,di
+loopDelete:
+	push cx
+		
+	mov cx,[TestGameplayRenderDeletePosX + di]
+	mov bx,cx
+	add bx,[TestGameplayRenderDeleteWidth + di]
+	mov dl,byte ptr [TestGameplayRenderDeletePosY + di]
+	mov dh,dl
+	add dh,byte ptr [TestGameplayRenderDeleteHeight + di]
+	mov al,0
+	call drawBox
+
+	inc di
+	inc di
+	pop cx
+	loop loopDelete
+	
+	; Set delete count back to zero.
+	mov [TestGameplayRenderDeleteCount],cx
+loopDeleteDone:
 
 	; Render shots.
 	mov cx,[TestGameplayShotCount]
@@ -687,11 +739,19 @@ data segment public
 	TestGameplayShotCount			dw ?
 	TestGameplayShotPosX			dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayShotPosYPacked		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	; The prev pos will be stored in the LSB, the MSB is unused.
+	; The shot prev posY will be stored in the LSB, the MSB is unused.
 	TestGameplayShotPrevPosY		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
 	TestGameplayPosXLow				dw ?
 	TestGameplayPosXHigh			dw ?
 	TestGameplayPrevPosXHigh		dw ?
+	TestGameplayRenderDeleteCount	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	; The render delete posX and PosY are measured from the top left corner. 
+	TestGameplayRenderDeletePosX	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	; The render delete posY will be stored in the LSB, the MSB is unused.
+	TestGameplayRenderDeletePosY	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	; The render delete size will be stored in the LSB, the MSB is unused.
+	TestGameplayRenderDeleteWidth	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	TestGameplayRenderDeleteHeight	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
 data ends
 
 	end main
