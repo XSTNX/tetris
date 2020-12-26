@@ -26,3 +26,7 @@ https://stanislavs.org/helppc/int_table.html (interrupts)
 http://www.delorie.com/djgpp/doc/rbinter/ (interrupts)
 https://www.phatcode.net/articles.php
 http://qzx.com/pc-gpe/
+
+GAMES
+-----
+https://archive.org/details/msdos_Snack_Attack_II_1982 (Michael Abrash)
