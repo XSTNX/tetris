@@ -39,20 +39,17 @@ main proc private
 	; Read current video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
-	cmp al,BIOS_VIDEO_MODE_40_25_TEXT_BW
-	je short gameWrongVideoCard
-	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_BW
-	je short gameWrongVideoCard
-	; If using a CGA, save current video Mode and continue with the game.
-	push ax
-	jmp short gameStart
-
-gameWrongVideoCard:
+	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
+	jne short gameStart
+	; Print wrong video card message and quit.
 	mov dx,offset StrWrongVideoCard
 	CONSOLE_PRINT_DOS_STRING
 	jmp short gameQuit
 
 gameStart:
+	; Save current video mode.
+	push ax
+
 	; Set graphics mode.
 	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
