@@ -20,6 +20,11 @@ IBM PC
 - I think I read somewhere that the rep prefix will not resume when an interrupt is triggered, meaning the loop will not get completed. Is this true?
 - Is there any emulator that produces accurate results for the IBM PC? Otherwise it will be very difficult to measure optmizations.
 
+MASM
+----
+- Do I need to put the includes as dependencies in the makefile or is there a simple way of dealing with that?
+- The makefile doesn't always do the link step after assembling, so it has to be run twice, why is that exactly?
+
 LINKS
 -----
 https://www.pcjs.org/machines/pcx86/ibm/5160/cga/ (web emulator)
