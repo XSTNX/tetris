@@ -36,15 +36,27 @@ code segment public
 ;----------;
 
 main proc private
-	; Save previous video mode.
+	; Read current video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
+	cmp al,BIOS_VIDEO_MODE_40_25_TEXT_BW
+	je short gameWrongVideoCard
+	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_BW
+	je short gameWrongVideoCard
+	; If using a CGA, save current video Mode and continue with the game.
 	push ax
+	jmp short gameStart
 
+gameWrongVideoCard:
+	mov dx,offset StrWrongVideoCard
+	CONSOLE_PRINT_DOS_STRING
+	jmp short gameQuit
+
+gameStart:
 	; Set graphics mode.
-	mov al,BIOS_VIDEO_MODE_320_200_4_BURST_ON
+	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
-	int BIOS_VIDEO_INT	
+	int BIOS_VIDEO_INT
 	; Set palette 0.
 	mov bx,100h
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
@@ -70,6 +82,7 @@ gameLoop:
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
 
+gameQuit:
 	DOS_QUIT
 main endp
 
@@ -157,7 +170,7 @@ nextKey:
 	push ax	
 
 	; Print scancode.	
-	mov dx,strScancode
+	mov dx,offset strScancode
 	CONSOLE_PRINT_DOS_STRING
 	pop ax
 	push ax
@@ -168,7 +181,7 @@ nextKey:
 	CONSOLE_PRINT_CHAR
 
 	; Print ascii.
-	mov dx,strASCII
+	mov dx,offset strASCII
 	CONSOLE_PRINT_DOS_STRING
 	pop ax
 	mov dl,al
@@ -307,7 +320,7 @@ testDOSVersion proc private
 	push bx
 	push ax
 
-	mov dx,strVer
+	mov dx,offset strVer
 	CONSOLE_PRINT_DOS_STRING
 
 	; Major version.
@@ -323,7 +336,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByte
 	
-	mov dx,strDOSType
+	mov dx,offset strDOSType
 	CONSOLE_PRINT_DOS_STRING
 
 	; Dos type.
@@ -623,6 +636,7 @@ testGameplayRender endp
 code ends
 
 constData segment public
+	StrWrongVideoCard				db 'You need a Color Graphics Adapter to play this game.$'
 	DrawPixelMask					db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 					db 6, 4, 2, 0
 constData ends

@@ -19,6 +19,8 @@ IBM PC
 - Should I worry about alignment? The PC and XT will not care about it, because they use an 8088, but newer models do. Probably the code would run fast enough to not care about the penalty?
 - I think I read somewhere that the rep prefix will not resume when an interrupt is triggered, meaning the loop will not get completed. Is this true?
 - Is there any emulator that produces accurate results for the IBM PC? Otherwise it will be very difficult to measure optmizations.
+- What is the difference between BIOS_VIDEO_MODE_320_200_4_COLOR and BIOS_VIDEO_MODE_320_200_4_BW really?
+- Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.
 
 MASM
 ----
