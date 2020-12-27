@@ -119,7 +119,7 @@ divide:
 	jne divide
 	mov bx,3
 	sub bx,cx
-	jz nextDigit
+	je nextDigit
 leadingZeroes:
 	xor dl,dl
 	call printNibbleHex
@@ -157,7 +157,7 @@ divide:
 	; Setting bl is enough since bh is zero.
 	mov bl,5
 	sub bl,cl
-	jz nextDigit
+	je nextDigit
 leadingZeroes:	
 	xor dl,dl
 	call printNibbleHex
