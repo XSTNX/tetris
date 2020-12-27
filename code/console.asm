@@ -1,4 +1,4 @@
-include code\dos.inc
+include code\console.inc
 
 allSegments group code
     assume cs:allSegments
@@ -6,21 +6,19 @@ allSegments group code
 code segment public
 
 ; Input: dl (just the low nibble).
-printNibbleHex proc
+consolePrintNibbleHex proc
 	and dl,0fh
 	cmp dl,10
 	jb short skipLetter
 	add dl,'A' - ('9' + 1)
 skipLetter:
 	add dl,'0'
-printChar:
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
+	CONSOLE_PRINT_CHAR
 	ret
-printNibbleHex endp
+consolePrintNibbleHex endp
 
 ; Input: dl.
-printByte proc
+consolePrintByte proc
 	mov al,dl
 	mov bl,10
 	xor cx,cx
@@ -36,28 +34,28 @@ divide:
 	je nextDigit
 	xor dl,dl
 leadingZeroes:
-	call printNibbleHex
+	call consolePrintNibbleHex
 	dec bx
 	jnz leadingZeroes
 nextDigit:
 	pop dx
 	mov dl,dh
-	call printNibbleHex
+	call consolePrintNibbleHex
 	loop nextDigit
 	ret
-printByte endp
+consolePrintByte endp
 
-printByteHex proc
+consolePrintByteHex proc
 	mov ch,dl
 	mov cl,4
 	shr dl,cl
-	call printNibbleHex
+	call consolePrintNibbleHex
 	mov dl,ch
-	call printNibbleHex
+	call consolePrintNibbleHex
 	ret
-printByteHex endp
+consolePrintByteHex endp
 
-printWord proc
+consolePrintWord proc
 	mov ax,dx
 	mov bx,10
 	xor cx,cx
@@ -74,23 +72,23 @@ divide:
 	je nextDigit
 leadingZeroes:	
 	xor dl,dl
-	call printNibbleHex
+	call consolePrintNibbleHex
 	dec bx
 	jnz leadingZeroes
 nextDigit:
 	pop dx
-	call printNibbleHex
+	call consolePrintNibbleHex
 	loop nextDigit
 	ret
-printWord endp
+consolePrintWord endp
 
-printWordHex proc
+consolePrintWordHex proc
 	xchg dl,dh
-	call printByteHex
+	call consolePrintByteHex
 	mov dl,dh
-	call printByteHex
+	call consolePrintByteHex
 	ret
-printWordHex endp
+consolePrintWordHex endp
 
 ; ---------;
 ; Private. ;

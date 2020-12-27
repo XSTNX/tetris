@@ -1,6 +1,5 @@
-include code\ascii.inc
 include code\bios.inc
-include code\dos.inc
+include code\console.inc
 
 TEST_GAMEPLAY_BOX_WIDTH 				equ 8
 TEST_GAMEPLAY_BOX_HALF_WIDTH 			equ TEST_GAMEPLAY_BOX_WIDTH / 2
@@ -30,7 +29,7 @@ allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
-	extern printByte:proc, printByteHex:proc
+	extern consolePrintByte:proc, consolePrintByteHex:proc
 	org 100h
 
 ;----------;
@@ -90,7 +89,7 @@ endm
 
 ; Input: dh (row, Y coord), dl (col, X coord).
 SET_CURSOR_POS macro
-    ; Use page number 0.
+    ;; Use page number 0.
     xor bh,bh
     mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     int BIOS_VIDEO_INT
@@ -99,32 +98,32 @@ endm
 DRAW_PIXEL macro
 local notOddRow
 	xor bx,bx
-	; Divide posY by two, since the even rows go in one bank and the odd rows in another.
+	;; Divide posY by two, since the even rows go in one bank and the odd rows in another.
 	shr dl,1
 	jnc notOddRow
-	; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
+	;; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
 	mov bh,20h
 notOddRow:
-	; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
+	;; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
 	mov al,80
 	mul dl
 	or bx,ax
-	; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
+	;; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
 	mov si,cx
 	and si,11b
-	; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
+	;; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
 	shr cx,1
 	shr cx,1	
 	add bx,cx
-	; Read the byte in video memory where the pixel is.
+	;; Read the byte in video memory where the pixel is.
 	mov al,es:[bx]
-	; Mask the previous pixel.
+	;; Mask the previous pixel.
 	and al,DrawPixelMask[si]
-	; Add the new pixel.
+	;; Add the new pixel.
 	mov cl,DrawPixelShift[si]
 	shl dh,cl
 	or al,dh
-	; Write the updated byte to video memory.
+	;; Write the updated byte to video memory.
 	mov es:[bx],al
 endm
 
@@ -167,29 +166,20 @@ nextKey:
 	; Print scancode.
 	push ax
 	mov dl,ah
-	call printByteHex
+	call consolePrintByteHex
 
 	; Print ascii.
 	mov dl,' '
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
+	CONSOLE_PRINT_CHAR
 	pop ax
 	mov dl,al
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
+	CONSOLE_PRINT_CHAR
 
-	; Go to next line.
-	mov dl,ASCII_CR
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
-	mov dl,ASCII_LF
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
-
+	CONSOLE_GO_NEXT_LINE
 	jmp short nextkey
 
 quit:
-	int DOS_COM_TERMINATION_INT
+	DOS_QUIT
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
@@ -197,15 +187,9 @@ nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
 	mov dl,al
-	call printByteHex
+	call consolePrintByteHex
 
-	; Go to next line.
-	mov dl,ASCII_CR
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
-	mov dl,ASCII_LF
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
+	CONSOLE_GO_NEXT_LINE
 
 	; Continue until a key is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
@@ -317,7 +301,7 @@ testDOSVersion proc private
 	mov ah,DOS_REQUEST_FUNC_GET_VERSION_NUM
 	int DOS_REQUEST_INT
 	push bx
-	push ax	
+	push ax
 
 	mov dx,strVer
 	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
@@ -326,16 +310,15 @@ testDOSVersion proc private
 	; Major version.
 	pop dx
 	push dx
-	call printByte
+	call consolePrintByte
 	
 	mov dl,'.'
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
+	CONSOLE_PRINT_CHAR
 	
 	; Minor version.
 	pop dx
 	mov dl,dh
-	call printByte
+	call consolePrintByte
 	
 	mov dx,strDOSType
 	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
@@ -344,7 +327,7 @@ testDOSVersion proc private
 	; Dos type.
 	pop dx
 	mov dl,dh
-	call printByteHex
+	call consolePrintByteHex
 
 	ret
 strVer:
@@ -544,11 +527,11 @@ testGameplayRender proc private
 	xor dx,dx
 	SET_CURSOR_POS
 	mov dl,byte ptr [TestGameplayShotCount]
-	call printByte
+	call consolePrintByte
 	mov dx,100h
 	SET_CURSOR_POS
 	mov dl,[TestGameplayShotCooldown]
-	call printByte
+	call consolePrintByte
 	
 	; Clear deleted sprites.
 	mov cx,[TestGameplayRenderDeleteCount]
