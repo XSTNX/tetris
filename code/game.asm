@@ -84,7 +84,7 @@ vsyncWait1:
 	jz vsyncWait1
 endm
 
-; Input: dh (row), dl (col)
+; Input: dh (row), dl (col).
 SET_CURSOR_POS macro
     ; Use page number 0.
     xor bh,bh
@@ -92,13 +92,13 @@ SET_CURSOR_POS macro
     int BIOS_VIDEO_INT
 endm
 
+; Input: dl (just the low nibble).
 printNibbleHex proc
 	and dl,0fh
 	cmp dl,10
-	jb short noLetter
-	add dl,'A'-10
-	jmp short printChar
-noLetter:
+	jb short skipLetter
+	add dl,'A' - ('9' + 1)
+skipLetter:
 	add dl,'0'
 printChar:
 	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
@@ -106,6 +106,7 @@ printChar:
 	ret
 printNibbleHex endp
 
+; Input: dl.
 printByte proc
 	mov al,dl
 	mov bl,10
@@ -120,8 +121,8 @@ divide:
 	mov bx,3
 	sub bx,cx
 	je nextDigit
-leadingZeroes:
 	xor dl,dl
+leadingZeroes:
 	call printNibbleHex
 	dec bx
 	jnz leadingZeroes
@@ -569,7 +570,7 @@ skipShot:
 	ret
 testGameplayUpdate endp
 
-; Input: di (pointer to the position in TestGameplayShotPosYPacked of the shot to be deleted)
+; Input: di (pointer to the position in TestGameplayShotPosYPacked of the shot to be deleted).
 testGameplayDeleteShot proc
 	; Decrement shot count.
 	mov bx,[TestGameplayShotCount]

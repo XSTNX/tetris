@@ -18,6 +18,7 @@ IBM PC
 - Seems like the keypress has to be read before quitting, otherwise it will show up in the DOS prompt.
 - Should I worry about alignment? The PC and XT will not care about it, because they use an 8088, but newer models do. Probably the code would run fast enough to not care about the penalty?
 - I think I read somewhere that the rep prefix will not resume when an interrupt is triggered, meaning the loop will not get completed. Is this true?
+- Is there any emulator that produces accurate results for the IBM PC? Otherwise it will be very difficult to measure optmizations.
 
 LINKS
 -----
