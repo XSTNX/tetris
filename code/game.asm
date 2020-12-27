@@ -72,8 +72,7 @@ gameLoop:
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
 
-	; Quit.
-	int DOS_COM_TERMINATION_INT
+	DOS_QUIT
 main endp
 
 WAIT_VSYNC macro
