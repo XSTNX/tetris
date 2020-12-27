@@ -1,4 +1,4 @@
-include dos.inc
+include code\dos.inc
 
 allSegments group code
     assume cs:allSegments

@@ -1,6 +1,6 @@
-include ascii.inc
-include bios.inc
-include dos.inc
+include code\ascii.inc
+include code\bios.inc
+include code\dos.inc
 
 TEST_GAMEPLAY_BOX_WIDTH 				equ 8
 TEST_GAMEPLAY_BOX_HALF_WIDTH 			equ TEST_GAMEPLAY_BOX_WIDTH / 2

@@ -1,4 +1,5 @@
-ML_FLAGS = /AT /c /W3
+INCLUDE_FOLDER = .
+ML_FLAGS = /AT /c /I $(INCLUDE_FOLDER) /W3 /X
 LINK_FLAGS = /tiny
 
 all : bin\invdrs.com
