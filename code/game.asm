@@ -162,15 +162,23 @@ nextKey:
 	int BIOS_KEYBOARD_INT
 	cmp al,3
 	je quit
+	; Save returned data.
+	push ax	
 
-	; Print scancode.
+	; Print scancode.	
+	mov dx,strScancode
+	CONSOLE_PRINT_DOS_STRING
+	pop ax
 	push ax
 	mov dl,ah
 	call consolePrintByteHex
 
-	; Print ascii.
 	mov dl,' '
 	CONSOLE_PRINT_CHAR
+
+	; Print ascii.
+	mov dx,strASCII
+	CONSOLE_PRINT_DOS_STRING
 	pop ax
 	mov dl,al
 	CONSOLE_PRINT_CHAR
@@ -180,6 +188,11 @@ nextKey:
 
 quit:
 	DOS_QUIT
+
+strScancode:
+	db 'Scancode: $'
+strASCII:
+	db ' ASCII: $'
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
@@ -304,8 +317,7 @@ testDOSVersion proc private
 	push ax
 
 	mov dx,strVer
-	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
-	int DOS_REQUEST_INT
+	CONSOLE_PRINT_DOS_STRING
 
 	; Major version.
 	pop dx
@@ -321,8 +333,7 @@ testDOSVersion proc private
 	call consolePrintByte
 	
 	mov dx,strDOSType
-	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
-	int DOS_REQUEST_INT
+	CONSOLE_PRINT_DOS_STRING
 
 	; Dos type.
 	pop dx
