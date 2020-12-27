@@ -30,9 +30,14 @@ allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
+	extern printByte:proc, printByteHex:proc
 	org 100h
 
-main proc
+;----------;
+; Private. ;
+;----------;
+
+main proc private
 	; Save previous video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
@@ -84,100 +89,13 @@ vsyncWait1:
 	jz vsyncWait1
 endm
 
-; Input: dh (row), dl (col).
+; Input: dh (row, Y coord), dl (col, X coord).
 SET_CURSOR_POS macro
     ; Use page number 0.
     xor bh,bh
     mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     int BIOS_VIDEO_INT
 endm
-
-; Input: dl (just the low nibble).
-printNibbleHex proc
-	and dl,0fh
-	cmp dl,10
-	jb short skipLetter
-	add dl,'A' - ('9' + 1)
-skipLetter:
-	add dl,'0'
-printChar:
-	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
-	int DOS_REQUEST_INT
-	ret
-printNibbleHex endp
-
-; Input: dl.
-printByte proc
-	mov al,dl
-	mov bl,10
-	xor cx,cx
-divide:
-	xor ah,ah
-	div bl
-	push ax
-	inc cx
-	test al,al
-	jne divide
-	mov bx,3
-	sub bx,cx
-	je nextDigit
-	xor dl,dl
-leadingZeroes:
-	call printNibbleHex
-	dec bx
-	jnz leadingZeroes
-nextDigit:
-	pop dx
-	mov dl,dh
-	call printNibbleHex
-	loop nextDigit
-	ret
-printByte endp
-
-printByteHex proc
-	mov ch,dl
-	mov cl,4
-	shr dl,cl
-	call printNibbleHex
-	mov dl,ch
-	call printNibbleHex
-	ret
-printByteHex endp
-
-printWord proc
-	mov ax,dx
-	mov bx,10
-	xor cx,cx
-divide:
-	xor dx,dx
-	div bx
-	push dx
-	inc cx
-	test ax,ax
-	jne divide
-	; Setting bl is enough since bh is zero.
-	mov bl,5
-	sub bl,cl
-	je nextDigit
-leadingZeroes:	
-	xor dl,dl
-	call printNibbleHex
-	dec bx
-	jnz leadingZeroes
-nextDigit:
-	pop dx
-	call printNibbleHex
-	loop nextDigit
-	ret
-printWord endp
-
-printWordHex proc
-	xchg dl,dh
-	call printByteHex
-	mov dl,dh
-	call printByteHex
-	ret
-printWordHex endp
 
 DRAW_PIXEL macro
 local notOddRow
@@ -211,7 +129,7 @@ notOddRow:
 	mov es:[bx],al
 endm
 
-drawHorizLine proc
+drawHorizLine proc private
 	push bx
 	push cx
 	push dx
@@ -225,7 +143,7 @@ drawHorizLine proc
 	ret
 drawHorizLine endp
 
-drawBox proc
+drawBox proc private
 	push ax
 	push cx
 	push dx
@@ -240,7 +158,7 @@ drawBox proc
 	ret
 drawBox endp
 
-testKeyboardScancode proc
+testKeyboardScancode proc private
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
 	int BIOS_KEYBOARD_INT
@@ -275,7 +193,7 @@ quit:
 	int DOS_COM_TERMINATION_INT
 testKeyboardScancode endp
 
-testKeyboardFlags proc
+testKeyboardFlags proc private
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
@@ -299,7 +217,7 @@ nextKey:
 	ret
 testKeyboardFlags endp
 
-testVideo1 proc
+testVideo1 proc private
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 	cld
@@ -336,7 +254,7 @@ testVideo1 proc
 	ret
 testVideo1 endp
 
-testVideo2 proc
+testVideo2 proc private
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 
@@ -396,7 +314,7 @@ testVideo2 proc
 	ret
 testVideo2 endp
 
-testDOSVersion proc
+testDOSVersion proc private
 	mov ah,DOS_REQUEST_FUNC_GET_VERSION_NUM
 	int DOS_REQUEST_INT
 	push bx
@@ -436,7 +354,7 @@ strDOSType:
 	db ' DosType: $'
 testDOSVersion endp
 
-testGameplayInit proc
+testGameplayInit proc private
 	cld
 
 	xor ax,ax
@@ -454,7 +372,7 @@ testGameplayInit proc
 	mov [TestGameplayPrevPosXHigh],ax
 testGameplayInit endp
 
-testGameplayUpdate proc
+testGameplayUpdate proc private
 	mov ax,ds
 	mov es,ax
 
@@ -571,7 +489,7 @@ skipShot:
 testGameplayUpdate endp
 
 ; Input: di (pointer to the position in TestGameplayShotPosYPacked of the shot to be deleted).
-testGameplayDeleteShot proc
+testGameplayDeleteShot proc private
 	; Decrement shot count.
 	mov bx,[TestGameplayShotCount]
 	dec bx
@@ -608,7 +526,7 @@ testGameplayDeleteShot proc
 	ret
 testGameplayDeleteShot endp
 
-testGameplayInitRender proc
+testGameplayInitRender proc private
 	call testGameplayRender
 	; Execute code after the regular render function so the ES segment is set to video memory.
 	mov cx,0
@@ -619,7 +537,7 @@ testGameplayInitRender proc
 	ret
 testGameplayInitRender endp
 
-testGameplayRender proc
+testGameplayRender proc private
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 

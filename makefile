@@ -3,11 +3,14 @@ LINK_FLAGS = /tiny
 
 all : bin\invdrs.com
 
-bin\invdrs.com : obj\game.obj
-	link $(LINK_FLAGS) obj\game.obj, bin\invdrs.com;
+bin\invdrs.com : obj\game.obj obj\console.obj
+	link $(LINK_FLAGS) obj\game.obj obj\console.obj, bin\invdrs.com;
 
 obj\game.obj : code\game.asm
 	ml $(ML_FLAGS) /Fo obj\game.obj code\game.asm
+
+obj\console.obj : code\console.asm
+	ml $(ML_FLAGS) /Fo obj\console.obj code\console.asm
 
 clean :
 	-del bin\*.com
