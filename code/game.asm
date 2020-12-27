@@ -1,4 +1,3 @@
-include code\bios.inc
 include code\console.inc
 
 TEST_GAMEPLAY_BOX_WIDTH 				equ 8
@@ -85,14 +84,6 @@ vsyncWait1:
 	in al,dx
 	test al,8
 	jz vsyncWait1
-endm
-
-; Input: dh (row, Y coord), dl (col, X coord).
-SET_CURSOR_POS macro
-    ;; Use page number 0.
-    xor bh,bh
-    mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
-    int BIOS_VIDEO_INT
 endm
 
 DRAW_PIXEL macro
@@ -536,11 +527,11 @@ testGameplayRender proc private
 
 	WAIT_VSYNC
 	xor dx,dx
-	SET_CURSOR_POS
+	CONSOLE_SET_CURSOR_POS
 	mov dl,byte ptr [TestGameplayShotCount]
 	call consolePrintByte
 	mov dx,100h
-	SET_CURSOR_POS
+	CONSOLE_SET_CURSOR_POS
 	mov dl,[TestGameplayShotCooldown]
 	call consolePrintByte
 	
