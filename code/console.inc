@@ -2,6 +2,7 @@ include code\ascii.inc
 include code\bios.inc
 include code\dos.inc
 
+; Input: none.
 CONSOLE_GO_NEXT_LINE macro
     CONSOLE_PRINT_CHAR_CR
     CONSOLE_PRINT_CHAR_LF
@@ -13,11 +14,13 @@ CONSOLE_PRINT_CHAR macro
 	int DOS_REQUEST_INT
 endm
 
+; Input: none.
 CONSOLE_PRINT_CHAR_CR macro
     mov dl,ASCII_CR
     CONSOLE_PRINT_CHAR
 endm
 
+; Input: none.
 CONSOLE_PRINT_CHAR_LF macro
     mov dl,ASCII_LF
     CONSOLE_PRINT_CHAR

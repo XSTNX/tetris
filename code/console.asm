@@ -5,7 +5,7 @@ allSegments group code
 
 code segment public
 
-; Input: dl (just the low nibble).
+; Input: dl (only the low nibble).
 consolePrintNibbleHex proc
 	and dl,0fh
 	cmp dl,10
@@ -45,6 +45,7 @@ nextDigit:
 	ret
 consolePrintByte endp
 
+; Input: dl.
 consolePrintByteHex proc
 	mov ch,dl
 	mov cl,4
@@ -55,6 +56,7 @@ consolePrintByteHex proc
 	ret
 consolePrintByteHex endp
 
+; Input: dx.
 consolePrintWord proc
 	mov ax,dx
 	mov bx,10
@@ -82,6 +84,7 @@ nextDigit:
 	ret
 consolePrintWord endp
 
+; Input: dx.
 consolePrintWordHex proc
 	xchg dl,dh
 	call consolePrintByteHex
