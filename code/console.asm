@@ -90,6 +90,23 @@ consolePrintWordHex proc
 	ret
 consolePrintWordHex endp
 
+; Input: ds:dx (address of a null-terminated string).
+consolePrintString proc
+	pushf
+	cld
+	mov si,dx
+printLoop:
+	lodsb
+	test al,al
+	jz short printLoopDone
+	mov dl,al
+	CONSOLE_PRINT_CHAR
+	jmp short printLoop
+printLoopDone:
+	popf
+	ret
+consolePrintString endp
+
 ; ---------;
 ; Private. ;
 ; ---------;

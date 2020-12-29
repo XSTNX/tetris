@@ -28,13 +28,14 @@ allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
-	extern consolePrintByte:proc, consolePrintByteHex:proc
-	org 100h
+
+	extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
 
 ;----------;
 ; Private. ;
 ;----------;
 
+	org 100h
 main proc private
 	; Read current video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
@@ -43,7 +44,7 @@ main proc private
 	jne short gameStart
 	; Print wrong video card message and quit.
 	mov dx,offset StrWrongVideoCard
-	CONSOLE_PRINT_DOS_STRING
+	call consolePrintString
 	jmp short gameQuit
 
 gameStart:
@@ -168,7 +169,7 @@ nextKey:
 
 	; Print scancode.	
 	mov dx,offset strScancode
-	CONSOLE_PRINT_DOS_STRING
+	call consolePrintString
 	pop ax
 	push ax
 	mov dl,ah
@@ -179,7 +180,7 @@ nextKey:
 
 	; Print ascii.
 	mov dx,offset strASCII
-	CONSOLE_PRINT_DOS_STRING
+	call consolePrintString
 	pop ax
 	mov dl,al
 	CONSOLE_PRINT_CHAR
@@ -191,9 +192,9 @@ quit:
 	DOS_QUIT
 
 strScancode:
-	db 'Scancode: $'
+	db 'Scancode: ', 0
 strASCII:
-	db ' ASCII: $'
+	db ' ASCII: ', 0
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
@@ -318,7 +319,7 @@ testDOSVersion proc private
 	push ax
 
 	mov dx,offset strVer
-	CONSOLE_PRINT_DOS_STRING
+	call consolePrintString
 
 	; Major version.
 	pop dx
@@ -334,7 +335,7 @@ testDOSVersion proc private
 	call consolePrintByte
 	
 	mov dx,offset strDOSType
-	CONSOLE_PRINT_DOS_STRING
+	call consolePrintString
 
 	; Dos type.
 	pop dx
@@ -343,9 +344,9 @@ testDOSVersion proc private
 
 	ret
 strVer:
-	db 'Ver: $'
+	db 'Ver: ', 0
 strDOSType:
-	db ' DosType: $'
+	db ' DosType: ', 0
 testDOSVersion endp
 
 testGameplayInit proc private
@@ -633,7 +634,7 @@ testGameplayRender endp
 code ends
 
 constData segment public
-	StrWrongVideoCard				db 'You need a Color Graphics Adapter to play this game.$'
+	StrWrongVideoCard				db 'You need a Color Graphics Adapter to play this game.', 0
 	DrawPixelMask					db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 					db 6, 4, 2, 0
 constData ends
