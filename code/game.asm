@@ -175,7 +175,7 @@ nextKey:
 	mov dl,ah
 	call consolePrintByteHex
 
-	mov dl,' '
+	mov dl," "
 	CONSOLE_PRINT_CHAR
 
 	; Print ascii.
@@ -192,9 +192,9 @@ quit:
 	DOS_QUIT
 
 strScancode:
-	db 'Scancode: ', 0
+	db "Scancode: ", 0
 strASCII:
-	db ' ASCII: ', 0
+	db " ASCII: ", 0
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
@@ -326,7 +326,7 @@ testDOSVersion proc private
 	push dx
 	call consolePrintByte
 	
-	mov dl,'.'
+	mov dl,"."
 	CONSOLE_PRINT_CHAR
 	
 	; Minor version.
@@ -344,9 +344,9 @@ testDOSVersion proc private
 
 	ret
 strVer:
-	db 'Ver: ', 0
+	db "Ver: ", 0
 strDOSType:
-	db ' DosType: ', 0
+	db " DosType: ", 0
 testDOSVersion endp
 
 testGameplayInit proc private
@@ -634,7 +634,7 @@ testGameplayRender endp
 code ends
 
 constData segment public
-	StrWrongVideoCard				db 'You need a Color Graphics Adapter to play this game.', 0
+	StrWrongVideoCard				db "You need a Color Graphics Adapter to play this game.", 0
 	DrawPixelMask					db 00111111b, 11001111b, 11110011b, 11111100b
 	DrawPixelShift 					db 6, 4, 2, 0
 constData ends
