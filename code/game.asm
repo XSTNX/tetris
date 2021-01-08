@@ -41,7 +41,7 @@ main proc private
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
-	jne short gameStart
+	jne short gameStart	
 	; Print wrong video card message and quit.
 	mov dx,offset StrWrongVideoCard
 	call consolePrintString
@@ -51,7 +51,7 @@ gameStart:
 	; Save current video mode.
 	push ax
 
-	; Set graphics mode.
+	; Set new video mode.
 	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
@@ -60,11 +60,17 @@ gameStart:
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
 	int BIOS_VIDEO_INT
 
-	call testGameplayInit
-	call testGameplayInitRender
+	mov [GameInitProc],offset testGameplayInit
+	mov [GameInitRenderProc],offset testGameplayInitRender
+	mov [GameUpdateProc], offset testGameplayUpdate
+	mov [GameRenderProc], offset testGameplayRender
+
+	call [GameInitProc]
+	call [GameInitRenderProc]
 gameLoop:
-	call testGameplayUpdate
-	call testGameplayRender
+	call [GameUpdateProc]
+	call [GameRenderProc]
+	
 	; Don't quit the gameloop until ESC is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
 	int DOS_REQUEST_INT
@@ -640,6 +646,10 @@ constData segment public
 constData ends
 
 data segment public
+	GameInitProc		dw ?
+	GameInitRenderProc	dw ?
+	GameUpdateProc		dw ?
+	GameRenderProc		dw ?
 	TestGameplayShotCooldown		db ?
 	; The shot count will be stored in the LSB, the MSB will remain at zero.
 	TestGameplayShotCount			dw ?
