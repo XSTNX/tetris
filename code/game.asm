@@ -7,6 +7,13 @@ SET_LEVEL_GAME_STATE macro
 	mov [GameRenderProc], offset levelRender
 endm
 
+SET_TEST_GAME_STATE macro
+	mov [GameInitProc],offset testInit
+	mov [GameInitRenderProc],offset testInitRender
+	mov [GameUpdateProc], offset testUpdate
+	mov [GameRenderProc], offset testRender
+endm
+
 WAIT_VSYNC macro
 local vsyncWait0, vsyncWait1
 	mov dx,3dah
@@ -27,6 +34,7 @@ code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
 extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
+extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 
 ;----------;
 ; Private. ;
@@ -37,12 +45,13 @@ main proc private
 	; Read current video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
+	; Check if video card is valid.
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
-	jne short gameStart	
-	; Print wrong video card message and quit.
+	jne short gameStart
+	; If not, print wrong video card message and quit.
 	mov dx,offset StrWrongVideoCard
 	call consolePrintString
-	jmp short gameQuit
+	DOS_QUIT
 
 gameStart:
 	; Save current video mode.
@@ -59,6 +68,7 @@ gameStart:
 
 	; Start the game directly on the level for now.
 	SET_LEVEL_GAME_STATE
+	;SET_TEST_GAME_STATE
 
 	call [GameInitProc]
 	WAIT_VSYNC
@@ -78,12 +88,10 @@ gameLoop:
 	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
 	jne short gameLoop
 
-	; Restore previous video mode.
+	; Restore previous video mode and quit.
 	pop ax
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
-
-gameQuit:
 	DOS_QUIT
 main endp
 
