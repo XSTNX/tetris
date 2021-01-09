@@ -16,19 +16,39 @@ extern renderBox:proc, renderHorizLine:proc
 testInit proc
     mov [TestPosXLow],0
     mov [TestPosXHigh],160
-    mov [TestPosYPacked],100 * 256
+    mov [TestPosYPacked],BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT * 256
 
     ret
 testInit endp
 
 testInitRender proc
     call testRender
-	; Execute code after the regular render function so the ES segment is set to video memory.
+    
+    ; Top.
+	mov cx,0
+    mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
+    mov dx,TEST_BOX_HEIGHT * 256
+    mov al,2
+	call renderBox
+    ; Bottom.
+	mov cx,0
+    mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
+    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST_BOX_HEIGHT) + (BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256)
+    mov al,2
+	call renderBox
+    ; Center vert.
+	mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST_BOX_HALF_WIDTH
+    mov bx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST_BOX_HALF_WIDTH
+    mov dx,BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256
+    mov al,1
+	call renderBox
+    ; Center horiz.
 	mov cx,0
 	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-	mov dl,100
-	mov dh,2
+	mov dl,BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
+	mov dh,1
 	call renderHorizLine
+
     ret
 testInitRender endp
 
@@ -52,9 +72,20 @@ testRender proc
     mov al,3
 	call renderBox
 
+    ; Print debug info.
 	xor dx,dx
 	CONSOLE_SET_CURSOR_POS
     pop dx
+    push dx
+	call consolePrintByte
+    mov dx,3
+    CONSOLE_SET_CURSOR_POS
+    mov dl,"-"
+    CONSOLE_PRINT_CHAR
+    mov dx,4
+    CONSOLE_SET_CURSOR_POS
+    pop dx
+    mov dl,dh
 	call consolePrintByte
 
     ret

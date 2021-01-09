@@ -1,4 +1,4 @@
-RENDER_PIXEL macro
+RENDER_PIXEL_320_200_4 macro
 local notOddRow
 	xor bx,bx
 	;; Divide posY by two, since the even rows go in one bank and the odd rows in another.
@@ -21,9 +21,9 @@ notOddRow:
 	;; Read the byte in video memory where the pixel is.
 	mov al,es:[bx]
 	;; Mask the previous pixel.
-	and al,RenderPixelMask[si]
+	and al,RenderPixelMask320x200x4[si]
 	;; Add the new pixel.
-	mov cl,RenderPixelShift[si]
+	mov cl,RenderPixelShift320x200x4[si]
 	shl dh,cl
 	or al,dh
 	;; Write the updated byte to video memory.
@@ -35,11 +35,16 @@ allSegments group code, constData
 
 code segment public
 
+; Input:
+;	cx (left limit).
+;	bx (right limit + 1).
+;	dl (posY).
+;	dh (color).
 renderHorizLine proc
 	push bx
 	push cx
 	push dx
-	RENDER_PIXEL
+	RENDER_PIXEL_320_200_4
 	pop dx
 	pop cx
 	pop bx
@@ -54,7 +59,7 @@ renderHorizLine endp
 ;	bx (right limit + 1).
 ;	dl (top limit).
 ;	dh (bottom limit + 1).
-;	al (color, from 0 to 3).
+;	al (color).
 renderBox proc
 	push ax
 	push cx
@@ -77,8 +82,8 @@ renderBox endp
 code ends
 
 constData segment public
-	RenderPixelMask         db 00111111b, 11001111b, 11110011b, 11111100b
-	RenderPixelShift        db         6,         4,         2,         0
+	RenderPixelMask320x200x4		db 00111111b, 11001111b, 11110011b, 11111100b
+	RenderPixelShift320x200x4		db         6,         4,         2,         0
 constData ends
 
 end
