@@ -35,6 +35,7 @@ https://stanislavs.org/helppc/int_table.html (interrupts)
 http://www.delorie.com/djgpp/doc/rbinter/ (interrupts)
 https://www.phatcode.net/articles.php
 http://qzx.com/pc-gpe/
+https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
 
 GAMES
 -----
