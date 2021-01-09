@@ -1,28 +1,28 @@
 include code\console.inc
 
-TEST_GAMEPLAY_BOX_WIDTH 				equ 8
-TEST_GAMEPLAY_BOX_HALF_WIDTH 			equ TEST_GAMEPLAY_BOX_WIDTH / 2
-TEST_GAMEPLAY_BOX_HEIGHT 				equ 12
-TEST_GAMEPLAY_BOX_HALF_HEIGHT 			equ TEST_GAMEPLAY_BOX_HEIGHT / 2
-TEST_GAMEPLAY_POSX_LIMIT_LEFT 			equ 30
-TEST_GAMEPLAY_POSX_LIMIT_RIGHT 			equ 290
-TEST_GAMEPLAY_POSX_START 				equ 160
-TEST_GAMEPLAY_POSY 						equ 190
-TEST_GAMEPLAY_POSY_BOX_START			equ TEST_GAMEPLAY_POSY - (TEST_GAMEPLAY_BOX_HEIGHT / 2)
-TEST_GAMEPLAY_POSY_BOX_END				equ TEST_GAMEPLAY_POSY_BOX_START + TEST_GAMEPLAY_BOX_HEIGHT
-TEST_GAMEPLAY_SPEEDX_LOW 				equ 0
-TEST_GAMEPLAY_SPEEDX_HIGH 				equ 5
-TEST_GAMEPLAY_SHOT_WIDTH				equ 2
-TEST_GAMEPLAY_SHOT_HALF_WIDTH			equ TEST_GAMEPLAY_SHOT_WIDTH / 2
-TEST_GAMEPLAY_SHOT_HEIGHT				equ 6
-TEST_GAMEPLAY_SHOT_HALF_HEIGHT			equ TEST_GAMEPLAY_SHOT_HEIGHT / 2
-TEST_GAMEPLAY_SHOT_POSY_START 			equ TEST_GAMEPLAY_POSY_BOX_START - TEST_GAMEPLAY_SHOT_HALF_HEIGHT
-TEST_GAMEPLAY_SHOT_POSY_START_PACKED 	equ TEST_GAMEPLAY_SHOT_POSY_START * 256
-TEST_GAMEPLAY_SHOT_SPEED_PACKED			equ 400h
-TEST_GAMEPLAY_SHOT_COOLDOWN 			equ 10
-TEST_GAMEPLAY_SHOT_MAX_COUNT 			equ 5
-; assert(TEST_GAMEPLAY_SHOT_MAX_COUNT < 256)
-TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT	equ TEST_GAMEPLAY_SHOT_MAX_COUNT * 2
+LEVEL_BOX_WIDTH					equ 8
+LEVEL_BOX_HALF_WIDTH 			equ LEVEL_BOX_WIDTH / 2
+LEVEL_BOX_HEIGHT 				equ 12
+LEVEL_BOX_HALF_HEIGHT 			equ LEVEL_BOX_HEIGHT / 2
+LEVEL_POSX_LIMIT_LEFT 			equ 30
+LEVEL_POSX_LIMIT_RIGHT 			equ 290
+LEVEL_POSX_START 				equ 160
+LEVEL_POSY 						equ 190
+LEVEL_POSY_BOX_START			equ LEVEL_POSY - (LEVEL_BOX_HEIGHT / 2)
+LEVEL_POSY_BOX_END				equ LEVEL_POSY_BOX_START + LEVEL_BOX_HEIGHT
+LEVEL_SPEEDX_LOW 				equ 0
+LEVEL_SPEEDX_HIGH 				equ 5
+LEVEL_SHOT_WIDTH				equ 2
+LEVEL_SHOT_HALF_WIDTH			equ LEVEL_SHOT_WIDTH / 2
+LEVEL_SHOT_HEIGHT				equ 6
+LEVEL_SHOT_HALF_HEIGHT			equ LEVEL_SHOT_HEIGHT / 2
+LEVEL_SHOT_POSY_START 			equ LEVEL_POSY_BOX_START - LEVEL_SHOT_HALF_HEIGHT
+LEVEL_SHOT_POSY_START_PACKED 	equ LEVEL_SHOT_POSY_START * 256
+LEVEL_SHOT_SPEED_PACKED			equ 400h
+LEVEL_SHOT_COOLDOWN 			equ 10
+LEVEL_SHOT_MAX_COUNT 			equ 5
+; assert(LEVEL_SHOT_MAX_COUNT < 256)
+LEVEL_RENDER_DELETE_MAX_COUNT	equ LEVEL_SHOT_MAX_COUNT * 2
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -36,18 +36,18 @@ levelInit proc
 	cld
 
 	xor ax,ax
-	mov [TestGameplayShotCooldown],al
-	mov [TestGameplayShotCount],ax
-	mov [TestGameplayPosXLow],ax
-	mov [TestGameplayRenderDeleteCount],ax
-	; Zero out both TestGameplayRenderDeleteWidth and TestGameplayRenderDeleteHeight
-	mov cx,TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT * 2
-	mov di,offset TestGameplayRenderDeleteWidth
+	mov [LevelShotCooldown],al
+	mov [LevelShotCount],ax
+	mov [LevelPosXLow],ax
+	mov [LevelRenderDeleteCount],ax
+	; Zero out both LevelRenderDeleteWidth and LevelRenderDeleteHeight
+	mov cx,LEVEL_RENDER_DELETE_MAX_COUNT * 2
+	mov di,offset LevelRenderDeleteWidth
 	rep stosw
 
-	mov ax,TEST_GAMEPLAY_POSX_START
-	mov [TestGameplayPosXHigh],ax
-	mov [TestGameplayPrevPosXHigh],ax
+	mov ax,LEVEL_POSX_START
+	mov [LevelPosXHigh],ax
+	mov [LevelPrevPosXHigh],ax
 levelInit endp
 
 levelUpdate proc
@@ -55,29 +55,29 @@ levelUpdate proc
 	mov es,ax
 
 	; Save prev posX.
-	mov ax,[TestGameplayPosXHigh]
-	mov [TestGameplayPrevPosXHigh],ax
+	mov ax,[LevelPosXHigh]
+	mov [LevelPrevPosXHigh],ax
 
 	; Update cooldown.
-	mov al,[TestGameplayShotCooldown]
+	mov al,[LevelShotCooldown]
 	test al,al
 	jz skipShotCoolDownDecrement
 	dec ax
-	mov [TestGameplayShotCooldown],al
+	mov [LevelShotCooldown],al
 skipShotCoolDownDecrement:
 
 	; Update shots.
-	mov cx,[TestGameplayShotCount]
+	mov cx,[LevelShotCount]
 	test cx,cx
 	jz loopShotDone
-	mov dx,TEST_GAMEPLAY_SHOT_SPEED_PACKED
-	mov si,offset TestGameplayShotPosYPacked
+	mov dx,LEVEL_SHOT_SPEED_PACKED
+	mov si,offset LevelShotPosYPacked
 	mov di,si
 loopShot:
 	lodsw
 	cmp ax,dx
 	jb short loopDelete
-	mov byte ptr [(TestGameplayShotPrevPosY - TestGameplayShotPosYPacked) + di],ah
+	mov byte ptr [(LevelShotPrevPosY - LevelShotPosYPacked) + di],ah
 	sub ax,dx
 	stosw
 	jmp short loopShotNext
@@ -108,59 +108,59 @@ skipDirRight:
 	cmp bl,0ffh
 	jne skipMoveLeft
 	; Compute new posX.
-	mov cx,[TestGameplayPosXLow]
-	sub cx,TEST_GAMEPLAY_SPEEDX_LOW
-	mov dx,[TestGameplayPosXHigh]
-	sbb dx,TEST_GAMEPLAY_SPEEDX_HIGH
+	mov cx,[LevelPosXLow]
+	sub cx,LEVEL_SPEEDX_LOW
+	mov dx,[LevelPosXHigh]
+	sbb dx,LEVEL_SPEEDX_HIGH
 	; Limit posX if needed.
-	cmp dx,TEST_GAMEPLAY_POSX_LIMIT_LEFT
+	cmp dx,LEVEL_POSX_LIMIT_LEFT
 	jae skipLimitPosXLeft
 	xor cx,cx
-	mov dx,TEST_GAMEPLAY_POSX_LIMIT_LEFT
+	mov dx,LEVEL_POSX_LIMIT_LEFT
 skipLimitPosXLeft:
 	; Save new posX.
-	mov [TestGameplayPosXLow],cx
-	mov [TestGameplayPosXHigh],dx
+	mov [LevelPosXLow],cx
+	mov [LevelPosXHigh],dx
 skipMoveLeft:
 
 	; Move right.
 	cmp bl,1
 	jne skipMoveRight
 	; Compute new posX.
-	mov cx,[TestGameplayPosXLow]
-	add cx,TEST_GAMEPLAY_SPEEDX_LOW
-	mov dx,[TestGameplayPosXHigh]
-	adc dx,TEST_GAMEPLAY_SPEEDX_HIGH
+	mov cx,[LevelPosXLow]
+	add cx,LEVEL_SPEEDX_LOW
+	mov dx,[LevelPosXHigh]
+	adc dx,LEVEL_SPEEDX_HIGH
 	; Limit posX if needed.
-	cmp dx,TEST_GAMEPLAY_POSX_LIMIT_RIGHT
+	cmp dx,LEVEL_POSX_LIMIT_RIGHT
 	jb skipLimitPosXRight
 	xor cx,cx
-	mov dx,TEST_GAMEPLAY_POSX_LIMIT_RIGHT
+	mov dx,LEVEL_POSX_LIMIT_RIGHT
 skipLimitPosXRight:
 	; Save new posX.
-	mov [TestGameplayPosXLow],cx
-	mov [TestGameplayPosXHigh],dx
+	mov [LevelPosXLow],cx
+	mov [LevelPosXHigh],dx
 skipMoveRight:
 
 	; Shoot.
 	test al,BIOS_KEYBOARD_FLAGS_CTRL
 	jz skipShot
-	mov cx,[TestGameplayShotCount]
-	cmp cx,TEST_GAMEPLAY_SHOT_MAX_COUNT
+	mov cx,[LevelShotCount]
+	cmp cx,LEVEL_SHOT_MAX_COUNT
 	je skipShot
-	cmp [TestGameplayShotCooldown],0
+	cmp [LevelShotCooldown],0
 	jne skipShot
-	mov [TestGameplayShotCooldown],TEST_GAMEPLAY_SHOT_COOLDOWN
+	mov [LevelShotCooldown],LEVEL_SHOT_COOLDOWN
 	; Don't need to read this again if dx is not overriden.
-	mov dx,[TestGameplayPosXHigh]
+	mov dx,[LevelPosXHigh]
 	mov di,cx
 	shl di,1
-	mov [TestGameplayShotPosX + di],dx
-	mov [TestGameplayShotPosYPacked + di],TEST_GAMEPLAY_SHOT_POSY_START_PACKED
+	mov [LevelShotPosX + di],dx
+	mov [LevelShotPosYPacked + di],LEVEL_SHOT_POSY_START_PACKED
 	; If the shot was updated after this, setting prev pos wouldn't be needed, is it worth doing?
-	mov byte ptr [TestGameplayShotPrevPosY + di],TEST_GAMEPLAY_SHOT_POSY_START
+	mov byte ptr [LevelShotPrevPosY + di],LEVEL_SHOT_POSY_START
 	inc cx
-	mov byte ptr [TestGameplayShotCount],cl
+	mov byte ptr [LevelShotCount],cl
 skipShot:
 
 	ret
@@ -171,7 +171,7 @@ levelInitRender proc
 	; Execute code after the regular render function so the ES segment is set to video memory.
 	mov cx,0
 	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-	mov dl,TEST_GAMEPLAY_POSY_BOX_END
+	mov dl,LEVEL_POSY_BOX_END
 	mov dh,2
 	call renderHorizLine
 	ret
@@ -183,27 +183,27 @@ levelRender proc
 
 	xor dx,dx
 	CONSOLE_SET_CURSOR_POS
-	mov dl,byte ptr [TestGameplayShotCount]
+	mov dl,byte ptr [LevelShotCount]
 	call consolePrintByte
 	mov dx,100h
 	CONSOLE_SET_CURSOR_POS
-	mov dl,[TestGameplayShotCooldown]
+	mov dl,[LevelShotCooldown]
 	call consolePrintByte
 	
 	; Clear deleted sprites.
-	mov cx,[TestGameplayRenderDeleteCount]
+	mov cx,[LevelRenderDeleteCount]
 	test cx,cx
 	jz loopDeleteDone
 	xor di,di
 loopDelete:
 	push cx
 		
-	mov cx,[TestGameplayRenderDeletePosX + di]
+	mov cx,[LevelRenderDeletePosX + di]
 	mov bx,cx
-	add bx,[TestGameplayRenderDeleteWidth + di]
-	mov dl,byte ptr [TestGameplayRenderDeletePosY + di]
+	add bx,[LevelRenderDeleteWidth + di]
+	mov dl,byte ptr [LevelRenderDeletePosY + di]
 	mov dh,dl
-	add dh,byte ptr [TestGameplayRenderDeleteHeight + di]
+	add dh,byte ptr [LevelRenderDeleteHeight + di]
 	mov al,0
 	call renderBox
 
@@ -213,11 +213,11 @@ loopDelete:
 	loop loopDelete
 	
 	; Set delete count back to zero.
-	mov [TestGameplayRenderDeleteCount],cx
+	mov [LevelRenderDeleteCount],cx
 loopDeleteDone:
 
 	; Render shots.
-	mov cx,[TestGameplayShotCount]
+	mov cx,[LevelShotCount]
 	test cx,cx
 	jz loopShotDone
 	xor di,di
@@ -225,26 +225,26 @@ loopShot:
 	push cx
 
 	; Erase previous shot.
-	mov cx,[TestGameplayShotPosX + di]
-	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
+	mov cx,[LevelShotPosX + di]
+	sub cx,LEVEL_SHOT_HALF_WIDTH
 	mov bx,cx
-	add bx,TEST_GAMEPLAY_SHOT_WIDTH
-	mov dl,byte ptr [TestGameplayShotPrevPosY + di]
-	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
+	add bx,LEVEL_SHOT_WIDTH
+	mov dl,byte ptr [LevelShotPrevPosY + di]
+	sub dl,LEVEL_SHOT_HALF_HEIGHT
 	mov dh,dl
-	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
+	add dh,LEVEL_SHOT_HEIGHT
 	mov al,0
 	call renderBox
 
 	; Draw current shot.
-	mov cx,[TestGameplayShotPosX + di]
-	sub cx,TEST_GAMEPLAY_SHOT_HALF_WIDTH
+	mov cx,[LevelShotPosX + di]
+	sub cx,LEVEL_SHOT_HALF_WIDTH
 	mov bx,cx
-	add bx,TEST_GAMEPLAY_SHOT_WIDTH
-	mov dl,byte ptr [(TestGameplayShotPosYPacked + 1) + di]
-	sub dl,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
+	add bx,LEVEL_SHOT_WIDTH
+	mov dl,byte ptr [(LevelShotPosYPacked + 1) + di]
+	sub dl,LEVEL_SHOT_HALF_HEIGHT
 	mov dh,dl
-	add dh,TEST_GAMEPLAY_SHOT_HEIGHT
+	add dh,LEVEL_SHOT_HEIGHT
 	mov al,1
 	call renderBox
 
@@ -255,20 +255,20 @@ loopShot:
 loopShotDone:
 
 	; Erase previous box.
-	mov cx,[TestGameplayPrevPosXHigh]
-	sub cx,TEST_GAMEPLAY_BOX_HALF_WIDTH
+	mov cx,[LevelPrevPosXHigh]
+	sub cx,LEVEL_BOX_HALF_WIDTH
 	mov bx,cx
-	add bx,TEST_GAMEPLAY_BOX_WIDTH
-	mov dx,TEST_GAMEPLAY_POSY_BOX_START + (TEST_GAMEPLAY_POSY_BOX_END * 256)
+	add bx,LEVEL_BOX_WIDTH
+	mov dx,LEVEL_POSY_BOX_START + (LEVEL_POSY_BOX_END * 256)
 	mov al,0
 	call renderBox
 
 	; Draw current box.
-	mov cx,[TestGameplayPosXHigh]
-	sub cx,TEST_GAMEPLAY_BOX_HALF_WIDTH
+	mov cx,[LevelPosXHigh]
+	sub cx,LEVEL_BOX_HALF_WIDTH
 	mov bx,cx
-	add bx,TEST_GAMEPLAY_BOX_WIDTH
-	mov dx,TEST_GAMEPLAY_POSY_BOX_START + (TEST_GAMEPLAY_POSY_BOX_END * 256)
+	add bx,LEVEL_BOX_WIDTH
+	mov dx,LEVEL_POSY_BOX_START + (LEVEL_POSY_BOX_END * 256)
 	mov al,3
 	call renderBox
 
@@ -279,39 +279,39 @@ levelRender endp
 ; Private. ;
 ; ---------;
 
-; Input: di (pointer to the position in TestGameplayShotPosYPacked of the shot to be deleted).
+; Input: di (pointer to the position in LevelShotPosYPacked of the shot to be deleted).
 levelDeleteShot proc private
 	; Decrement shot count.
-	mov bx,[TestGameplayShotCount]
+	mov bx,[LevelShotCount]
 	dec bx
-	mov [TestGameplayShotCount],bx
+	mov [LevelShotCount],bx
 	; Compute index of the last shot.
 	shl bx,1
 	; Increment render delete count.
-	mov ax,[TestGameplayRenderDeleteCount]
+	mov ax,[LevelRenderDeleteCount]
 	push si
 	mov si,ax
 	inc ax
-	mov [TestGameplayRenderDeleteCount],ax
+	mov [LevelRenderDeleteCount],ax
 	shl si,1
 	; Copy data to wipe shot from video memory on the next call to render.
-	mov ax,[(TestGameplayShotPosX - TestGameplayShotPosYPacked) + di]
-	sub ax,TEST_GAMEPLAY_SHOT_HALF_WIDTH
-	mov [TestGameplayRenderDeletePosX + si],ax
+	mov ax,[(LevelShotPosX - LevelShotPosYPacked) + di]
+	sub ax,LEVEL_SHOT_HALF_WIDTH
+	mov [LevelRenderDeletePosX + si],ax
 	mov al,byte ptr [di + 1]
-	sub al,TEST_GAMEPLAY_SHOT_HALF_HEIGHT
-	mov byte ptr [TestGameplayRenderDeletePosY + si],al
-	mov al,TEST_GAMEPLAY_SHOT_WIDTH
-	mov byte ptr [TestGameplayRenderDeleteWidth + si],al
-	mov al,TEST_GAMEPLAY_SHOT_HEIGHT
-	mov byte ptr [TestGameplayRenderDeleteHeight + si],al
+	sub al,LEVEL_SHOT_HALF_HEIGHT
+	mov byte ptr [LevelRenderDeletePosY + si],al
+	mov al,LEVEL_SHOT_WIDTH
+	mov byte ptr [LevelRenderDeleteWidth + si],al
+	mov al,LEVEL_SHOT_HEIGHT
+	mov byte ptr [LevelRenderDeleteHeight + si],al
 	; Copy data from last shot over deleted shot.
-	mov ax,[TestGameplayShotPosX + bx]
-	mov [(TestGameplayShotPosX - TestGameplayShotPosYPacked) + di],ax
-	mov ax,[TestGameplayShotPosYPacked + bx]
+	mov ax,[LevelShotPosX + bx]
+	mov [(LevelShotPosX - LevelShotPosYPacked) + di],ax
+	mov ax,[LevelShotPosYPacked + bx]
 	mov [di],ax
-	mov al,byte ptr [TestGameplayShotPrevPosY + bx]
-	mov byte ptr [(TestGameplayShotPrevPosY - TestGameplayShotPosYPacked) + di],al
+	mov al,byte ptr [LevelShotPrevPosY + bx]
+	mov byte ptr [(LevelShotPrevPosY - LevelShotPosYPacked) + di],al
 	pop si
 
 	ret
@@ -320,24 +320,24 @@ levelDeleteShot endp
 code ends
 
 data segment public
-	TestGameplayShotCooldown		db ?
+	LevelShotCooldown			db ?
 	; The shot count will be stored in the LSB, the MSB will remain at zero.
-	TestGameplayShotCount			dw ?
-	TestGameplayShotPosX			dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayShotPosYPacked		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
+	LevelShotCount				dw ?
+	LevelShotPosX				dw LEVEL_SHOT_MAX_COUNT dup (?)
+	LevelShotPosYPacked			dw LEVEL_SHOT_MAX_COUNT dup (?)
 	; The shot prev posY will be stored in the LSB, the MSB is unused.
-	TestGameplayShotPrevPosY		dw TEST_GAMEPLAY_SHOT_MAX_COUNT dup (?)
-	TestGameplayPosXLow				dw ?
-	TestGameplayPosXHigh			dw ?
-	TestGameplayPrevPosXHigh		dw ?
-	TestGameplayRenderDeleteCount	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
-	; The render delete posX and PosY are measured from the top left corner. 
-	TestGameplayRenderDeletePosX	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelShotPrevPosY			dw LEVEL_SHOT_MAX_COUNT dup (?)
+	LevelPosXLow				dw ?
+	LevelPosXHigh				dw ?
+	LevelPrevPosXHigh			dw ?
+	LevelRenderDeleteCount		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	; The render delete posX and PosY are measured from the top left corner.
+	LevelRenderDeletePosX		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete posY will be stored in the LSB, the MSB is unused.
-	TestGameplayRenderDeletePosY	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelRenderDeletePosY		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete size will be stored in the LSB, the MSB is unused.
-	TestGameplayRenderDeleteWidth	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
-	TestGameplayRenderDeleteHeight	dw TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelRenderDeleteWidth		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelRenderDeleteHeight		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 data ends
 
 end
