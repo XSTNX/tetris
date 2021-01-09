@@ -31,7 +31,7 @@ notOddRow:
 endm
 
 allSegments group code, constData
-    assume cs:allSegments
+    assume cs:allSegments, ds:allSegments
 
 code segment public
 

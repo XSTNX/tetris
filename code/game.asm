@@ -25,8 +25,8 @@ allSegments group code, constData, data
 
 code segment public
 
-extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
+extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 
 ;----------;
 ; Private. ;

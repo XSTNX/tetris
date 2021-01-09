@@ -25,11 +25,12 @@ TEST_GAMEPLAY_SHOT_MAX_COUNT 			equ 5
 TEST_GAMEPLAY_RENDER_DELETE_MAX_COUNT	equ TEST_GAMEPLAY_SHOT_MAX_COUNT * 2
 
 allSegments group code, data
-    assume cs:allSegments
+    assume cs:allSegments, ds:allSegments
 
 code segment public
 
-extern consolePrintByte:proc, renderBox:proc, renderHorizLine:proc
+extern consolePrintByte:proc
+extern renderBox:proc, renderHorizLine:proc
 
 levelInit proc
 	cld
