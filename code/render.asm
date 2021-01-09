@@ -1,3 +1,5 @@
+include code\bios.inc
+
 RENDER_PIXEL_320_200_4 macro
 local notOddRow
 	xor bx,bx
@@ -63,6 +65,14 @@ renderHorizLine320x200x4 endp
 ;	al (color).
 renderBox320x200x4 proc
 start:
+	cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+	jb skipLimitTop
+	xor dl,dl
+skipLimitTop:
+	cmp dh,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+	jb skipLimitBottom
+	mov dh,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+skipLimitBottom:
 	push ax
 	push cx
 	push dx

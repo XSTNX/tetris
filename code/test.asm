@@ -4,6 +4,9 @@ TEST_BOX_WIDTH					equ 16
 TEST_BOX_HALF_WIDTH 			equ TEST_BOX_WIDTH / 2
 TEST_BOX_HEIGHT 				equ 16
 TEST_BOX_HALF_HEIGHT 			equ TEST_BOX_HEIGHT / 2
+TEST_BOX_POSX_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
+TEST_BOX_POSY_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
+TEST_BOX_SPEEDY_PACKED 			equ 280h
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -15,8 +18,9 @@ extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 testInit proc
     mov [TestPosXLow],0
-    mov [TestPosXHigh],160
-    mov [TestPosYPacked],BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT * 256
+	mov [TestPosXHigh],TEST_BOX_POSX_START
+    mov [TestPosYPacked],TEST_BOX_POSY_START * 256
+	mov [TestPrevPosY],TEST_BOX_POSY_START
 
     ret
 testInit endp
@@ -53,6 +57,15 @@ testInitRender proc
 testInitRender endp
 
 testUpdate proc
+    mov ax,[TestPosYPacked]
+    mov [TestPrevPosY],ah
+    add ax,TEST_BOX_SPEEDY_PACKED
+    cmp ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+    jb skipRoll
+    xor ah,ah
+skipRoll:
+    mov [TestPosYPacked],ax
+
     ret
 testUpdate endp
 
@@ -60,6 +73,19 @@ testRender proc
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 
+    ; Erase previous box.
+	mov cx,[TestPosXHigh]
+	sub cx,TEST_BOX_HALF_WIDTH
+	mov bx,cx
+	add bx,TEST_BOX_WIDTH
+    mov dl,[TestPrevPosY]
+	sub dl,TEST_BOX_HALF_HEIGHT
+	mov dh,dl
+    add dh,TEST_BOX_HEIGHT
+    mov al,1
+	call renderBox320x200x4
+
+    ; Draw current box.
 	mov cx,[TestPosXHigh]
 	sub cx,TEST_BOX_HALF_WIDTH
 	mov bx,cx
@@ -87,6 +113,10 @@ testRender proc
     pop dx
     mov dl,dh
 	call consolePrintByte
+	mov dx,256
+    CONSOLE_SET_CURSOR_POS
+    mov dl,byte ptr [TestPosYPacked + 1]
+    call consolePrintByte
 
     ret
 testRender endp
@@ -101,6 +131,7 @@ data segment public
 	TestPosXLow             dw ?
 	TestPosXHigh            dw ?
     TestPosYPacked          dw ?
+    TestPrevPosY            db ?    
 data ends
 
 end

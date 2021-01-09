@@ -18,7 +18,7 @@ obj\game.obj : code\game.asm code\console.inc
 obj\level.obj : code\level.asm code\console.inc
 	ml $(ML_FLAGS) /Fo obj\level.obj code\level.asm
 
-obj\render.obj : code\render.asm
+obj\render.obj : code\render.asm code\bios.inc
 	ml $(ML_FLAGS) /Fo obj\render.obj code\render.asm
 
 obj\test.obj : code\test.asm code\console.inc
