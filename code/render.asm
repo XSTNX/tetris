@@ -38,12 +38,14 @@ allSegments group code, constData
 code segment public
 
 ; Input:
-;	cx (left limit).
-;	bx (right limit + 1).
-;	dl (posY).
+;	cx (unsigned left limit).
+;	bx (unsigned right limit + 1).
+;	dl (unsigned posY).
 ;	dh (color).
+; Note:
+; 	Will render garbage if cx, bx or dl is outside the limits of the video mode.
 renderHorizLine320x200x4 proc
-start:
+nextPixel:
 	push bx
 	push cx
 	push dx
@@ -53,18 +55,20 @@ start:
 	pop bx
 	inc cx
 	cmp cx,bx
-	jne short start
+	jne short nextPixel
 	ret
 renderHorizLine320x200x4 endp
 
 ; Input:
-;	cx (left limit).
-;	bx (right limit + 1).
-;	dl (top limit).
-;	dh (bottom limit + 1).
+;	cx (unsigned left limit).
+;	bx (unsigned right limit + 1).
+;	dl (unsigned top limit).
+;	dh (unsigned bottom limit + 1).
 ;	al (color).
+; Note:
+; 	Will render garbage if cx or bx is outside the limits of the video mode.
+; 	Can only handle either dl or dh being outside the limits of the video mode, if both are it will render garbage.
 renderBox320x200x4 proc
-start:
 	cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 	jb skipLimitTop
 	xor dl,dl
@@ -73,6 +77,8 @@ skipLimitTop:
 	jb skipLimitBottom
 	mov dh,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 skipLimitBottom:
+
+nextLine:
 	push ax
 	push cx
 	push dx
@@ -83,7 +89,7 @@ skipLimitBottom:
 	pop ax
 	inc dl
 	cmp dl,dh
-	jne short start
+	jne short nextline
 	ret
 renderBox320x200x4 endp
 
