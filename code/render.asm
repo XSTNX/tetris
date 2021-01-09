@@ -49,6 +49,12 @@ renderHorizLine proc
 	ret
 renderHorizLine endp
 
+; Input:
+;	cx (left limit).
+;	bx (right limit + 1).
+;	dl (top limit).
+;	dh (bottom limit + 1).
+;	al (color, from 0 to 3).
 renderBox proc
 	push ax
 	push cx
