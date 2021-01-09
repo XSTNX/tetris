@@ -30,7 +30,7 @@ allSegments group code, data
 code segment public
 
 extern consolePrintByte:proc
-extern renderBox:proc, renderHorizLine:proc
+extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 levelInit proc
 	cld
@@ -174,7 +174,7 @@ levelInitRender proc
 	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
 	mov dl,LEVEL_POSY_BOX_END
 	mov dh,2
-	call renderHorizLine
+	call renderHorizLine320x200x4
 	ret
 levelInitRender endp
 
@@ -206,7 +206,7 @@ loopDelete:
 	mov dh,dl
 	add dh,byte ptr [LevelRenderDeleteHeight + di]
 	mov al,0
-	call renderBox
+	call renderBox320x200x4
 
 	inc di
 	inc di
@@ -235,7 +235,7 @@ loopShot:
 	mov dh,dl
 	add dh,LEVEL_SHOT_HEIGHT
 	mov al,0
-	call renderBox
+	call renderBox320x200x4
 
 	; Draw current shot.
 	mov cx,[LevelShotPosX + di]
@@ -247,7 +247,7 @@ loopShot:
 	mov dh,dl
 	add dh,LEVEL_SHOT_HEIGHT
 	mov al,1
-	call renderBox
+	call renderBox320x200x4
 
 	inc di
 	inc di
@@ -262,7 +262,7 @@ loopShotDone:
 	add bx,LEVEL_BOX_WIDTH
 	mov dx,LEVEL_POSY_BOX_START + (LEVEL_POSY_BOX_END * 256)
 	mov al,0
-	call renderBox
+	call renderBox320x200x4
 
 	; Draw current box.
 	mov cx,[LevelPosXHigh]
@@ -271,7 +271,7 @@ loopShotDone:
 	add bx,LEVEL_BOX_WIDTH
 	mov dx,LEVEL_POSY_BOX_START + (LEVEL_POSY_BOX_END * 256)
 	mov al,3
-	call renderBox
+	call renderBox320x200x4
 
 	ret
 levelRender endp

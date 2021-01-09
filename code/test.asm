@@ -11,7 +11,7 @@ allSegments group code, data
 code segment public
 
 extern consolePrintByte:proc
-extern renderBox:proc, renderHorizLine:proc
+extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 testInit proc
     mov [TestPosXLow],0
@@ -29,25 +29,25 @@ testInitRender proc
     mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
     mov dx,TEST_BOX_HEIGHT * 256
     mov al,2
-	call renderBox
+	call renderBox320x200x4
     ; Bottom.
 	mov cx,0
     mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
     mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST_BOX_HEIGHT) + (BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256)
     mov al,2
-	call renderBox
+	call renderBox320x200x4
     ; Center vert.
 	mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST_BOX_HALF_WIDTH
     mov bx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST_BOX_HALF_WIDTH
     mov dx,BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256
     mov al,1
-	call renderBox
+	call renderBox320x200x4
     ; Center horiz.
 	mov cx,0
 	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
 	mov dl,BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
 	mov dh,1
-	call renderHorizLine
+	call renderHorizLine320x200x4
 
     ret
 testInitRender endp
@@ -70,7 +70,7 @@ testRender proc
     add dh,TEST_BOX_HEIGHT
     push dx    
     mov al,3
-	call renderBox
+	call renderBox320x200x4
 
     ; Print debug info.
 	xor dx,dx

@@ -40,7 +40,8 @@ code segment public
 ;	bx (right limit + 1).
 ;	dl (posY).
 ;	dh (color).
-renderHorizLine proc
+renderHorizLine320x200x4 proc
+start:
 	push bx
 	push cx
 	push dx
@@ -50,9 +51,9 @@ renderHorizLine proc
 	pop bx
 	inc cx
 	cmp cx,bx
-	jne short renderHorizLine
+	jne short start
 	ret
-renderHorizLine endp
+renderHorizLine320x200x4 endp
 
 ; Input:
 ;	cx (left limit).
@@ -60,20 +61,21 @@ renderHorizLine endp
 ;	dl (top limit).
 ;	dh (bottom limit + 1).
 ;	al (color).
-renderBox proc
+renderBox320x200x4 proc
+start:
 	push ax
 	push cx
 	push dx
 	mov dh,al
-	call renderHorizLine
+	call renderHorizLine320x200x4
 	pop dx
 	pop cx
 	pop ax
 	inc dl
 	cmp dl,dh
-	jne short renderBox
+	jne short start
 	ret
-renderBox endp
+renderBox320x200x4 endp
 
 ; ---------;
 ; Private. ;
