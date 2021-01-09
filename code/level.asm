@@ -85,6 +85,7 @@ loopDelete:
 	call levelDeleteShot
 	dec si
 	dec si
+	mov di,si
 loopShotNext:
 	loop loopShot
 loopShotDone:
