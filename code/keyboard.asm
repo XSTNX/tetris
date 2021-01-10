@@ -49,13 +49,9 @@ keyboardStop proc
 keyboardStop endp
 
 ; Input: bx (scancode, from 0 to KEYBOARD_KEY_PRESSED_COUNT - 1).
-; Output: cf (carry flag set means the key is pressed).
+; Output: zf (zero flag set means the key is pressed).
 keyboardIsKeyPressed proc
-    clc
     test [KeyboardKeyPressed + bx],KEYBOARD_KEY_PRESSED_COUNT
-    jnz short skip
-    stc
-skip:
     ret
 keyboardIsKeyPressed endp
 

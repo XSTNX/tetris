@@ -95,12 +95,12 @@ loopShotDone:
 	xor al,al
 	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 	call keyboardIsKeyPressed
-	jnc short skipArrowLeftPressed
+	jnz short skipArrowLeftPressed
 	dec ax
 skipArrowLeftPressed:
 	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 	call keyboardIsKeyPressed
-	jnc short skipArrowRightPressed
+	jnz short skipArrowRightPressed
 	inc ax
 skipArrowRightPressed:
 
@@ -145,7 +145,7 @@ skipMoveRight:
 	; Shoot.
 	mov bx,BIOS_KEYBOARD_SCANCODE_E
 	call keyboardIsKeyPressed
-	jnc short skipShot
+	jnz short skipShot
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT
 	je short skipShot

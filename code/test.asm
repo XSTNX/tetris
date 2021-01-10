@@ -123,7 +123,7 @@ testRender proc
     mov dl,"N"
 	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_UP
 	call keyboardIsKeyPressed
-	jnc skipKeyPressed
+	jnz skipKeyPressed
 	mov dl,"Y"
 skipKeyPressed:
     CONSOLE_PRINT_CHAR
