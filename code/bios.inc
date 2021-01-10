@@ -25,6 +25,8 @@ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT   equ BIOS_VIDEO_MODE_320_200_4_HEIGHT / 2
 ; System services.
 BIOS_SYSTEM_SERVICES_INT                equ 015h
 
+BIOS_SYSTEM_SERVICES_FUNC_KEYBD_INTRCPT equ 04fh
+
 ; Keyboard.
 BIOS_KEYBOARD_INT                       equ 016h
 

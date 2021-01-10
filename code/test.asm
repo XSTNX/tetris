@@ -117,6 +117,10 @@ testRender proc
     CONSOLE_SET_CURSOR_POS
     mov dl,byte ptr [TestPosYPacked + 1]
     call consolePrintByte
+	mov dx,512
+    CONSOLE_SET_CURSOR_POS
+    mov dl,[KeyboardKludge]
+    call consolePrintByte
 
     ret
 testRender endp
@@ -128,10 +132,13 @@ testRender endp
 code ends
 
 data segment public
+
+extern KeyboardKludge:byte
+
 	TestPosXLow             dw ?
 	TestPosXHigh            dw ?
     TestPosYPacked          dw ?
-    TestPrevPosY            db ?    
+    TestPrevPosY            db ?
 data ends
 
 end

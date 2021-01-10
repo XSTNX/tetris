@@ -24,7 +24,9 @@ keyboardStart proc
     mov dx,offset keyboardNewInt
     int DOS_REQUEST_INT
     pop ds
-        
+
+    mov [KeyboardKludge],0
+
     ret
 keyboardStart endp
 
@@ -45,7 +47,22 @@ keyboardStop endp
 ; Private. ;
 ; ---------;
 
-keyboardNewInt proc
+keyboardNewInt proc private
+    cmp ah,BIOS_SYSTEM_SERVICES_FUNC_KEYBD_INTRCPT
+    jne skipKeyProcess
+
+    ; Clobbered registers have to be restored.
+    push bx
+
+    mov bl,al
+    and bx,7fh
+    mov [KeyboardKeyPressed + bx],al
+
+    mov [KeyboardKludge],al
+
+    pop bx
+
+skipKeyProcess:
     jmp dword ptr [KeyboardPrevIntHandlerOffset]
 keyboardNewInt endp
 
@@ -54,6 +71,9 @@ code ends
 data segment public
     KeyboardPrevIntHandlerOffset        dw ?
     KeyboardPrevIntHandlerSegment       dw ?
+    KeyboardKeyPressed                  db 128 dup(?)
+public KeyboardKludge    
+    KeyboardKludge                      db ?
 data ends
 
 end
