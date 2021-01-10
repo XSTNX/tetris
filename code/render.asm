@@ -1,6 +1,6 @@
 include code\bios.inc
 
-RENDER_PIXEL_320_200_4 macro
+renderPixel320x200x4 macro
 local notOddRow
 	xor bx,bx
 	;; Divide posY by two, since the even rows go in one bank and the odd rows in another.
@@ -49,7 +49,7 @@ nextPixel:
 	push bx
 	push cx
 	push dx
-	RENDER_PIXEL_320_200_4
+	renderPixel320x200x4
 	pop dx
 	pop cx
 	pop bx

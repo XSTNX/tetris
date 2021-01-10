@@ -1,14 +1,14 @@
 include code\console.inc
 include code\keyboard.inc
 
-SET_LEVEL_GAME_STATE macro
+setLevelGameState macro
 	mov [GameInitProc],offset levelInit
 	mov [GameInitRenderProc],offset levelInitRender
 	mov [GameUpdateProc], offset levelUpdate
 	mov [GameRenderProc], offset levelRender
 endm
 
-SET_TEST_GAME_STATE macro
+setTestGameState macro
 	mov [GameInitProc],offset testInit
 	mov [GameInitRenderProc],offset testInitRender
 	mov [GameUpdateProc], offset testUpdate
@@ -52,7 +52,7 @@ main proc private
 	; If not, print wrong video card message and quit.
 	mov dx,offset StrWrongVideoCard
 	call consolePrintString
-	DOS_QUIT
+	dosQuit
 
 gameStart:
 	; Save current video mode.
@@ -69,8 +69,8 @@ gameStart:
 
 	call keyboardStart
 	; Start the game directly on the level for now.
-	SET_LEVEL_GAME_STATE
-	;SET_TEST_GAME_STATE
+	setLevelGameState
+	;setTestGameState
 
 	call [GameInitProc]
 	WAIT_VSYNC
@@ -96,7 +96,7 @@ gameLoop:
 	pop ax
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
-	DOS_QUIT
+	dosQuit
 main endp
 
 testKeyboardScancode proc private
@@ -130,7 +130,7 @@ nextKey:
 	jmp short nextkey
 
 quit:
-	DOS_QUIT
+	dosQuit
 
 strScancode:
 	db "Scancode: ", 0
