@@ -33,6 +33,7 @@ allSegments group code, constData, data
 code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
+extern keyboardStart:proc, keyboardStop:proc
 extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 
@@ -66,6 +67,7 @@ gameStart:
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
 	int BIOS_VIDEO_INT
 
+	call keyboardStart
 	; Start the game directly on the level for now.
 	SET_LEVEL_GAME_STATE
 	;SET_TEST_GAME_STATE
@@ -87,6 +89,8 @@ gameLoop:
 	int BIOS_KEYBOARD_INT
 	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
 	jne short gameLoop
+
+	call keyboardStop
 
 	; Restore previous video mode and quit.
 	pop ax

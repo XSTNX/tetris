@@ -4,8 +4,8 @@ LINK_FLAGS = /tiny
 
 all : bin\invdrs.com
 
-bin\invdrs.com : obj\game.obj obj\console.obj obj\level.obj obj\render.obj obj\test.obj
-	link $(LINK_FLAGS) obj\game.obj obj\console.obj obj\level.obj obj\render.obj obj\test.obj, bin\invdrs.com;
+bin\invdrs.com : obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj
+	link $(LINK_FLAGS) obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj, bin\invdrs.com;
 
 code\console.inc : code\ascii.inc code\bios.inc code\dos.inc
 
@@ -14,6 +14,9 @@ obj\console.obj : code\console.asm code\console.inc
 
 obj\game.obj : code\game.asm code\console.inc
 	ml $(ML_FLAGS) /Fo obj\game.obj code\game.asm
+
+obj\keyboard.obj : code\keyboard.asm code\bios.inc code\dos.inc
+	ml $(ML_FLAGS) /Fo obj\keyboard.obj code\keyboard.asm
 
 obj\level.obj : code\level.asm code\console.inc
 	ml $(ML_FLAGS) /Fo obj\level.obj code\level.asm
