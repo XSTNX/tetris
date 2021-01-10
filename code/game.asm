@@ -20,11 +20,11 @@ local vsyncWait0, vsyncWait1
 vsyncWait0:
 	in al,dx
 	test al,8
-	jnz vsyncWait0
+	jnz short vsyncWait0
 vsyncWait1:
 	in al,dx
 	test al,8
-	jz vsyncWait1
+	jz short vsyncWait1
 endm
 
 allSegments group code, constData, data
@@ -33,7 +33,7 @@ allSegments group code, constData, data
 code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
-extern keyboardStart:proc, keyboardStop:proc
+extern keyboardStart:proc, keyboardStop:proc, keyboardIsKeyPressed:proc
 extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 
@@ -80,15 +80,10 @@ gameLoop:
 	WAIT_VSYNC
 	call [GameRenderProc]
 	
-	; Don't quit the gameloop until ESC is pressed.
-	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
-	int DOS_REQUEST_INT
-	test al,al
-	jz short gameLoop
-	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
-	int BIOS_KEYBOARD_INT
-	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
-	jne short gameLoop
+	; Check if game should quit.
+	mov bx,BIOS_KEYBOARD_SCANCODE_ESC
+	call keyboardIsKeyPressed
+	jnc short gameLoop
 
 	call keyboardStop
 
@@ -104,7 +99,7 @@ nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
 	int BIOS_KEYBOARD_INT
 	cmp al,3
-	je quit
+	je short quit
 	; Save returned data.
 	push ax	
 

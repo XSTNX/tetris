@@ -13,7 +13,8 @@ allSegments group code, data
 
 code segment public
 
-extern consolePrintByte:proc
+extern consolePrintByte:proc, consolePrintByteHex:proc
+extern keyboardIsKeyPressed:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 testInit proc
@@ -119,8 +120,13 @@ testRender proc
     call consolePrintByte
 	mov dx,512
     CONSOLE_SET_CURSOR_POS
-    mov dl,[KeyboardKludge]
-    call consolePrintByte
+    mov dl,"N"
+	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_UP
+	call keyboardIsKeyPressed
+	jnc skipKeyPressed
+	mov dl,"Y"
+skipKeyPressed:
+    CONSOLE_PRINT_CHAR
 
     ret
 testRender endp
@@ -132,9 +138,6 @@ testRender endp
 code ends
 
 data segment public
-
-extern KeyboardKludge:byte
-
 	TestPosXLow             dw ?
 	TestPosXHigh            dw ?
     TestPosYPacked          dw ?

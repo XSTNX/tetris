@@ -30,6 +30,7 @@ allSegments group code, data
 code segment public
 
 extern consolePrintByte:proc
+extern keyboardIsKeyPressed:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 levelInit proc
@@ -61,7 +62,7 @@ levelUpdate proc
 	; Update cooldown.
 	mov al,[LevelShotCooldown]
 	test al,al
-	jz skipShotCoolDownDecrement
+	jz short skipShotCoolDownDecrement
 	dec ax
 	mov [LevelShotCooldown],al
 skipShotCoolDownDecrement:
@@ -69,7 +70,7 @@ skipShotCoolDownDecrement:
 	; Update shots.
 	mov cx,[LevelShotCount]
 	test cx,cx
-	jz loopShotDone
+	jz short loopShotDone
 	mov dx,LEVEL_SHOT_SPEED_PACKED
 	mov si,offset LevelShotPosYPacked
 	mov di,si
@@ -90,24 +91,22 @@ loopShotNext:
 	loop loopShot
 loopShotDone:
 
-	; Poll keyboard.
-	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
-	int BIOS_KEYBOARD_INT
-	
-	; Figure out direction of movement.
-	xor bx,bx
-	test al,BIOS_KEYBOARD_FLAGS_LEFT_SHIFT
-	jz skipDirLeft
-	dec bx
-skipDirLeft:
-	test al,BIOS_KEYBOARD_FLAGS_RIGHT_SHIFT
-	jz skipDirRight
-	inc bx
-skipDirRight:
+	; Store the direction of movement in al.
+	xor al,al
+	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
+	call keyboardIsKeyPressed
+	jnc short skipArrowLeftPressed
+	dec ax
+skipArrowLeftPressed:
+	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
+	call keyboardIsKeyPressed
+	jnc short skipArrowRightPressed
+	inc ax
+skipArrowRightPressed:
 
 	; Move left.
-	cmp bl,0ffh
-	jne skipMoveLeft
+	cmp al,0ffh
+	jne short skipMoveLeft
 	; Compute new posX.
 	mov cx,[LevelPosXLow]
 	sub cx,LEVEL_SPEEDX_LOW
@@ -115,7 +114,7 @@ skipDirRight:
 	sbb dx,LEVEL_SPEEDX_HIGH
 	; Limit posX if needed.
 	cmp dx,LEVEL_POSX_LIMIT_LEFT
-	jae skipLimitPosXLeft
+	jae short skipLimitPosXLeft
 	xor cx,cx
 	mov dx,LEVEL_POSX_LIMIT_LEFT
 skipLimitPosXLeft:
@@ -125,8 +124,8 @@ skipLimitPosXLeft:
 skipMoveLeft:
 
 	; Move right.
-	cmp bl,1
-	jne skipMoveRight
+	cmp al,1
+	jne short skipMoveRight
 	; Compute new posX.
 	mov cx,[LevelPosXLow]
 	add cx,LEVEL_SPEEDX_LOW
@@ -134,7 +133,7 @@ skipMoveLeft:
 	adc dx,LEVEL_SPEEDX_HIGH
 	; Limit posX if needed.
 	cmp dx,LEVEL_POSX_LIMIT_RIGHT
-	jb skipLimitPosXRight
+	jb short skipLimitPosXRight
 	xor cx,cx
 	mov dx,LEVEL_POSX_LIMIT_RIGHT
 skipLimitPosXRight:
@@ -144,13 +143,14 @@ skipLimitPosXRight:
 skipMoveRight:
 
 	; Shoot.
-	test al,BIOS_KEYBOARD_FLAGS_CTRL
-	jz skipShot
+	mov bx,BIOS_KEYBOARD_SCANCODE_E
+	call keyboardIsKeyPressed
+	jnc short skipShot
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT
-	je skipShot
+	je short skipShot
 	cmp [LevelShotCooldown],0
-	jne skipShot
+	jne short skipShot
 	mov [LevelShotCooldown],LEVEL_SHOT_COOLDOWN
 	; Don't need to read this again if dx is not overriden.
 	mov dx,[LevelPosXHigh]
@@ -194,7 +194,7 @@ levelRender proc
 	; Clear deleted sprites.
 	mov cx,[LevelRenderDeleteCount]
 	test cx,cx
-	jz loopDeleteDone
+	jz short loopDeleteDone
 	xor di,di
 loopDelete:
 	push cx
@@ -220,7 +220,7 @@ loopDeleteDone:
 	; Render shots.
 	mov cx,[LevelShotCount]
 	test cx,cx
-	jz loopShotDone
+	jz short loopShotDone
 	xor di,di
 loopShot:
 	push cx

@@ -1,12 +1,19 @@
 include code\bios.inc
 include code\dos.inc
 
+KEYBOARD_KEY_PRESSED_COUNT equ 128
+
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
 
 keyboardStart proc
+    ; Keys are not pressed by default (a key press that happened before the game started can't be detected).
+    mov ax,8080h
+    mov di,offset KeyboardKeyPressed
+    mov cx,KEYBOARD_KEY_PRESSED_COUNT / 2
+    rep stosw
 
     ; Save previous keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_SERVICES_INT
@@ -25,8 +32,6 @@ keyboardStart proc
     int DOS_REQUEST_INT
     pop ds
 
-    mov [KeyboardKludge],0
-
     ret
 keyboardStart endp
 
@@ -43,22 +48,31 @@ keyboardStop proc
     ret
 keyboardStop endp
 
+; Input: bx (scancode, from 0 to KEYBOARD_KEY_PRESSED_COUNT - 1).
+; Output: cf (carry flag set means the key is pressed).
+keyboardIsKeyPressed proc
+    clc
+    test [KeyboardKeyPressed + bx],KEYBOARD_KEY_PRESSED_COUNT
+    jnz short skip
+    stc
+skip:
+    ret
+keyboardIsKeyPressed endp
+
 ; ---------;
 ; Private. ;
 ; ---------;
 
 keyboardNewInt proc private
     cmp ah,BIOS_SYSTEM_SERVICES_FUNC_KEYBD_INTRCPT
-    jne skipKeyProcess
+    jne short skipKeyProcess
 
     ; Clobbered registers have to be restored.
     push bx
 
     mov bl,al
-    and bx,7fh
+    and bx,KEYBOARD_KEY_PRESSED_COUNT - 1
     mov [KeyboardKeyPressed + bx],al
-
-    mov [KeyboardKludge],al
 
     pop bx
 
@@ -71,9 +85,8 @@ code ends
 data segment public
     KeyboardPrevIntHandlerOffset        dw ?
     KeyboardPrevIntHandlerSegment       dw ?
-    KeyboardKeyPressed                  db 128 dup(?)
-public KeyboardKludge    
-    KeyboardKludge                      db ?
+    ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
+    KeyboardKeyPressed                  db KEYBOARD_KEY_PRESSED_COUNT dup(?)
 data ends
 
 end
