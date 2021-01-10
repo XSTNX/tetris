@@ -1,4 +1,5 @@
 include code\console.inc
+include code\keyboard.inc
 
 SET_LEVEL_GAME_STATE macro
 	mov [GameInitProc],offset levelInit
@@ -33,7 +34,6 @@ allSegments group code, constData, data
 code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
-extern keyboardStart:proc, keyboardStop:proc
 extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 

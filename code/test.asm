@@ -1,4 +1,5 @@
 include code\console.inc
+include code\keyboard.inc
 
 TEST_BOX_WIDTH					equ 16
 TEST_BOX_HALF_WIDTH 			equ TEST_BOX_WIDTH / 2
@@ -14,7 +15,6 @@ allSegments group code, data
 code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc
-extern keyboardIsKeyPressed:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 testInit proc
@@ -122,7 +122,7 @@ testRender proc
     CONSOLE_SET_CURSOR_POS
     mov dl,"N"
 	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_UP
-	call keyboardIsKeyPressed
+	KEYBOARD_IS_KEY_PRESSED
 	jnz skipKeyPressed
 	mov dl,"Y"
 skipKeyPressed:

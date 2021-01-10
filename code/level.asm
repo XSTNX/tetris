@@ -1,4 +1,5 @@
 include code\console.inc
+include code\keyboard.inc
 
 LEVEL_BOX_WIDTH					equ 8
 LEVEL_BOX_HALF_WIDTH 			equ LEVEL_BOX_WIDTH / 2
@@ -30,7 +31,6 @@ allSegments group code, data
 code segment public
 
 extern consolePrintByte:proc
-extern keyboardIsKeyPressed:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 levelInit proc
@@ -94,12 +94,12 @@ loopShotDone:
 	; Store the direction of movement in al.
 	xor al,al
 	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
-	call keyboardIsKeyPressed
+	KEYBOARD_IS_KEY_PRESSED
 	jnz short skipArrowLeftPressed
 	dec ax
 skipArrowLeftPressed:
 	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
-	call keyboardIsKeyPressed
+	KEYBOARD_IS_KEY_PRESSED
 	jnz short skipArrowRightPressed
 	inc ax
 skipArrowRightPressed:
@@ -144,7 +144,7 @@ skipMoveRight:
 
 	; Shoot.
 	mov bx,BIOS_KEYBOARD_SCANCODE_E
-	call keyboardIsKeyPressed
+	KEYBOARD_IS_KEY_PRESSED
 	jnz short skipShot
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT

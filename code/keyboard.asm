@@ -48,13 +48,6 @@ keyboardStop proc
     ret
 keyboardStop endp
 
-; Input: bx (scancode, from 0 to KEYBOARD_KEY_PRESSED_COUNT - 1).
-; Output: zf (zero flag set means the key is pressed).
-keyboardIsKeyPressed proc
-    test [KeyboardKeyPressed + bx],KEYBOARD_KEY_PRESSED_COUNT
-    ret
-keyboardIsKeyPressed endp
-
 ; ---------;
 ; Private. ;
 ; ---------;
@@ -79,6 +72,9 @@ keyboardNewInt endp
 code ends
 
 data segment public
+
+public KeyboardKeyPressed
+
     KeyboardPrevIntHandlerOffset        dw ?
     KeyboardPrevIntHandlerSegment       dw ?
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
