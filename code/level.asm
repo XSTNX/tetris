@@ -93,13 +93,11 @@ loopShotDone:
 
 	; Store the direction of movement in al.
 	xor al,al
-	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
-	KEYBOARD_IS_KEY_PRESSED
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 	jnz short skipArrowLeftPressed
 	dec ax
 skipArrowLeftPressed:
-	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
-	KEYBOARD_IS_KEY_PRESSED
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 	jnz short skipArrowRightPressed
 	inc ax
 skipArrowRightPressed:
@@ -143,8 +141,7 @@ skipLimitPosXRight:
 skipMoveRight:
 
 	; Shoot.
-	mov bx,BIOS_KEYBOARD_SCANCODE_E
-	KEYBOARD_IS_KEY_PRESSED
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_E
 	jnz short skipShot
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT

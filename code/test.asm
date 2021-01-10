@@ -121,8 +121,7 @@ testRender proc
 	mov dx,512
     CONSOLE_SET_CURSOR_POS
     mov dl,"N"
-	mov bx,BIOS_KEYBOARD_SCANCODE_ARROW_UP
-	KEYBOARD_IS_KEY_PRESSED
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_UP
 	jnz skipKeyPressed
 	mov dl,"Y"
 skipKeyPressed:
