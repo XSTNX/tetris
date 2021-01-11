@@ -95,10 +95,14 @@ testRender proc
 	sub dl,TEST_BOX_HALF_HEIGHT
 	mov dh,dl
     add dh,TEST_BOX_HEIGHT
-    push dx    
+.if DEBUG
+    ; Save top and bottom of the box to print it later.
+    push dx
+.endif
     mov al,3
 	call renderBox320x200x4
 
+.if DEBUG
     ; Print debug info.
 	consoleSetCursorPos 0, 0
     pop dx
@@ -120,6 +124,7 @@ testRender proc
 	mov dl,"Y"
 skipKeyPressed:
     consolePrintChar dl
+.endif
 
     ret
 testRender endp

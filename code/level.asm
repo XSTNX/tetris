@@ -179,13 +179,6 @@ levelRender proc
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 
-	consoleSetCursorPos 0, 0
-	mov dl,byte ptr [LevelShotCount]
-	call consolePrintByte
-	consoleSetCursorPos 0, 1
-	mov dl,[LevelShotCooldown]
-	call consolePrintByte
-	
 	; Clear deleted sprites.
 	mov cx,[LevelRenderDeleteCount]
 	test cx,cx
@@ -267,6 +260,16 @@ loopShotDone:
 	mov dx,LEVEL_POSY_BOX_START + (LEVEL_POSY_BOX_END * 256)
 	mov al,3
 	call renderBox320x200x4
+
+.if DEBUG
+	; Print debug info.
+	consoleSetCursorPos 0, 0
+	mov dl,byte ptr [LevelShotCount]
+	call consolePrintByte
+	consoleSetCursorPos 0, 1
+	mov dl,[LevelShotCooldown]
+	call consolePrintByte
+.endif
 
 	ret
 levelRender endp
