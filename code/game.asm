@@ -102,13 +102,16 @@ gameLoop:
 main endp
 
 testKeyboardScancode proc private
+	mov dx,offset strStart
+	call consolePrintString
+
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
 	int BIOS_KEYBOARD_INT
 	cmp al,3
 	je short quit
 	; Save returned data.
-	push ax	
+	push ax
 
 	; Print scancode.	
 	mov dx,offset strScancode
@@ -117,8 +120,6 @@ nextKey:
 	push ax
 	mov dl,ah
 	call consolePrintByteHex
-
-	consolePrintChar " "
 
 	; Print ascii.
 	mov dx,offset strASCII
@@ -132,10 +133,12 @@ nextKey:
 quit:
 	dosQuit
 
+strStart:
+	db "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
 strScancode:
 	db "Scancode: ", 0
 strASCII:
-	db " ASCII: ", 0
+	db " - ASCII: ", 0
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
