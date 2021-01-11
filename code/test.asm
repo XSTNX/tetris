@@ -107,8 +107,7 @@ testRender proc
 	call consolePrintByte
     mov dx,3
     CONSOLE_SET_CURSOR_POS
-    mov dl,"-"
-    CONSOLE_PRINT_CHAR
+    consolePrintChar "-"
     mov dx,4
     CONSOLE_SET_CURSOR_POS
     pop dx
@@ -125,7 +124,7 @@ testRender proc
 	jnz skipKeyPressed
 	mov dl,"Y"
 skipKeyPressed:
-    CONSOLE_PRINT_CHAR
+    consolePrintChar
 
     ret
 testRender endp

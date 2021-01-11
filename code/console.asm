@@ -13,7 +13,7 @@ consolePrintNibbleHex proc
 	add dl,'A' - ('9' + 1)
 skipLetter:
 	add dl,'0'
-	CONSOLE_PRINT_CHAR
+	consolePrintChar
 	ret
 consolePrintNibbleHex endp
 
@@ -102,8 +102,7 @@ printLoop:
 	lodsb
 	test al,al
 	jz short printLoopDone
-	mov dl,al
-	CONSOLE_PRINT_CHAR
+	consolePrintChar al
 	jmp short printLoop
 printLoopDone:
 	popf

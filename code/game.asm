@@ -116,17 +116,15 @@ nextKey:
 	mov dl,ah
 	call consolePrintByteHex
 
-	mov dl," "
-	CONSOLE_PRINT_CHAR
+	consolePrintChar " "
 
 	; Print ascii.
 	mov dx,offset strASCII
 	call consolePrintString
 	pop ax
-	mov dl,al
-	CONSOLE_PRINT_CHAR
+	consolePrintChar al
 
-	CONSOLE_GO_NEXT_LINE
+	consoleGoToNextLine
 	jmp short nextkey
 
 quit:
@@ -145,7 +143,7 @@ nextKey:
 	mov dl,al
 	call consolePrintByteHex
 
-	CONSOLE_GO_NEXT_LINE
+	consoleGoToNextLine
 
 	; Continue until a key is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
@@ -169,9 +167,8 @@ testDOSVersion proc private
 	pop dx
 	push dx
 	call consolePrintByte
-	
-	mov dl,"."
-	CONSOLE_PRINT_CHAR
+
+	consolePrintChar "."
 	
 	; Minor version.
 	pop dx

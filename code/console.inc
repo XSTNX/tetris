@@ -2,28 +2,26 @@ include code\ascii.inc
 include code\bios.inc
 include code\dos.inc
 
-; Input: none.
-CONSOLE_GO_NEXT_LINE macro
-    CONSOLE_PRINT_CHAR_CR
-    CONSOLE_PRINT_CHAR_LF
+consoleGoToNextLine macro
+    consolePrintCharCR
+    consolePrintCharLF
 endm
 
-; Input: dl.
-CONSOLE_PRINT_CHAR macro
+; Note: the argument will be moved into dl for printing, so if the value is in dl already, just call it with no arguments.
+consolePrintChar macro aChar
+ifnb <aChar>
+    mov dl,aChar
+endif
 	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
 	int DOS_REQUEST_INT
 endm
 
-; Input: none.
-CONSOLE_PRINT_CHAR_CR macro
-    mov dl,ASCII_CR
-    CONSOLE_PRINT_CHAR
+consolePrintCharCR macro
+    consolePrintChar ASCII_CR
 endm
 
-; Input: none.
-CONSOLE_PRINT_CHAR_LF macro
-    mov dl,ASCII_LF
-    CONSOLE_PRINT_CHAR
+consolePrintCharLF macro
+    consolePrintChar ASCII_LF
 endm
 
 ; Input: ds:dx (address of ASCII string ending in '$').
