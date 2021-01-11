@@ -58,6 +58,8 @@ gameStart:
 	; Save current video mode.
 	push ax
 
+	call keyboardStart
+
 	; Set new video mode.
 	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
@@ -67,7 +69,6 @@ gameStart:
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
 	int BIOS_VIDEO_INT
 
-	call keyboardStart
 	; Start the game directly on the level for now.
 	setLevelGameState
 	;setTestGameState
@@ -90,12 +91,13 @@ gameLoop:
 	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
 	jne short gameLoop
 
-	call keyboardStop
-
-	; Restore previous video mode and quit.
+	; Restore previous video mode.
 	pop ax
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
+
+	call keyboardStop
+	
 	dosQuit
 main endp
 
