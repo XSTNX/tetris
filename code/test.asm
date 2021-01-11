@@ -100,25 +100,20 @@ testRender proc
 	call renderBox320x200x4
 
     ; Print debug info.
-	xor dx,dx
-	CONSOLE_SET_CURSOR_POS
+	consoleSetCursorPos 0, 0
     pop dx
     push dx
 	call consolePrintByte
-    mov dx,3
-    CONSOLE_SET_CURSOR_POS
+    consoleSetCursorPos 3, 0
     consolePrintChar "-"
-    mov dx,4
-    CONSOLE_SET_CURSOR_POS
+    consoleSetCursorPos 4, 0
     pop dx
     mov dl,dh
 	call consolePrintByte
-	mov dx,256
-    CONSOLE_SET_CURSOR_POS
+    consoleSetCursorPos 0, 1
     mov dl,byte ptr [TestPosYPacked + 1]
     call consolePrintByte
-	mov dx,512
-    CONSOLE_SET_CURSOR_POS
+    consoleSetCursorPos 0, 2
     mov dl,"N"
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_UP
 	jnz skipKeyPressed

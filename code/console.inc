@@ -25,13 +25,14 @@ consolePrintCharLF macro
 endm
 
 ; Input: ds:dx (address of ASCII string ending in '$').
-CONSOLE_PRINT_DOS_STRING macro
+consolePrintDOSStr macro
 	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
 	int DOS_REQUEST_INT
 endm
 
-; Input: dh (row, Y coord), dl (col, X coord).
-CONSOLE_SET_CURSOR_POS macro
+; Input: aCol (X coord), aRow (Y coord).
+consoleSetCursorPos macro aCol:req, aRow:req
+    mov dx,aCol + (aRow * 256)
     ;; Use page number 0.
     xor bh,bh
     mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS

@@ -179,12 +179,10 @@ levelRender proc
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 
-	xor dx,dx
-	CONSOLE_SET_CURSOR_POS
+	consoleSetCursorPos 0, 0
 	mov dl,byte ptr [LevelShotCount]
 	call consolePrintByte
-	mov dx,100h
-	CONSOLE_SET_CURSOR_POS
+	consoleSetCursorPos 0, 1
 	mov dl,[LevelShotCooldown]
 	call consolePrintByte
 	
