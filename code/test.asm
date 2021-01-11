@@ -119,7 +119,7 @@ testRender proc
 	jnz skipKeyPressed
 	mov dl,"Y"
 skipKeyPressed:
-    consolePrintChar
+    consolePrintChar dl
 
     ret
 testRender endp

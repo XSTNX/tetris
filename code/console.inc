@@ -7,9 +7,10 @@ consoleGoToNextLine macro
     consolePrintCharLF
 endm
 
-; Note: the argument will be moved into dl for printing, so if the value is in dl already, just call it with no arguments.
-consolePrintChar macro aChar
-ifnb <aChar>
+; Input: aChar (unsigned byte).
+consolePrintChar macro aChar:req
+;; If the argument is in dl already, this opcode is not needed.
+ifdifi <aChar>, <dl>
     mov dl,aChar
 endif
 	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
@@ -30,7 +31,7 @@ consolePrintDOSStr macro
 	int DOS_REQUEST_INT
 endm
 
-; Input: aCol (X coord), aRow (Y coord).
+; Input: aCol (X coord - unsigned byte), aRow (Y coord - unsigned byte).
 consoleSetCursorPos macro aCol:req, aRow:req
     mov dx,aCol + (aRow * 256)
     ;; Use page number 0.

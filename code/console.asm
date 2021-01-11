@@ -13,7 +13,7 @@ consolePrintNibbleHex proc
 	add dl,'A' - ('9' + 1)
 skipLetter:
 	add dl,'0'
-	consolePrintChar
+	consolePrintChar dl
 	ret
 consolePrintNibbleHex endp
 
