@@ -1,12 +1,13 @@
 include code\console.inc
 include code\keyboard.inc
 
+LEVEL_AUTO_MOVE					equ 0
 LEVEL_BOX_WIDTH					equ 8
 LEVEL_BOX_HALF_WIDTH 			equ LEVEL_BOX_WIDTH / 2
 LEVEL_BOX_HEIGHT 				equ 12
 LEVEL_BOX_HALF_HEIGHT 			equ LEVEL_BOX_HEIGHT / 2
-LEVEL_POSX_LIMIT_LEFT 			equ 30
-LEVEL_POSX_LIMIT_RIGHT 			equ BIOS_VIDEO_MODE_320_200_4_WIDTH - LEVEL_POSX_LIMIT_LEFT
+LEVEL_POSX_LIMIT_LOW 			equ 30
+LEVEL_POSX_LIMIT_HIGH 			equ BIOS_VIDEO_MODE_320_200_4_WIDTH - LEVEL_POSX_LIMIT_LOW
 LEVEL_POSX_START 				equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
 LEVEL_POSY 						equ BIOS_VIDEO_MODE_320_200_4_HEIGHT - 10
 LEVEL_POSY_BOX_START			equ LEVEL_POSY - (LEVEL_BOX_HEIGHT / 2)
@@ -49,6 +50,10 @@ levelInit proc
 	mov ax,LEVEL_POSX_START
 	mov [LevelPosXHigh],ax
 	mov [LevelPrevPosXHigh],ax
+
+.if LEVEL_AUTO_MOVE
+	mov [LevelAutoMoveDir],1
+.endif
 levelInit endp
 
 levelUpdate proc
@@ -91,7 +96,29 @@ loopShotNext:
 	loop loopShot
 loopShotDone:
 
-	; Store the direction of movement in al.
+.if LEVEL_AUTO_MOVE
+	; Check current direction of movement.
+	mov al,[LevelAutoMoveDir]
+	cmp al,1
+	jne short autoMoveLeft
+	; Check if need to flip direction left.
+	cmp [LevelPosXHigh],LEVEL_POSX_LIMIT_HIGH
+	jne short autoMoveDone
+	dec ax
+	dec ax
+	mov [LevelAutoMoveDir],al
+	jmp short autoMoveDone
+autoMoveLeft:
+	; Check if need to flip direction right.
+	cmp [LevelPosXHigh],LEVEL_POSX_LIMIT_LOW
+	jne short autoMoveDone
+	inc ax
+	inc ax
+	mov [LevelAutoMoveDir],al
+autoMoveDone:
+	; Check if need to flip direction to right.
+.else
+	; Read keyboard and store the direction of movement in al.
 	xor al,al
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 	jnz short skipArrowLeftPressed
@@ -101,6 +128,7 @@ skipArrowLeftPressed:
 	jnz short skipArrowRightPressed
 	inc ax
 skipArrowRightPressed:
+.endif
 
 	; Move left.
 	cmp al,0ffh
@@ -111,14 +139,15 @@ skipArrowRightPressed:
 	mov dx,[LevelPosXHigh]
 	sbb dx,LEVEL_SPEEDX_HIGH
 	; Limit posX if needed.
-	cmp dx,LEVEL_POSX_LIMIT_LEFT
+	cmp dx,LEVEL_POSX_LIMIT_LOW
 	jae short skipLimitPosXLeft
 	xor cx,cx
-	mov dx,LEVEL_POSX_LIMIT_LEFT
+	mov dx,LEVEL_POSX_LIMIT_LOW
 skipLimitPosXLeft:
 	; Save new posX.
 	mov [LevelPosXLow],cx
 	mov [LevelPosXHigh],dx
+	jmp short [skipMoveRight]
 skipMoveLeft:
 
 	; Move right.
@@ -130,10 +159,10 @@ skipMoveLeft:
 	mov dx,[LevelPosXHigh]
 	adc dx,LEVEL_SPEEDX_HIGH
 	; Limit posX if needed.
-	cmp dx,LEVEL_POSX_LIMIT_RIGHT
+	cmp dx,LEVEL_POSX_LIMIT_HIGH
 	jb short skipLimitPosXRight
 	xor cx,cx
-	mov dx,LEVEL_POSX_LIMIT_RIGHT
+	mov dx,LEVEL_POSX_LIMIT_HIGH
 skipLimitPosXRight:
 	; Save new posX.
 	mov [LevelPosXLow],cx
@@ -141,8 +170,10 @@ skipLimitPosXRight:
 skipMoveRight:
 
 	; Shoot.
+.if !LEVEL_AUTO_MOVE	
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_E
 	jnz short skipShot
+.endif	
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT
 	je short skipShot
@@ -319,7 +350,6 @@ levelDeleteShot endp
 code ends
 
 data segment public
-	LevelShotCooldown			db ?
 	; The shot count will be stored in the LSB, the MSB will remain at zero.
 	LevelShotCount				dw ?
 	LevelShotPosX				dw LEVEL_SHOT_MAX_COUNT dup (?)
@@ -337,6 +367,10 @@ data segment public
 	; The render delete size will be stored in the LSB, the MSB is unused.
 	LevelRenderDeleteWidth		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	LevelRenderDeleteHeight		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelShotCooldown			db ?	
+.if LEVEL_AUTO_MOVE
+	LevelAutoMoveDir			db ?
+.endif
 data ends
 
 end

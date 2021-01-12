@@ -12,7 +12,7 @@ IBM PC
 ------
 - How do I check before setting the video mode that the desire mode is supported?
 - When I call a BIOS or DOS interrupt what registers can I expect to be saved?
-- Color 3 in Palette 0 can be brown or yellow, apparently. What decides that exactly?
+- Color 3 in Palette 0 can be brown or yellow, apparently. What decides that exactly? In the web emulator color 3 looks brown and in dosbox it looks yellow.
 - Make sure I understand which version of DOS is required to run the game.
 - See if I can find proper documentation on how vsync works.
 - Seems like the keypress has to be read before quitting, otherwise it will show up in the DOS prompt.
