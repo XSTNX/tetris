@@ -88,16 +88,9 @@ gameLoop:
 	call [GameUpdateProc]
 	WAIT_VSYNC
 	call [GameRenderProc]
-	
-	; Don't quit the gameloop until ESC is pressed.
-	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
-	int DOS_REQUEST_INT
-	test al,al
-	jz short gameLoop
-	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
-	int BIOS_KEYBOARD_INT
-	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
-	jne short gameLoop
+	; Continue gameloop until ESC is pressed.
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ESC
+	jnz short gameLoop
 
 	; Restore previous video mode.
 	mov al,[GamePrevVideoMode]

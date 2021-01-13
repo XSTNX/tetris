@@ -30,11 +30,11 @@ IBM PC
 - Is there any emulator that produces accurate results for the IBM PC? Otherwise it will be very difficult to measure optmizations.
 - What is the difference between BIOS_VIDEO_MODE_320_200_4_COLOR and BIOS_VIDEO_MODE_320_200_4_BW really?
 - Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.
-- Can't use keyboardIsKeyPressed to check for the esc key to quit the game because the keys pressed during the game will show up in the DOS prompt. Seems like the keyboard buffer doesn't empty? Not quite sure why that happens.
 
 GAME
 ----
 - Print error codes properly when the game quits, probably this means the error number and a string describing it.
+- Look for the best/fastest way to clear the carry flag to consume the scancode in keyboardSystemInt.
 
 LINKS
 -----

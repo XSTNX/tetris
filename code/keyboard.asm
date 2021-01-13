@@ -82,17 +82,21 @@ keyboardSystemInt proc private
     cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
     jne short skipKeyProcess
 
-    ; Clobbered registers have to be restored.
-    push bx
-
     ; Store key state.
+    push bx
     mov bl,al
     and bx,KEYBOARD_KEY_PRESSED_COUNT - 1
     mov [KeyboardKeyPressed + bx],al
-
     pop bx
+    
     ; Clear carry flag to consume the scancode.
+    add sp,4
+    popf
     clc
+    pushf
+    sub sp,4
+
+    ; Done.
     iret
 
 skipKeyProcess:
