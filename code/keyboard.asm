@@ -16,7 +16,7 @@ keyboardStart proc
     rep stosw
 
     ; Save previous keyboard interrupt handler.
-    mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_SERVICES_INT
+    mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     push es
     int DOS_REQUEST_INT
     mov [KeyboardPrevIntHandlerOffset],bx
@@ -24,7 +24,7 @@ keyboardStart proc
     pop es
 
     ; Set new keyboard interrupt handler.
-    mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_SERVICES_INT
+    mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     push ds
     mov dx,cs
     mov ds,dx
@@ -37,7 +37,7 @@ keyboardStart endp
 
 keyboardStop proc
     ; Restore previous keyboard interrupt handler.
-    mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_SERVICES_INT
+    mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     mov dx,[KeyboardPrevIntHandlerOffset]
     ; Data segment needs to be set last, since we can't access data until it's restored.
     push ds
@@ -53,7 +53,7 @@ keyboardStop endp
 ; ---------;
 
 keyboardNewInt proc private
-    cmp ah,BIOS_SYSTEM_SERVICES_FUNC_KEYBD_INTRCPT
+    cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
     jne short skipKeyProcess
 
     ; Clobbered registers have to be restored.
