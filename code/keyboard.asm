@@ -14,23 +14,9 @@ keyboardStart proc
     push ds
     push es
 
-    mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
-    int BIOS_SYSTEM_INT
+    ; Initialize data first, so the keyboard is in a valid state even if the intercept function can't be overriden.
 
-    ; Check if the size is big enough to contain the configuration.
-    cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
-    jae short skipSizeError
-    mov al,ERROR_CODE_KEYBOARD_SIZE
-    jmp short quit
-skipSizeError:
-    ; Check if keyboard intercept funcion is available.
-    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET], BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
-    jnz skipInterceptNotAvaiableError
-    mov al,ERROR_CODE_KEYBOARD_NO_INTRCPT
-    jmp short quit
-skipInterceptNotAvaiableError:
-
-    ; Keys are not pressed by default (a key press that happened before the game started can't be detected).
+    ; Keys are not pressed by default (a key press that happened before the game starts can't be detected).
     mov ax,8080h
     mov di,offset KeyboardKeyPressed
     mov cx,KEYBOARD_KEY_PRESSED_COUNT / 2
@@ -41,6 +27,23 @@ skipInterceptNotAvaiableError:
     int DOS_REQUEST_INT
     mov [KeyboardBIOSSystemIntHandlerOffset],bx
     mov [KeyboardBIOSSystemIntHandlerSegment],es
+
+    ; Get system enviroment.
+    mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
+    int BIOS_SYSTEM_INT
+
+    ; Check if the environment size is big enough to contain the configuration.
+    cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
+    jae short skipSizeError
+    mov al,ERROR_CODE_KEYBOARD_SIZE
+    jmp short quit
+skipSizeError:
+    ; Check in the configuration if the keyboard intercept funcion is available.
+    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET], BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
+    jnz skipInterceptNotAvaiableError
+    mov al,ERROR_CODE_KEYBOARD_NO_INTRCPT
+    jmp short quit
+skipInterceptNotAvaiableError:
 
     ; Set new system interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
