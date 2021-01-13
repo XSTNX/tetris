@@ -1,14 +1,35 @@
 include code\bios.inc
 include code\dos.inc
+include code\errcode.inc
 
-KEYBOARD_KEY_PRESSED_COUNT equ 128
+KEYBOARD_KEY_PRESSED_COUNT      equ 128
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
 
+; Output: al (error code).
 keyboardStart proc
+    push ds
+    push es
+
+    mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
+    int BIOS_SYSTEM_INT
+
+    ; Check if the size is big enough to contain the configuration.
+    cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
+    jae short skipSizeError
+    mov al,ERROR_CODE_KEYBOARD_SIZE
+    jmp short quit
+skipSizeError:
+    ; Check if keyboard intercept funcion is available.
+    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET], BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
+    jnz skipInterceptNotAvaiableError
+    mov al,ERROR_CODE_KEYBOARD_NO_INTRCPT
+    jmp short quit
+skipInterceptNotAvaiableError:
+
     ; Keys are not pressed by default (a key press that happened before the game started can't be detected).
     mov ax,8080h
     mov di,offset KeyboardKeyPressed
@@ -17,21 +38,22 @@ keyboardStart proc
 
     ; Save previous keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
-    push es
     int DOS_REQUEST_INT
     mov [KeyboardPrevIntHandlerOffset],bx
     mov [KeyboardPrevIntHandlerSegment],es
-    pop es
 
     ; Set new keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
-    push ds
     mov dx,cs
     mov ds,dx
     mov dx,offset keyboardNewInt
     int DOS_REQUEST_INT
-    pop ds
 
+    mov al,ERROR_CODE_KEYBOARD_NONE
+
+quit:
+    pop es
+    pop ds
     ret
 keyboardStart endp
 

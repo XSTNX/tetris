@@ -1,4 +1,5 @@
 include code\console.inc
+include code\errcode.inc
 include code\keyboard.inc
 
 setLevelGameState macro
@@ -43,23 +44,30 @@ extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 
 	org 100h
 main proc private
+	call keyboardStart
+	; Check if keyboard started properly.
+	cmp al,ERROR_CODE_KEYBOARD_NONE
+	je short skipKeyboardStartError
+	; If not, print error message and quit.
+	mov dx,offset StrErrorKeyboard
+	call consolePrintString
+	dosQuit
+skipKeyboardStartError:
+
 	; Read current video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
 	int BIOS_VIDEO_INT
 	; Check if video card is valid.
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
-	jne short gameStart
-	; If not, print wrong video card message and quit.
-	mov dx,offset StrWrongVideoCard
+	jne short skipVideoModeError
+	; If not, print error message and quit.
+	mov dx,offset StrErrorVideoCard
 	call consolePrintString
-	dosQuit
+	jmp short quit
+skipVideoModeError:
 
-gameStart:
 	; Save current video mode.
-	push ax
-
-	call keyboardStart
-
+	mov [GamePrevVideoMode],al
 	; Set new video mode.
 	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
@@ -92,12 +100,12 @@ gameLoop:
 	jne short gameLoop
 
 	; Restore previous video mode.
-	pop ax
+	mov al,[GamePrevVideoMode]
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
 
+quit:
 	call keyboardStop
-	
 	dosQuit
 main endp
 
@@ -198,14 +206,16 @@ testDOSVersion endp
 code ends
 
 constData segment public
-	StrWrongVideoCard				db "You need a Color Graphics Adapter to play this game.", 0
+	StrErrorVideoCard				db "Video Error: You need a Color Graphics Adapter to play this game.", 0
+	StrErrorKeyboard				db "Keyboard error.", 0
 constData ends
 
 data segment public
-	GameInitProc		dw ?
-	GameInitRenderProc	dw ?
-	GameUpdateProc		dw ?
-	GameRenderProc		dw ?
+	GameInitProc			dw ?
+	GameInitRenderProc		dw ?
+	GameUpdateProc			dw ?
+	GameRenderProc			dw ?
+	GamePrevVideoMode		db ?
 data ends
 
 end main
