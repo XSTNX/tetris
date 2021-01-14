@@ -51,7 +51,7 @@ main proc private
 	; If not, print error message and quit.
 	mov dx,offset StrErrorKeyboard
 	call consolePrintString
-	dosQuit
+	jmp short quit
 skipKeyboardStartError:
 
 	; Read current video mode.

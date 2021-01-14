@@ -4,8 +4,8 @@ include code\errcode.inc
 
 KEYBOARD_KEY_PRESSED_COUNT      equ 128
 
-allSegments group code, data
-    assume cs:allSegments, ds:allSegments
+allSegments group code
+    assume cs:allSegments
 
 code segment public
 
@@ -14,21 +14,14 @@ keyboardStart proc
     push ds
     push es
 
-    ; Initialize data first, so the keyboard is in a valid state even if the intercept function can't be overriden.
-
-    ; Keys are not pressed by default (a key press that happened before the game starts can't be detected).
+    ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
+    ; function can't be overriden
     mov ax,cs
-    mov es,ax
-    mov ax,8080h
-    mov di,offset cs:KeyboardKeyPressed
-    mov cx,KEYBOARD_KEY_PRESSED_COUNT / 2
-    rep stosw
-
-    ; Save BIOS system interrupt handler.
+    mov dx,ax
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     int DOS_REQUEST_INT
-    mov [KeyboardBIOSSystemIntHandlerOffset],bx
-    mov [KeyboardBIOSSystemIntHandlerSegment],es
+    mov ds:[KeyboardBIOSSystemIntHandlerOffset],bx
+    mov ds:[KeyboardBIOSSystemIntHandlerSegment],es
 
     ; Get system enviroment.
     mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
@@ -49,9 +42,7 @@ skipInterceptNotAvaiableError:
 
     ; Set new system interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
-    mov dx,cs
-    mov ds,dx
-    mov dx,offset keyboardSystemInt
+    mov dx,offset cs:keyboardSystemInt
     int DOS_REQUEST_INT
 
     mov al,ERROR_CODE_KEYBOARD_NONE
@@ -65,10 +56,9 @@ keyboardStart endp
 keyboardStop proc
     ; Restore previous keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
-    mov dx,[KeyboardBIOSSystemIntHandlerOffset]
-    ; Data segment needs to be set last, since we can't access data until it's restored.
+    mov dx,cs:[KeyboardBIOSSystemIntHandlerOffset]
     push ds
-    mov ds,[KeyboardBIOSSystemIntHandlerSegment]
+    mov ds,cs:[KeyboardBIOSSystemIntHandlerSegment]
     int DOS_REQUEST_INT
     pop ds
 
@@ -103,20 +93,19 @@ keyboardSystemInt proc private
 
 skipKeyProcess:
     ; No, let the BIOS handle it.
-    jmp dword ptr [KeyboardBIOSSystemIntHandlerOffset]
+    jmp cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
 keyboardSystemInt endp
 
-; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-; The array is stored in the code segment since it needs to be accessed from an interrupt.
-KeyboardKeyPressed      db KEYBOARD_KEY_PRESSED_COUNT dup(?)
-
-code ends
-
-data segment public
+; Data is stored in the code segment since it needs to be easily accesible to the new interrupt.
 
 public KeyboardKeyPressed
-    KeyboardBIOSSystemIntHandlerOffset      dw ?
-    KeyboardBIOSSystemIntHandlerSegment     dw ?
-data ends
+
+; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
+KeyboardKeyPressed                      db KEYBOARD_KEY_PRESSED_COUNT dup(80h)
+KeyboardBIOSSystemIntHandlerDWordPtr    label dword
+KeyboardBIOSSystemIntHandlerOffset      dw ?
+KeyboardBIOSSystemIntHandlerSegment     dw ?
+
+code ends
 
 end
