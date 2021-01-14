@@ -17,8 +17,10 @@ keyboardStart proc
     ; Initialize data first, so the keyboard is in a valid state even if the intercept function can't be overriden.
 
     ; Keys are not pressed by default (a key press that happened before the game starts can't be detected).
+    mov ax,cs
+    mov es,ax
     mov ax,8080h
-    mov di,offset KeyboardKeyPressed
+    mov di,offset cs:KeyboardKeyPressed
     mov cx,KEYBOARD_KEY_PRESSED_COUNT / 2
     rep stosw
 
@@ -86,7 +88,7 @@ keyboardSystemInt proc private
     push bx
     mov bl,al
     and bx,KEYBOARD_KEY_PRESSED_COUNT - 1
-    mov [KeyboardKeyPressed + bx],al
+    mov cs:[KeyboardKeyPressed + bx],al
     pop bx
     
     ; Clear carry flag to consume the scancode.
@@ -104,6 +106,10 @@ skipKeyProcess:
     jmp dword ptr [KeyboardBIOSSystemIntHandlerOffset]
 keyboardSystemInt endp
 
+; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
+; The array is stored in the code segment since it needs to be accessed from an interrupt.
+KeyboardKeyPressed      db KEYBOARD_KEY_PRESSED_COUNT dup(?)
+
 code ends
 
 data segment public
@@ -111,8 +117,6 @@ data segment public
 public KeyboardKeyPressed
     KeyboardBIOSSystemIntHandlerOffset      dw ?
     KeyboardBIOSSystemIntHandlerSegment     dw ?
-    ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                      db KEYBOARD_KEY_PRESSED_COUNT dup(?)
 data ends
 
 end

@@ -35,6 +35,7 @@ GAME
 ----
 - Print error codes properly when the game quits, probably this means the error number and a string describing it.
 - Look for the best/fastest way to clear the carry flag to consume the scancode in keyboardSystemInt.
+- Moved the keyboard array to the code segment, since it needs to be accessed from an interrupt. I guess it's a good idea?
 
 LINKS
 -----
