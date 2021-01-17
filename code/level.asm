@@ -1,7 +1,7 @@
 include code\console.inc
 include code\keyboard.inc
 
-LEVEL_AUTO_MOVE					equ 1
+LEVEL_AUTO_MOVE					equ 0
 LEVEL_BOX_WIDTH					equ 8
 LEVEL_BOX_HALF_WIDTH 			equ LEVEL_BOX_WIDTH / 2
 LEVEL_BOX_HEIGHT 				equ 12
@@ -51,9 +51,9 @@ levelInit proc
 	mov [LevelPosXHigh],ax
 	mov [LevelPrevPosXHigh],ax
 
-.if LEVEL_AUTO_MOVE
+if LEVEL_AUTO_MOVE
 	mov [LevelAutoMoveDir],1
-.endif
+endif
 levelInit endp
 
 levelUpdate proc
@@ -95,7 +95,7 @@ loopShotNext:
 	loop loopShot
 loopShotDone:
 
-.if LEVEL_AUTO_MOVE
+if LEVEL_AUTO_MOVE
 	; Check current direction of movement.
 	mov al,[LevelAutoMoveDir]
 	cmp al,1
@@ -116,7 +116,7 @@ autoMoveLeft:
 	mov [LevelAutoMoveDir],al
 autoMoveDone:
 	; Check if need to flip direction to right.
-.else
+else
 	; Read keyboard and store the direction of movement in al.
 	xor al,al
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
@@ -127,7 +127,7 @@ skipArrowLeftPressed:
 	jnz short skipArrowRightPressed
 	inc ax
 skipArrowRightPressed:
-.endif
+endif
 
 	; Move left.
 	cmp al,0ffh
@@ -169,10 +169,10 @@ skipLimitPosXRight:
 skipMoveRight:
 
 	; Shoot.
-.if !LEVEL_AUTO_MOVE	
+ife LEVEL_AUTO_MOVE
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_E
 	jnz short skipShot
-.endif
+endif
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT
 	je short skipShot
@@ -366,9 +366,9 @@ data segment public
 	LevelRenderDeleteWidth		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	LevelRenderDeleteHeight		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	LevelShotCooldown			db ?	
-.if LEVEL_AUTO_MOVE
+if LEVEL_AUTO_MOVE
 	LevelAutoMoveDir			db ?
-.endif
+endif
 data ends
 
 end
