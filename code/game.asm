@@ -129,7 +129,7 @@ nextKey:
 	consolePrintChar al
 
 	consoleGoToNextLine
-	jmp short nextkey
+	jmp short nextKey
 
 quit:
 	dosQuit

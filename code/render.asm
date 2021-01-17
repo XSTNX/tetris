@@ -89,7 +89,7 @@ nextLine:
 	pop ax
 	inc dl
 	cmp dl,dh
-	jne short nextline
+	jne short nextLine
 	ret
 renderBox320x200x4 endp
 
