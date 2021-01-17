@@ -290,7 +290,7 @@ loopShotDone:
 	mov al,3
 	call renderBox320x200x4
 
-.if DEBUG
+ifdef DEBUG
 	; Print debug info.
 	consoleSetCursorPos 0, 0
 	mov dl,byte ptr [LevelShotCount]
@@ -298,7 +298,7 @@ loopShotDone:
 	consoleSetCursorPos 0, 1
 	mov dl,[LevelShotCooldown]
 	call consolePrintByte
-.endif
+endif
 
 	ret
 levelRender endp

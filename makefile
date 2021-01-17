@@ -1,6 +1,7 @@
-DEBUG_FLAG = 1
+DEFINE_TEXT = DEBUG
+#DEFINE_TEXT = RELEASE
 INCLUDE_FOLDER = .
-ML_OPTIONS = /AT /c /Cp /D DEBUG=$(DEBUG_FLAG) /I $(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
+ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
 LINK_OPTIONS = /tiny
 
 all : bin\invdrs.com
