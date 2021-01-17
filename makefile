@@ -1,6 +1,6 @@
 DEBUG_FLAG = 1
 INCLUDE_FOLDER = .
-ML_OPTIONS = /AT /c /Cp /DDEBUG=$(DEBUG_FLAG) /I$(INCLUDE_FOLDER) /W3 /WX /X
+ML_OPTIONS = /AT /c /Cp /DDEBUG=$(DEBUG_FLAG) /I$(INCLUDE_FOLDER) /nologo /W3 /WX /X
 LINK_OPTIONS = /tiny
 
 all : bin\invdrs.com
