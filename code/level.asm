@@ -1,7 +1,7 @@
 include code\console.inc
 include code\keyboard.inc
 
-LEVEL_AUTO_MOVE					equ 0
+LEVEL_AUTO_MOVE					equ 1
 LEVEL_BOX_WIDTH					equ 8
 LEVEL_BOX_HALF_WIDTH 			equ LEVEL_BOX_WIDTH / 2
 LEVEL_BOX_HEIGHT 				equ 12
@@ -74,8 +74,7 @@ skipShotCoolDownDecrement:
 
 	; Update shots.
 	mov cx,[LevelShotCount]
-	test cx,cx
-	jz short loopShotDone
+	jcxz short loopShotDone
 	mov dx,LEVEL_SHOT_SPEED_PACKED
 	mov si,offset LevelShotPosYPacked
 	mov di,si
@@ -173,7 +172,7 @@ skipMoveRight:
 .if !LEVEL_AUTO_MOVE	
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_E
 	jnz short skipShot
-.endif	
+.endif
 	mov cx,[LevelShotCount]
 	cmp cx,LEVEL_SHOT_MAX_COUNT
 	je short skipShot
@@ -238,8 +237,7 @@ loopDeleteDone:
 
 	; Render shots.
 	mov cx,[LevelShotCount]
-	test cx,cx
-	jz short loopShotDone
+	jcxz short loopShotDone
 	xor di,di
 loopShot:
 	push cx
