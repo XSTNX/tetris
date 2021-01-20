@@ -9,7 +9,7 @@ endm
 
 ; Input: aChar (unsigned byte).
 consolePrintChar macro aChar:req
-;; If the argument is in dl already, this opcode is not needed.
+;; If the argument is in dl already, this line is useless.
 ifdifi <aChar>, <dl>
     mov dl,aChar
 endif
