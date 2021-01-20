@@ -199,16 +199,16 @@ testDOSVersion endp
 code ends
 
 constData segment public
-	StrErrorVideoCard				db "Video Error: You need a Color Graphics Adapter to play this game.", 0
-	StrErrorKeyboard				db "Keyboard error.", 0
+	StrErrorVideoCard		byte "Video Error: You need a Color Graphics Adapter to play this game.", 0
+	StrErrorKeyboard		byte "Keyboard error.", 0
 constData ends
 
 data segment public
-	GameInitProc			dw ?
-	GameInitRenderProc		dw ?
-	GameUpdateProc			dw ?
-	GameRenderProc			dw ?
-	GamePrevVideoMode		db ?
+	GameInitProc			word ?
+	GameInitRenderProc		word ?
+	GameUpdateProc			word ?
+	GameRenderProc			word ?
+	GamePrevVideoMode		byte ?
 data ends
 
 end main

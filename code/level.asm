@@ -349,25 +349,25 @@ code ends
 
 data segment public
 	; The shot count will be stored in the LSB, the MSB will remain at zero.
-	LevelShotCount				dw ?
-	LevelShotPosX				dw LEVEL_SHOT_MAX_COUNT dup (?)
-	LevelShotPosYPacked			dw LEVEL_SHOT_MAX_COUNT dup (?)
+	LevelShotCount				word ?
+	LevelShotPosX				word LEVEL_SHOT_MAX_COUNT dup (?)
+	LevelShotPosYPacked			word LEVEL_SHOT_MAX_COUNT dup (?)
 	; The shot prev posY will be stored in the LSB, the MSB is unused.
-	LevelShotPrevPosY			dw LEVEL_SHOT_MAX_COUNT dup (?)
-	LevelPosXLow				dw ?
-	LevelPosXHigh				dw ?
-	LevelPrevPosXHigh			dw ?
-	LevelRenderDeleteCount		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelShotPrevPosY			word LEVEL_SHOT_MAX_COUNT dup (?)
+	LevelPosXLow				word ?
+	LevelPosXHigh				word ?
+	LevelPrevPosXHigh			word ?
+	LevelRenderDeleteCount		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete posX and PosY are measured from the top left corner.
-	LevelRenderDeletePosX		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelRenderDeletePosX		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete posY will be stored in the LSB, the MSB is unused.
-	LevelRenderDeletePosY		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelRenderDeletePosY		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete size will be stored in the LSB, the MSB is unused.
-	LevelRenderDeleteWidth		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
-	LevelRenderDeleteHeight		dw LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
-	LevelShotCooldown			db ?	
+	LevelRenderDeleteWidth		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelRenderDeleteHeight		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
+	LevelShotCooldown			byte ?	
 if LEVEL_AUTO_MOVE
-	LevelAutoMoveDir			db ?
+	LevelAutoMoveDir			byte ?
 endif
 data ends
 

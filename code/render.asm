@@ -100,8 +100,8 @@ renderBox320x200x4 endp
 code ends
 
 constData segment public
-	RenderPixelMask320x200x4		db 00111111b, 11001111b, 11110011b, 11111100b
-	RenderPixelShift320x200x4		db         6,         4,         2,         0
+	RenderPixelMask320x200x4		byte 00111111b, 11001111b, 11110011b, 11111100b
+	RenderPixelShift320x200x4		byte         6,         4,         2,         0
 constData ends
 
 end

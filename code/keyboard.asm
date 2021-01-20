@@ -100,10 +100,10 @@ keyboardSystemInt endp
 public KeyboardKeyPressed
 
 ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-KeyboardKeyPressed                      db KEYBOARD_KEY_PRESSED_COUNT dup(80h)
+KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(80h)
 KeyboardBIOSSystemIntHandlerDWordPtr    label dword
-KeyboardBIOSSystemIntHandlerOffset      dw ?
-KeyboardBIOSSystemIntHandlerSegment     dw ?
+KeyboardBIOSSystemIntHandlerOffset      word ?
+KeyboardBIOSSystemIntHandlerSegment     word ?
 
 code ends
 
