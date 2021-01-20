@@ -1,13 +1,14 @@
 DEFINE_TEXT = DEBUG
 #DEFINE_TEXT = RELEASE
 INCLUDE_FOLDER = .
+EXECUTABLE_NAME = invdrs
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
-LINK_OPTIONS = /TINY
+LINK_OPTIONS = /NOLOGO /TINY
 
-all : bin\invdrs.com
+all : bin\$(EXECUTABLE_NAME).com
 
-bin\invdrs.com : obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj
-	link $(LINK_OPTIONS) obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj, bin\invdrs.com;
+bin\$(EXECUTABLE_NAME).com : obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj
+	link $(LINK_OPTIONS) obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj, bin\$(EXECUTABLE_NAME).com;
 
 code\console.inc : code\ascii.inc code\bios.inc code\dos.inc
 
