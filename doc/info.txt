@@ -17,6 +17,7 @@ MASM
 - Figure out how to define a struct to the defines that start with BIOS_SYSTEM_ENVIRONMENT_ make more sense.
 - Figure out if thereis a way to create enums, so the defines that start with ERROR_CODE_ make more sense.
 - Which directive can I use to align KeyboardBIOSSystemIntHandlerDWordPtr?
+- What is the difference between ML option W2 and W3? Look in the documentation for details.
 
 IBM PC
 ------
