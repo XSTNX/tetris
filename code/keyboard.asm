@@ -16,8 +16,8 @@ keyboardStart proc
 
     ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden
-    mov ax,cs
-    mov ds,ax
+    push cs
+    pop ds
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     int DOS_REQUEST_INT
     mov ds:[KeyboardBIOSSystemIntHandlerOffset],bx
