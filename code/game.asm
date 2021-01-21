@@ -5,15 +5,15 @@ include code\keyboard.inc
 setLevelGameState macro
 	mov [GameInitProc],offset levelInit
 	mov [GameInitRenderProc],offset levelInitRender
-	mov [GameUpdateProc], offset levelUpdate
-	mov [GameRenderProc], offset levelRender
+	mov [GameUpdateProc],offset levelUpdate
+	mov [GameRenderProc],offset levelRender
 endm
 
 setTestGameState macro
 	mov [GameInitProc],offset testInit
 	mov [GameInitRenderProc],offset testInitRender
-	mov [GameUpdateProc], offset testUpdate
-	mov [GameRenderProc], offset testRender
+	mov [GameUpdateProc],offset testUpdate
+	mov [GameRenderProc],offset testRender
 endm
 
 WAIT_VSYNC macro
