@@ -7,9 +7,8 @@ consoleGoToNextLine macro
     consolePrintCharLF
 endm
 
-; Input: aChar (unsigned byte).
+; Input: aChar, moved to dl (unsigned byte).
 consolePrintChar macro aChar:req
-;; If the argument is in dl already, this line is useless.
 ifdifi <aChar>, <dl>
     mov dl,aChar
 endif

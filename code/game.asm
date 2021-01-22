@@ -1,6 +1,7 @@
 include code\console.inc
 include code\errcode.inc
 include code\keyboard.inc
+include code\render.inc
 
 setLevelGameState macro
 	mov [GameInitProc],offset levelInit
@@ -72,10 +73,8 @@ skipVideoModeError:
 	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
-	; Set palette 0.
-	mov bx,100h
-	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
-	int BIOS_VIDEO_INT
+	; Set palette num.
+	renderSetPalette320x200x4 0
 
 	; Start the game directly on the level for now.
 	setLevelGameState
@@ -86,8 +85,10 @@ skipVideoModeError:
 	call [GameInitRenderProc]
 gameLoop:
 	call [GameUpdateProc]
+	call testPaletteChange
 	WAIT_VSYNC
 	call [GameRenderProc]
+
 	; Continue gameloop until ESC is pressed.
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ESC
 	jnz short gameLoop
@@ -101,6 +102,20 @@ quit:
 	call keyboardStop
 	dosQuit
 main endp
+
+testPaletteChange proc
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_1
+	jnz skipChangePaletteNum0
+	renderSetPalette320x200x4 0
+	; Returns here just in case, so the palette can't be changed two times in the same frame.
+	ret
+skipChangePaletteNum0:
+	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_2
+	jnz skipChangePaletteNum1
+	renderSetPalette320x200x4 1
+skipChangePaletteNum1:
+	ret
+testPaletteChange endp
 
 testKeyboardScancode proc private
 	mov dx,offset strStart
