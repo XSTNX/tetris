@@ -12,8 +12,9 @@ LEVEL_POSX_START 				equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
 LEVEL_POSY 						equ BIOS_VIDEO_MODE_320_200_4_HEIGHT - 10
 LEVEL_POSY_BOX_START			equ LEVEL_POSY - (LEVEL_BOX_HEIGHT / 2)
 LEVEL_POSY_BOX_END				equ LEVEL_POSY_BOX_START + LEVEL_BOX_HEIGHT
-LEVEL_SPEEDX_LOW 				equ 0
-LEVEL_SPEEDX_HIGH 				equ 5
+LEVEL_SPEEDX_BYTE_FRACTION		equ 0
+; static_assert(LEVEL_SPEEDX_BYTE_FRACTION < 256)
+LEVEL_SPEEDX	 				equ 5
 LEVEL_SHOT_WIDTH				equ 2
 LEVEL_SHOT_HALF_WIDTH			equ LEVEL_SHOT_WIDTH / 2
 LEVEL_SHOT_HEIGHT				equ 6
@@ -31,25 +32,23 @@ allSegments group code, data
 
 code segment public
 
-extern consolePrintByte:proc, consolePrintWord:proc, consolePrintWordHex:proc
+extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 levelInit proc
-	cld
-
 	xor ax,ax
-	mov [LevelShotCooldown],al
 	mov [LevelShotCount],ax
-	mov [LevelPosXLow],ax
 	mov [LevelRenderDeleteCount],ax
+	mov [LevelShotCooldown],al
+	mov [LevelPosXByteFraction],al
 	; Zero out both LevelRenderDeleteWidth and LevelRenderDeleteHeight
 	mov cx,LEVEL_RENDER_DELETE_MAX_COUNT * 2
 	mov di,offset LevelRenderDeleteWidth
 	rep stosw
 
 	mov ax,LEVEL_POSX_START
-	mov [LevelPosXHigh],ax
-	mov [LevelPrevPosXHigh],ax
+	mov [LevelPosX],ax
+	mov [LevelPrevPosX],ax
 
 if LEVEL_AUTO_MOVE
 	mov [LevelAutoMoveDir],1
@@ -61,8 +60,8 @@ levelUpdate proc
 	mov es,ax
 
 	; Save prev posX.
-	mov ax,[LevelPosXHigh]
-	mov [LevelPrevPosXHigh],ax
+	mov ax,[LevelPosX]
+	mov [LevelPrevPosX],ax
 
 	; Update cooldown.
 	mov al,[LevelShotCooldown]
@@ -101,7 +100,7 @@ if LEVEL_AUTO_MOVE
 	cmp al,1
 	jne short autoMoveLeft
 	; Check if need to flip direction left.
-	cmp [LevelPosXHigh],LEVEL_POSX_LIMIT_HIGH
+	cmp [LevelPosX],LEVEL_POSX_LIMIT_HIGH
 	jne short autoMoveDone
 	dec ax
 	dec ax
@@ -109,7 +108,7 @@ if LEVEL_AUTO_MOVE
 	jmp short autoMoveDone
 autoMoveLeft:
 	; Check if need to flip direction right.
-	cmp [LevelPosXHigh],LEVEL_POSX_LIMIT_LOW
+	cmp [LevelPosX],LEVEL_POSX_LIMIT_LOW
 	jne short autoMoveDone
 	inc ax
 	inc ax
@@ -133,19 +132,20 @@ endif
 	cmp al,0ffh
 	jne short skipMoveLeft
 	; Compute new posX.
-	mov cx,[LevelPosXLow]
-	sub cx,LEVEL_SPEEDX_LOW
-	mov dx,[LevelPosXHigh]
-	sbb dx,LEVEL_SPEEDX_HIGH
+	mov cl,[LevelPosXByteFraction]
+	sub cl,LEVEL_SPEEDX_BYTE_FRACTION
+	mov dx,[LevelPosX]
+	sbb dx,LEVEL_SPEEDX
 	; Limit posX if needed.
 	cmp dx,LEVEL_POSX_LIMIT_LOW
 	jae short skipLimitPosXLeft
-	xor cx,cx
+	xor cl,cl
 	mov dx,LEVEL_POSX_LIMIT_LOW
 skipLimitPosXLeft:
 	; Save new posX.
-	mov [LevelPosXLow],cx
-	mov [LevelPosXHigh],dx
+	mov [LevelPosXByteFraction],cl
+	mov [LevelPosX],dx
+	; No need to check if moved right.
 	jmp short [skipMoveRight]
 skipMoveLeft:
 
@@ -153,19 +153,19 @@ skipMoveLeft:
 	cmp al,1
 	jne short skipMoveRight
 	; Compute new posX.
-	mov cx,[LevelPosXLow]
-	add cx,LEVEL_SPEEDX_LOW
-	mov dx,[LevelPosXHigh]
-	adc dx,LEVEL_SPEEDX_HIGH
+	mov cl,[LevelPosXByteFraction]
+	add cl,LEVEL_SPEEDX_BYTE_FRACTION
+	mov dx,[LevelPosX]
+	adc dx,LEVEL_SPEEDX
 	; Limit posX if needed.
 	cmp dx,LEVEL_POSX_LIMIT_HIGH
 	jb short skipLimitPosXRight
-	xor cx,cx
+	xor cl,cl
 	mov dx,LEVEL_POSX_LIMIT_HIGH
 skipLimitPosXRight:
 	; Save new posX.
-	mov [LevelPosXLow],cx
-	mov [LevelPosXHigh],dx
+	mov [LevelPosXByteFraction],cl
+	mov [LevelPosX],dx
 skipMoveRight:
 
 	; Shoot.
@@ -180,7 +180,7 @@ endif
 	jne short skipShot
 	mov [LevelShotCooldown],LEVEL_SHOT_COOLDOWN
 	; Don't need to read this again if dx is not overriden.
-	mov dx,[LevelPosXHigh]
+	mov dx,[LevelPosX]
 	mov di,cx
 	shl di,1
 	mov [LevelShotPosX + di],dx
@@ -273,7 +273,7 @@ loopShot:
 loopShotDone:
 
 	; Erase previous box.
-	mov cx,[LevelPrevPosXHigh]
+	mov cx,[LevelPrevPosX]
 	sub cx,LEVEL_BOX_HALF_WIDTH
 	mov bx,cx
 	add bx,LEVEL_BOX_WIDTH
@@ -282,7 +282,7 @@ loopShotDone:
 	call renderBox320x200x4
 
 	; Draw current box.
-	mov cx,[LevelPosXHigh]
+	mov cx,[LevelPosX]
 	sub cx,LEVEL_BOX_HALF_WIDTH
 	mov bx,cx
 	add bx,LEVEL_BOX_WIDTH
@@ -304,11 +304,11 @@ levelRender endp
 
 levelDebugPrintPlayer proc private
 	consoleSetCursorPos 0, 0
-	mov dx,[LevelPosXHigh]
+	mov dx,[LevelPosX]
 	call consolePrintWord
 	consoleSetCursorPos 0, 1
-	mov dx,[LevelPosXLow]
-	call consolePrintWordHex
+	mov dl,[LevelPosXByteFraction]
+	call consolePrintByteHex
 	ret
 levelDebugPrintPlayer endp
 
@@ -370,9 +370,8 @@ data segment public
 	LevelShotPosYPacked			word LEVEL_SHOT_MAX_COUNT dup (?)
 	; The shot prev posY will be stored in the LSB, the MSB is unused.
 	LevelShotPrevPosY			word LEVEL_SHOT_MAX_COUNT dup (?)
-	LevelPosXLow				word ?
-	LevelPosXHigh				word ?
-	LevelPrevPosXHigh			word ?
+	LevelPosX					word ?
+	LevelPrevPosX				word ?
 	; The count will be stored in the LSB, the MSB will remain at zero.
 	LevelRenderDeleteCount		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete posX and PosY are measured from the top left corner.
@@ -382,7 +381,8 @@ data segment public
 	; The render delete size will be stored in the LSB, the MSB is unused.
 	LevelRenderDeleteWidth		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	LevelRenderDeleteHeight		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
-	LevelShotCooldown			byte ?	
+	LevelShotCooldown			byte ?
+	LevelPosXByteFraction		byte ?	
 if LEVEL_AUTO_MOVE
 	LevelAutoMoveDir			byte ?
 endif

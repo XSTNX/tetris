@@ -45,6 +45,9 @@ extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 
 	org 100h
 main proc private
+	; The game assumes the direction flag is always reset.
+	cld
+
 	call keyboardStart
 	; Check if keyboard started properly.
 	cmp al,ERROR_CODE_KEYBOARD_NONE
