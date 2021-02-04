@@ -18,7 +18,7 @@ notOddRow:
 	and si,11b
 	;; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
 	shr cx,1
-	shr cx,1	
+	shr cx,1
 	add bx,cx
 	;; Read the byte in video memory where the pixel is.
 	mov al,es:[bx]
