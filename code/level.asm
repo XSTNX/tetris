@@ -31,7 +31,7 @@ allSegments group code, data
 
 code segment public
 
-extern consolePrintByte:proc
+extern consolePrintByte:proc, consolePrintWord:proc, consolePrintWordHex:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 levelInit proc
@@ -291,13 +291,8 @@ loopShotDone:
 	call renderBox320x200x4
 
 ifdef DEBUG
-	; Print debug info.
-	consoleSetCursorPos 0, 0
-	mov dl,byte ptr [LevelShotCount]
-	call consolePrintByte
-	consoleSetCursorPos 0, 1
-	mov dl,[LevelShotCooldown]
-	call consolePrintByte
+	;call levelDebugPrintPlayer
+	call levelDebugPrintShot
 endif
 
 	ret
@@ -306,6 +301,26 @@ levelRender endp
 ; ---------;
 ; Private. ;
 ; ---------;
+
+levelDebugPrintPlayer proc private
+	consoleSetCursorPos 0, 0
+	mov dx,[LevelPosXHigh]
+	call consolePrintWord
+	consoleSetCursorPos 0, 1
+	mov dx,[LevelPosXLow]
+	call consolePrintWordHex
+	ret
+levelDebugPrintPlayer endp
+
+levelDebugPrintShot proc private
+	consoleSetCursorPos 0, 0
+	mov dl,byte ptr [LevelShotCount]
+	call consolePrintByte
+	consoleSetCursorPos 0, 1
+	mov dl,[LevelShotCooldown]
+	call consolePrintByte
+	ret
+levelDebugPrintShot endp
 
 ; Input: di (pointer to the position in LevelShotPosYPacked of the shot to be deleted).
 levelDeleteShot proc private
