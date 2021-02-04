@@ -23,7 +23,7 @@ LEVEL_SHOT_POSY_START_PACKED 	equ LEVEL_SHOT_POSY_START * 256
 LEVEL_SHOT_SPEED_PACKED			equ 400h
 LEVEL_SHOT_COOLDOWN 			equ 10
 LEVEL_SHOT_MAX_COUNT 			equ 5
-; assert(LEVEL_SHOT_MAX_COUNT < 256)
+; static_assert(LEVEL_SHOT_MAX_COUNT < 128)
 LEVEL_RENDER_DELETE_MAX_COUNT	equ LEVEL_SHOT_MAX_COUNT * 2
 
 allSegments group code, data
@@ -232,7 +232,7 @@ loopDelete:
 	loop loopDelete
 	
 	; Set delete count back to zero.
-	mov [LevelRenderDeleteCount],cx
+	mov byte ptr [LevelRenderDeleteCount],cl
 loopDeleteDone:
 
 	; Render shots.
@@ -319,8 +319,9 @@ levelDeleteShot proc private
 	mov ax,[LevelRenderDeleteCount]
 	push si
 	mov si,ax
+	; assert(ax < LEVEL_RENDER_DELETE_MAX_COUNT)
 	inc ax
-	mov [LevelRenderDeleteCount],ax
+	mov byte ptr [LevelRenderDeleteCount],al
 	shl si,1
 	; Copy data to wipe shot from video memory on the next call to render.
 	mov ax,[(LevelShotPosX - LevelShotPosYPacked) + di]
@@ -348,7 +349,7 @@ levelDeleteShot endp
 code ends
 
 data segment public
-	; The shot count will be stored in the LSB, the MSB will remain at zero.
+	; The count will be stored in the LSB, the MSB will remain at zero.
 	LevelShotCount				word ?
 	LevelShotPosX				word LEVEL_SHOT_MAX_COUNT dup (?)
 	LevelShotPosYPacked			word LEVEL_SHOT_MAX_COUNT dup (?)
@@ -357,6 +358,7 @@ data segment public
 	LevelPosXLow				word ?
 	LevelPosXHigh				word ?
 	LevelPrevPosXHigh			word ?
+	; The count will be stored in the LSB, the MSB will remain at zero.
 	LevelRenderDeleteCount		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete posX and PosY are measured from the top left corner.
 	LevelRenderDeletePosX		word LEVEL_RENDER_DELETE_MAX_COUNT dup (?)
