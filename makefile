@@ -7,8 +7,8 @@ LINK_OPTIONS = /NOLOGO /TINY
 
 all : bin\$(EXECUTABLE_NAME).com
 
-bin\$(EXECUTABLE_NAME).com : obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj
-	link $(LINK_OPTIONS) obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\render.obj obj\test.obj, bin\$(EXECUTABLE_NAME).com;
+bin\$(EXECUTABLE_NAME).com : obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj
+	link $(LINK_OPTIONS) obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj, bin\$(EXECUTABLE_NAME).com;
 
 code\console.inc : code\ascii.inc code\bios.inc code\dos.inc
 
@@ -23,8 +23,11 @@ obj\game.obj : code\game.asm code\console.inc code\errcode.inc code\keyboard.inc
 obj\keyboard.obj : code\keyboard.asm code\bios.inc code\dos.inc code\errcode.inc
 	ml $(ML_OPTIONS) /Fo"obj\keyboard.obj" /Fl"obj\keyboard.lst" code\keyboard.asm
 
-obj\level.obj : code\level.asm code\console.inc code\keyboard.inc
+obj\level.obj : code\level.asm code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\level.obj" /Fl"obj\level.lst" code\level.asm
+
+obj\player.obj : code\player.asm code\console.inc code\keyboard.inc
+	ml $(ML_OPTIONS) /Fo"obj\player.obj" /Fl"obj\player.lst" code\player.asm
 
 obj\render.obj : code\render.asm code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\render.obj" /Fl"obj\render.lst" code\render.asm

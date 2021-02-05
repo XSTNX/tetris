@@ -45,7 +45,7 @@ extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 
 	org 100h
 main proc private
-	; The game assumes the direction flag is always reset.
+	; Game states should assume the direction flag is always reset.
 	cld
 
 	call keyboardStart
@@ -84,11 +84,17 @@ skipVideoModeError:
 	;setTestGameState
 
 	call [GameInitProc]
+	; Game states should assume the extra segment points to video memory at the start of the render functions.
+	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
+	mov es,ax
 	WAIT_VSYNC
 	call [GameInitRenderProc]
 gameLoop:
 	call [GameUpdateProc]
 	call testPaletteChange
+	; Game states should assume the extra segment points to video memory at the start of the render functions.
+	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
+	mov es,ax
 	WAIT_VSYNC
 	call [GameRenderProc]
 
