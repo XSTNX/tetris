@@ -8,7 +8,7 @@ LINK_OPTIONS = /NOLOGO /TINY
 all : bin\$(EXECUTABLE_NAME).com
 
 bin\$(EXECUTABLE_NAME).com : obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj
-	link $(LINK_OPTIONS) obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj, bin\$(EXECUTABLE_NAME).com;
+	link $(LINK_OPTIONS) @input.lnk, bin\$(EXECUTABLE_NAME).com;
 
 code\console.inc : code\ascii.inc code\bios.inc code\dos.inc
 
