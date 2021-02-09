@@ -122,13 +122,13 @@ else
 	; Read keyboard and store the direction of movement in al.
 	xor al,al
 	keyboardIsKeyPressed PLAYER_KEY_LEFT
-	jnz short skipArrowLeftPressed
+	jnz short skipKeyLeftPressed
 	dec ax
-skipArrowLeftPressed:
+skipKeyLeftPressed:
 	keyboardIsKeyPressed PLAYER_KEY_RIGHT
-	jnz short skipArrowRightPressed
+	jnz short skipKeyRightPressed
 	inc ax
-skipArrowRightPressed:
+skipKeyRightPressed:
 endif
 
 	; Move left.
@@ -284,8 +284,9 @@ loopShotDone:
 	call renderBox320x200x4
 
 ifdef DEBUG
+	call playerDebugKeyboard
 	;call playerDebugPrintPlayer
-	call playerDebugPrintShot
+	;call playerDebugPrintShot
 endif
 
 	ret
@@ -294,6 +295,39 @@ playerRender endp
 ; ---------;
 ; Private. ;
 ; ---------;
+
+ifdef DEBUG
+
+playerDebugKeyboard proc private
+	; Left.
+	consoleSetCursorPos 0, 0
+	keyboardIsKeyPressed PLAYER_KEY_LEFT
+	mov dl,"0"
+	jnz short skipPressedKeyLeft
+	mov dl,"1"
+skipPressedKeyLeft:
+	consolePrintChar dl
+
+	; Right.
+	consoleSetCursorPos 0, 1
+	keyboardIsKeyPressed PLAYER_KEY_RIGHT
+	mov dl,"0"
+	jnz short skipPressedKeyRight
+	mov dl,"1"
+skipPressedKeyRight:
+	consolePrintChar dl
+
+	; SHOOT.
+	consoleSetCursorPos 0, 2
+	keyboardIsKeyPressed PLAYER_KEY_SHOOT
+	mov dl,"0"
+	jnz short skipPressedKeyShoot
+	mov dl,"1"
+skipPressedKeyShoot:
+	consolePrintChar dl
+
+	ret
+playerDebugKeyboard endp
 
 playerDebugPrintPlayer proc private
 	consoleSetCursorPos 0, 0
@@ -314,6 +348,8 @@ playerDebugPrintShot proc private
 	call consolePrintByte
 	ret
 playerDebugPrintShot endp
+
+endif
 
 ; Input: di (pointer to the position in PlayerShotPosYPacked of the shot to be deleted).
 playerDeleteShot proc private
