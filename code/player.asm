@@ -26,6 +26,9 @@ PLAYER_SHOT_COOLDOWN 			equ 10
 PLAYER_SHOT_MAX_COUNT 			equ 5
 ; static_assert(PLAYER_SHOT_MAX_COUNT < 128)
 PLAYER_RENDER_DELETE_MAX_COUNT	equ PLAYER_SHOT_MAX_COUNT * 2
+PLAYER_KEY_LEFT					equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
+PLAYER_KEY_RIGHT				equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
+PLAYER_KEY_SHOOT				equ BIOS_KEYBOARD_SCANCODE_E
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -118,11 +121,11 @@ autoMoveDone:
 else
 	; Read keyboard and store the direction of movement in al.
 	xor al,al
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
+	keyboardIsKeyPressed PLAYER_KEY_LEFT
 	jnz short skipArrowLeftPressed
 	dec ax
 skipArrowLeftPressed:
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
+	keyboardIsKeyPressed PLAYER_KEY_RIGHT
 	jnz short skipArrowRightPressed
 	inc ax
 skipArrowRightPressed:
@@ -170,7 +173,7 @@ skipMoveRight:
 
 	; Shoot.
 ife PLAYER_AUTO_MOVE
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_E
+	keyboardIsKeyPressed PLAYER_KEY_SHOOT
 	jnz short skipShot
 endif
 	mov cx,[PlayerShotCount]
