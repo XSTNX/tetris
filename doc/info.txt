@@ -19,6 +19,7 @@ MASM
 - Which directive can I use to align KeyboardBIOSSystemIntHandlerDWordPtr?
 - What is the difference between ML option W2 and W3? Look in the documentation for details.
 - Using /MAP with the linker creates the map in the current folder, not sure how to specify which folder I want.
+- Maybe the different asm files should have its own data segment for variables they don't share with other files?
 
 IBM PC
 ------

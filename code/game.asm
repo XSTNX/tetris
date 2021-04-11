@@ -126,6 +126,8 @@ skipChangePaletteNum1:
 	ret
 testPaletteChange endp
 
+ifdef DEBUG
+
 testKeyboardScancode proc private
 	mov dx,offset strStart
 	call consolePrintString
@@ -219,6 +221,8 @@ strVer:
 strDOSType:
 	db " DosType: ", 0
 testDOSVersion endp
+
+endif
 
 code ends
 

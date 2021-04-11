@@ -95,15 +95,14 @@ skipKeyProcess:
     jmp cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
 keyboardSystemInt endp
 
-; Data is stored in the code segment since it needs to be easily accesible to the new interrupt.
+    ; Data is stored in the code segment since it needs to be accesible to the new interrupt.
 
-public KeyboardKeyPressed
-
-; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(80h)
-KeyboardBIOSSystemIntHandlerDWordPtr    label dword
-KeyboardBIOSSystemIntHandlerOffset      word ?
-KeyboardBIOSSystemIntHandlerSegment     word ?
+    public KeyboardKeyPressed
+    ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
+    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(80h)
+    KeyboardBIOSSystemIntHandlerDWordPtr    label dword
+    KeyboardBIOSSystemIntHandlerOffset      word ?
+    KeyboardBIOSSystemIntHandlerSegment     word ?
 
 code ends
 
