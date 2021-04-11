@@ -284,7 +284,7 @@ loopShotDone:
 	call renderBox320x200x4
 
 ifdef DEBUG
-	call playerDebugKeyboard
+	call playerDebugPrintKeyboard
 	;call playerDebugPrintPlayer
 	;call playerDebugPrintShot
 endif
@@ -298,7 +298,7 @@ playerRender endp
 
 ifdef DEBUG
 
-playerDebugKeyboard proc private
+playerDebugPrintKeyboard proc private
 	; Left.
 	consoleSetCursorPos 0, 0
 	keyboardIsKeyPressed PLAYER_KEY_LEFT
@@ -309,7 +309,7 @@ skipPressedKeyLeft:
 	consolePrintChar dl
 
 	; Right.
-	consoleSetCursorPos 0, 1
+	consoleSetCursorPos 1, 0
 	keyboardIsKeyPressed PLAYER_KEY_RIGHT
 	mov dl,"0"
 	jnz short skipPressedKeyRight
@@ -318,7 +318,7 @@ skipPressedKeyRight:
 	consolePrintChar dl
 
 	; SHOOT.
-	consoleSetCursorPos 0, 2
+	consoleSetCursorPos 2, 0
 	keyboardIsKeyPressed PLAYER_KEY_SHOOT
 	mov dl,"0"
 	jnz short skipPressedKeyShoot
@@ -327,7 +327,7 @@ skipPressedKeyShoot:
 	consolePrintChar dl
 
 	ret
-playerDebugKeyboard endp
+playerDebugPrintKeyboard endp
 
 playerDebugPrintPlayer proc private
 	consoleSetCursorPos 0, 0
