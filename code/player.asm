@@ -1,15 +1,19 @@
 include code\console.inc
 include code\keyboard.inc
 
+; Config.
 PLAYER_AUTO_MOVE                equ 0
+PLAYER_USE_SPRITES              equ 1
+
+; Constants.
 PLAYER_WIDTH                    equ 8
 PLAYER_HALF_WIDTH 			    equ PLAYER_WIDTH / 2
-PLAYER_HEIGHT 				    equ 12
+PLAYER_HEIGHT 				    equ 16
 PLAYER_HALF_HEIGHT 			    equ PLAYER_HEIGHT / 2
 PLAYER_POSX_LIMIT_LOW 			equ 30
 PLAYER_POSX_LIMIT_HIGH 			equ BIOS_VIDEO_MODE_320_200_4_WIDTH - PLAYER_POSX_LIMIT_LOW
 PLAYER_POSX_START 				equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
-PLAYER_POSY                     equ BIOS_VIDEO_MODE_320_200_4_HEIGHT - 10
+PLAYER_POSY                     equ BIOS_VIDEO_MODE_320_200_4_HEIGHT - PLAYER_HALF_HEIGHT - 2
 PLAYER_POSY_START			    equ PLAYER_POSY - (PLAYER_HEIGHT / 2)
 PLAYER_POSY_END				    equ PLAYER_POSY_START + PLAYER_HEIGHT
 PLAYER_SPEEDX_BYTE_FRACTION		equ 0
@@ -36,7 +40,7 @@ allSegments group code, data
 code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
-extern renderBox320x200x4:proc
+extern renderBox320x200x4:proc, renderSprite8x16:proc
 
 playerInit proc
 	xor ax,ax
@@ -246,7 +250,7 @@ loopShot:
 	add dh,PLAYER_SHOT_HEIGHT
 	mov al,0
 	call renderBox320x200x4
-
+	
 	; Draw current shot.
 	mov cx,[PlayerShotPosX + di]
 	sub cx,PLAYER_SHOT_HALF_WIDTH
@@ -265,6 +269,21 @@ loopShot:
 	loop loopShot
 loopShotDone:
 
+if PLAYER_USE_SPRITES
+	; Erase previous player.
+	mov cx,[PlayerPrevPosX]
+	sub cx,PLAYER_HALF_WIDTH
+	mov dl,PLAYER_POSY_START
+	mov ax,0
+	call renderSprite8x16
+
+	; Draw current player.
+	mov cx,[PlayerPosX]
+	sub cx,PLAYER_HALF_WIDTH
+	mov dl,PLAYER_POSY_START
+	mov ax,0ffffh
+	call renderSprite8x16
+else
 	; Erase previous player.
 	mov cx,[PlayerPrevPosX]
 	sub cx,PLAYER_HALF_WIDTH
@@ -282,6 +301,7 @@ loopShotDone:
 	mov dx,PLAYER_POSY_START + (PLAYER_POSY_END * 256)
 	mov al,3
 	call renderBox320x200x4
+endif
 
 ifdef DEBUG
 	call playerDebugPrintKeyboard
@@ -396,7 +416,7 @@ data segment public
 	; The count will be stored in the LSB, the MSB will remain at zero.
 	PlayerShotCount				word ?
 	PlayerShotPosX				word PLAYER_SHOT_MAX_COUNT dup (?)
-	PlayerShotPosYPacked			word PLAYER_SHOT_MAX_COUNT dup (?)
+	PlayerShotPosYPacked		word PLAYER_SHOT_MAX_COUNT dup (?)
 	; The shot prev posY will be stored in the LSB, the MSB is unused.
 	PlayerShotPrevPosY			word PLAYER_SHOT_MAX_COUNT dup (?)
 	PlayerPosX					word ?
@@ -415,6 +435,7 @@ data segment public
 if PLAYER_AUTO_MOVE
 	PlayerAutoMoveDir			byte ?
 endif
+	
 data ends
 
 end
