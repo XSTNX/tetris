@@ -274,14 +274,14 @@ if PLAYER_USE_SPRITES
 	mov cx,[PlayerPrevPosX]
 	sub cx,PLAYER_HALF_WIDTH
 	mov dl,PLAYER_POSY_START
-	mov ax,0
+	xor di,di
 	call renderSprite8x16
 
 	; Draw current player.
 	mov cx,[PlayerPosX]
 	sub cx,PLAYER_HALF_WIDTH
 	mov dl,PLAYER_POSY_START
-	mov ax,0ffffh
+	mov di,0ffffh
 	call renderSprite8x16
 else
 	; Erase previous player.
