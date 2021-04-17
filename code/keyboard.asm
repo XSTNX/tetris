@@ -9,24 +9,30 @@ KEYBOARD_KEY_PRESSED_COUNT      equ 128
 allSegments group code
     assume cs:allSegments
 
+; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume segment registers have
+; the same value on enter.
 code segment public
 
 ; Output: al (error code).
 keyboardStart proc
-if KEYBOARD_ENABLED
     push ds
     push es
 
+    ; Set keys to not pressed.
+    mov ax,8080h
+    mov cx,KEYBOARD_KEY_PRESSED_COUNT / 2
+    mov di,offset allSegments:KeyboardKeyPressed
+    rep stosw
+
+if KEYBOARD_ENABLED
     ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
-    ; function can't be overriden
-    push cs
-    pop ds
+    ; function can't be overriden.
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     int DOS_REQUEST_INT
     mov ds:[KeyboardBIOSSystemIntHandlerOffset],bx
     mov ds:[KeyboardBIOSSystemIntHandlerSegment],es
 
-    ; Get system enviroment.
+    ; Get system environment.
     mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
     int BIOS_SYSTEM_INT
 
@@ -45,15 +51,14 @@ skipInterceptNotAvaiableError:
 
     ; Set new system interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
-    mov dx,offset cs:keyboardSystemInt
+    mov dx,offset allSegments:keyboardSystemInt
     int DOS_REQUEST_INT
-
+endif
     mov al,ERROR_CODE_KEYBOARD_NONE
 
 quit:
     pop es
     pop ds
-endif    
     ret
 keyboardStart endp
 
@@ -62,7 +67,7 @@ if KEYBOARD_ENABLED
     ; Restore previous keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     push ds
-    lds dx,cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
+    lds dx,ds:[KeyboardBIOSSystemIntHandlerDWordPtr]
     int DOS_REQUEST_INT
     pop ds
 endif
@@ -73,6 +78,7 @@ keyboardStop endp
 ; Private. ;
 ; ---------;
 
+; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 keyboardSystemInt proc private
     ; Is it the keyboard intercept function?
     cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
@@ -101,10 +107,9 @@ skipKeyProcess:
 keyboardSystemInt endp
 
     ; Data is stored in the code segment since it needs to be accesible to the new interrupt.
-
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(80h)
+    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(?)
     KeyboardBIOSSystemIntHandlerDWordPtr    label dword
     KeyboardBIOSSystemIntHandlerOffset      word ?
     KeyboardBIOSSystemIntHandlerSegment     word ?

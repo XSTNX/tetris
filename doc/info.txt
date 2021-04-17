@@ -6,13 +6,14 @@ ASM
 - Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory? How does DOS make sure in general there is enough memory to run the game?
 - Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
 - Is there an assert directive I can use?
-- What is the simplest way to clear the zero flag? I'm doing inc al twice on proc checkForESCKey in game.asm.
+- What is the simplest way to clear the zero flag? I'm doing "inc al" twice on proc checkForESCKey in game.asm.
 
 MASM
 ----
 - Do I need to put the includes as dependencies in the makefile or is there a simple way of dealing with that?
 - The makefile doesn't always do the link step after assembling, so it has to be run twice, why is that exactly?
 - Is there any way to make the constData segment really const?
+- I think I should separate the data segment into two segments with initialized and uninitialized data. This should make the executable smaller.
 - Figure out an equivalent to .if DEBUG that you can use outside of segments, so you can avoid including certain files, for instance.
 - Figure out how to define a struct to the defines that start with BIOS_SYSTEM_ENVIRONMENT_ make more sense.
 - Figure out if thereis a way to create enums, so the defines that start with ERROR_CODE_ make more sense.
