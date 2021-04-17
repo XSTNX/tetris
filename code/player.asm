@@ -328,9 +328,7 @@ else
 endif
 
 ifdef DEBUG
-if KEYBOARD_ENABLED
 	call playerDebugPrintKeyboard
-endif
 	;call playerDebugPrintPlayer
 	;call playerDebugPrintShot
 endif
@@ -344,7 +342,6 @@ playerRender endp
 
 ifdef DEBUG
 
-if KEYBOARD_ENABLED
 playerDebugPrintKeyboard proc private
 	; Left.
 	consoleSetCursorPos 0, 0
@@ -375,7 +372,6 @@ skipPressedKeyShoot:
 
 	ret
 playerDebugPrintKeyboard endp
-endif
 
 playerDebugPrintPlayer proc private
 	consoleSetCursorPos 0, 0
