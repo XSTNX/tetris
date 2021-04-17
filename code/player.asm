@@ -8,7 +8,7 @@ PLAYER_USE_SPRITES              equ 1
 ; Constants.
 PLAYER_WIDTH                    equ 8
 PLAYER_HALF_WIDTH 			    equ PLAYER_WIDTH / 2
-PLAYER_HEIGHT 				    equ 16
+PLAYER_HEIGHT 				    equ 8
 PLAYER_HALF_HEIGHT 			    equ PLAYER_HEIGHT / 2
 PLAYER_POSX_LIMIT_LOW 			equ 30
 PLAYER_POSX_LIMIT_HIGH 			equ BIOS_VIDEO_MODE_320_200_4_WIDTH - PLAYER_POSX_LIMIT_LOW
@@ -34,13 +34,13 @@ PLAYER_KEY_LEFT					equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 PLAYER_KEY_RIGHT				equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 PLAYER_KEY_SHOOT				equ BIOS_KEYBOARD_SCANCODE_E
 
-allSegments group code, data
+allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
 code segment public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
-extern renderBox320x200x4:proc, renderSprite8x16:proc
+extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderSprite8x8:proc
 
 playerInit proc
 	xor ax,ax
@@ -274,15 +274,14 @@ if PLAYER_USE_SPRITES
 	mov cx,[PlayerPrevPosX]
 	sub cx,PLAYER_HALF_WIDTH
 	mov dl,PLAYER_POSY_START
-	xor di,di
-	call renderSprite8x16
+	call renderEraseSprite8x8
 
 	; Draw current player.
 	mov cx,[PlayerPosX]
 	sub cx,PLAYER_HALF_WIDTH
 	mov dl,PLAYER_POSY_START
-	mov di,0ffffh
-	call renderSprite8x16
+	mov si,offset playerGfx0
+	call renderSprite8x8
 else
 	; Erase previous player.
 	mov cx,[PlayerPrevPosX]
@@ -411,6 +410,17 @@ playerDeleteShot proc private
 playerDeleteShot endp
 
 code ends
+
+constData segment public
+	playerGfx0					byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+								byte 0ffh, 0ffh
+constData ends
 
 data segment public
 	; The count will be stored in the LSB, the MSB will remain at zero.

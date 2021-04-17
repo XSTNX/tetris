@@ -2,19 +2,19 @@ include code\bios.inc
 
 computeVideoAddr320x200x4 macro
 local skipOdd
-	mov bp,dx
+	mov bl,dl
 	shr dl,1
 	mov al,80
 	mul dl
-	mov bx,ax
 	shr cx,1
 	shr cx,1
-	add bx,cx
-	lea si,[bx + 2000h]	
+	add ax,cx
+	mov di,ax
 	;; Is posY odd?
-	test bp,1
+	test bl,1
+	lea bx,[di + 2000h]	
 	jz skipOdd
-	add bx,80
+	add di,80
 skipOdd:
 endm
 
@@ -111,17 +111,46 @@ nextLine:
 	ret
 renderBox320x200x4 endp
 
-renderSprite8x16 proc
+renderEraseSprite8x8 proc
 	computeVideoAddr320x200x4
-	mov cx,8
-renderLine:
-	mov es:[bx],di
-	mov es:[si],di
-	add bx,80
-	add si,80
-	loop renderLine
+
+	xor ax,ax
+	mov cx,4
+renderLineEven:
+	stosw
+	add di,78
+	loop renderLineEven
+
+	mov cx,4
+	mov di,bx
+renderLineOdd:
+	stosw
+	add di,78
+	loop renderLineOdd
+
 	ret
-renderSprite8x16 endp
+renderEraseSprite8x8 endp
+
+renderSprite8x8 proc
+	computeVideoAddr320x200x4
+
+	mov cx,4
+renderLineEven:
+	lodsw
+	stosw
+	add di,78
+	loop renderLineEven
+	
+	mov cx,4
+	mov di,bx
+renderLineOdd:
+	lodsw
+	stosw
+	add di,78
+	loop renderLineOdd
+
+	ret
+renderSprite8x8 endp
 
 ; ---------;
 ; Private. ;
