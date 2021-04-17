@@ -99,7 +99,11 @@ gameLoop:
 	call [GameRenderProc]
 
 	; Continue gameloop until ESC is pressed.
+if KEYBOARD_ENABLED
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ESC
+else
+	call checkForESCKey
+endif
 	jnz short gameLoop
 
 	; Restore previous video mode.
@@ -111,6 +115,23 @@ quit:
 	call keyboardStop
 	dosQuit
 main endp
+
+ife KEYBOARD_ENABLED
+checkForESCKey proc
+	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
+	int BIOS_KEYBOARD_INT
+	jnz getKey
+	; Return zero flag clear.
+	inc al
+	inc al
+	ret
+getKey:
+	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
+	int BIOS_KEYBOARD_INT
+	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
+	ret
+checkForESCKey endp
+endif
 
 testPaletteChange proc
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_1
@@ -133,7 +154,7 @@ testKeyboardScancode proc private
 	call consolePrintString
 
 nextKey:
-	mov ah,BIOS_KEYBOARD_FUNC_GET_CHAR
+	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 	cmp al,3
 	je short quit

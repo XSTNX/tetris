@@ -38,7 +38,8 @@ BIOS_SYSTEM_ENVIRONMENT_CFG_MASK        equ 010h
 ; Keyboard.
 BIOS_KEYBOARD_INT                       equ 016h
 
-BIOS_KEYBOARD_FUNC_GET_CHAR             equ 000h
+BIOS_KEYBOARD_FUNC_GET_KEY              equ 000h
+BIOS_KEYBOARD_FUNC_CHECK_KEY            equ 001h
 BIOS_KEYBOARD_FUNC_GET_FLAGS            equ 002h
 
 BIOS_KEYBOARD_SCANCODE_ESC              equ 001h

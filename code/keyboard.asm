@@ -1,3 +1,5 @@
+KEYBOARD_NO_EXTERNS equ 1
+include code\keyboard.inc
 include code\bios.inc
 include code\dos.inc
 include code\errcode.inc
@@ -11,6 +13,7 @@ code segment public
 
 ; Output: al (error code).
 keyboardStart proc
+if KEYBOARD_ENABLED
     push ds
     push es
 
@@ -50,17 +53,19 @@ skipInterceptNotAvaiableError:
 quit:
     pop es
     pop ds
+endif    
     ret
 keyboardStart endp
 
 keyboardStop proc
+if KEYBOARD_ENABLED
     ; Restore previous keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     push ds
     lds dx,cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
     int DOS_REQUEST_INT
     pop ds
-
+endif
     ret
 keyboardStop endp
 

@@ -2,7 +2,11 @@ include code\console.inc
 include code\keyboard.inc
 
 ; Config.
+if KEYBOARD_ENABLED
 PLAYER_AUTO_MOVE                equ 0
+else
+PLAYER_AUTO_MOVE                equ 1
+endif
 PLAYER_USE_SPRITES              equ 1
 
 ; Constants.
@@ -239,6 +243,26 @@ loopDeleteDone:
 loopShot:
 	push cx
 
+;if PLAYER_USE_SPRITES
+if 0
+	mov bp,di
+	; Erase previous shot.
+	mov cx,[PlayerShotPosX + di]
+	sub cx,4
+	mov dl,byte ptr [PlayerShotPrevPosY + di]
+	sub dl,4
+	call renderEraseSprite8x8
+
+	mov di,bp
+	; Draw current shot.
+	mov cx,[PlayerShotPosX + di]
+	sub cx,4
+	mov dl,byte ptr [(PlayerShotPosYPacked + 1) + di]
+	sub dl,4
+	mov si,offset playerShotGfx0
+	call renderSprite8x8
+	mov di,bp
+else
 	; Erase previous shot.
 	mov cx,[PlayerShotPosX + di]
 	sub cx,PLAYER_SHOT_HALF_WIDTH
@@ -262,6 +286,7 @@ loopShot:
 	add dh,PLAYER_SHOT_HEIGHT
 	mov al,1
 	call renderBox320x200x4
+endif
 
 	inc di
 	inc di
@@ -303,7 +328,9 @@ else
 endif
 
 ifdef DEBUG
+if KEYBOARD_ENABLED
 	call playerDebugPrintKeyboard
+endif
 	;call playerDebugPrintPlayer
 	;call playerDebugPrintShot
 endif
@@ -317,6 +344,7 @@ playerRender endp
 
 ifdef DEBUG
 
+if KEYBOARD_ENABLED
 playerDebugPrintKeyboard proc private
 	; Left.
 	consoleSetCursorPos 0, 0
@@ -347,6 +375,7 @@ skipPressedKeyShoot:
 
 	ret
 playerDebugPrintKeyboard endp
+endif
 
 playerDebugPrintPlayer proc private
 	consoleSetCursorPos 0, 0
@@ -420,6 +449,14 @@ constData segment public
 								byte 0ffh, 0ffh
 								byte 0ffh, 0ffh
 								byte 0ffh, 0ffh
+	playerShotGfx0				byte 000h, 000h
+								byte 001h, 040h
+								byte 001h, 040h
+								byte 001h, 040h
+								byte 001h, 040h
+								byte 001h, 040h
+								byte 001h, 040h
+								byte 000h, 000h
 constData ends
 
 data segment public
