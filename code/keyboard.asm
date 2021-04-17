@@ -4,8 +4,6 @@ include code\bios.inc
 include code\dos.inc
 include code\errcode.inc
 
-KEYBOARD_KEY_PRESSED_COUNT      equ 128
-
 allSegments group code
     assume cs:allSegments
 
@@ -15,16 +13,10 @@ code segment public
 
 ; Output: al (error code).
 keyboardStart proc
+if KEYBOARD_ENABLED
     push ds
     push es
 
-    ; Set keys to not pressed.
-    mov ax,8080h
-    mov cx,KEYBOARD_KEY_PRESSED_COUNT / 2
-    mov di,offset allSegments:KeyboardKeyPressed
-    rep stosw
-
-if KEYBOARD_ENABLED
     ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
@@ -53,12 +45,12 @@ skipInterceptNotAvaiableError:
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     mov dx,offset allSegments:keyboardSystemInt
     int DOS_REQUEST_INT
-endif
     mov al,ERROR_CODE_KEYBOARD_NONE
 
 quit:
     pop es
     pop ds
+endif    
     ret
 keyboardStart endp
 
@@ -109,7 +101,7 @@ keyboardSystemInt endp
     ; Data is stored in the code segment since it needs to be accesible to the new interrupt.
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(?)
+    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(KEYBOARD_KEY_PRESSED_COUNT)
     KeyboardBIOSSystemIntHandlerDWordPtr    label dword
     KeyboardBIOSSystemIntHandlerOffset      word ?
     KeyboardBIOSSystemIntHandlerSegment     word ?

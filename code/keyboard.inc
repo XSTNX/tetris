@@ -1,4 +1,5 @@
-KEYBOARD_ENABLED    equ 1
+KEYBOARD_ENABLED                equ 1
+KEYBOARD_KEY_PRESSED_COUNT      equ 128
 
 ifndef KEYBOARD_NO_EXTERNS
 
@@ -10,5 +11,5 @@ endif
 ; Input: scancode (scancode of the key, from 0 to 7fh).
 ; Output: zf (zero flag set means the key is pressed).
 keyboardIsKeyPressed macro scancode:req
-    test cs:[KeyboardKeyPressed + scancode],80h
+    test cs:[KeyboardKeyPressed + scancode],KEYBOARD_KEY_PRESSED_COUNT
 endm
