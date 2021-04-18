@@ -53,7 +53,11 @@ https://www.phatcode.net/articles.php
 http://qzx.com/pc-gpe/
 https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
 http://www.verycomputer.com/viewlist_12_873.htm (msdos programming forum)
+https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
 
 GAMES
 -----
-https://archive.org/details/msdos_Snack_Attack_II_1982 (Michael Abrash)
+https://archive.org/details/msdos_Snack_Attack_II_1982 (by Michael Abrash)
+https://www.youtube.com/watch?v=lMJzf5iOqwg (Cosmic Crusader, by Michael Abrash)
+https://www.youtube.com/watch?v=wIJasD3FjPU (Space Strike, by Michael Abrash)
+https://www.youtube.com/watch?v=HiGDcmbUT_I (Space Commanders, a Space Invaders clone)
