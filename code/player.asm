@@ -497,7 +497,7 @@ data segment public
 	PlayerRenderDeletePosY		word PLAYER_RENDER_DELETE_MAX_COUNT dup (?)
 	; The render delete size will be stored in the LSB, the MSB is unused.
 	PlayerRenderDeleteWidth		word PLAYER_RENDER_DELETE_MAX_COUNT dup (?)
-	PlayerRenderDeleteHeight		word PLAYER_RENDER_DELETE_MAX_COUNT dup (?)
+	PlayerRenderDeleteHeight	word PLAYER_RENDER_DELETE_MAX_COUNT dup (?)
 	PlayerShotCooldown			byte ?
 	PlayerPosXByteFraction		byte ?	
 if PLAYER_AUTO_MOVE
