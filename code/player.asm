@@ -259,7 +259,7 @@ if 0
 	sub cx,4
 	mov dl,byte ptr [(PlayerShotPosYPacked + 1) + di]
 	sub dl,4
-	mov si,offset playerShotGfx0
+	mov si,offset PlayerShotGfx0
 	call renderSprite8x8
 	mov di,bp
 else
@@ -305,7 +305,7 @@ if PLAYER_USE_SPRITES
 	mov cx,[PlayerPosX]
 	sub cx,PLAYER_HALF_WIDTH
 	mov dl,PLAYER_POSY_START
-	mov si,offset playerGfx0
+	mov si,offset PlayerGfx
 	call renderSprite8x8
 else
 	; Erase previous player.
@@ -437,15 +437,40 @@ playerDeleteShot endp
 code ends
 
 constData segment public
-	playerGfx0					byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-								byte 0ffh, 0ffh
-	playerShotGfx0				byte 000h, 000h
+	PlayerGfx					word PlayerGfx0, PlayerGfx1, PlayerGfx2, PlayerGfx3
+	PlayerGfx0					byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+								byte 0ffh, 0ffh, 000h
+	PlayerGfx1					byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+								byte 03fh, 0ffh, 0c0h
+	PlayerGfx2					byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+								byte 00fh, 0ffh, 0f0h
+	PlayerGfx3					byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+								byte 003h, 0ffh, 0fch
+	PlayerShotGfx0				byte 000h, 000h
 								byte 001h, 040h
 								byte 001h, 040h
 								byte 001h, 040h

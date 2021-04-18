@@ -118,35 +118,49 @@ renderEraseSprite8x8 proc
 	mov cx,4
 renderLineEven:
 	stosw
-	add di,78
+	stosb
+	add di,77
 	loop renderLineEven
 
 	mov cx,4
 	mov di,bx
 renderLineOdd:
 	stosw
-	add di,78
+	stosb
+	add di,77
 	loop renderLineOdd
 
 	ret
 renderEraseSprite8x8 endp
 
 renderSprite8x8 proc
+	; Select the proper bitmap based on posX mod 4.
+	mov bx,cx
+	and bx,11b
+	shl bx,1
+	mov si,[bx+si]
+	; Compute addr in video memory to copy the bitmap to.
 	computeVideoAddr320x200x4
 
+	; Copy even lines.
 	mov cx,4
 renderLineEven:
 	lodsw
 	stosw
-	add di,78
+	lodsb
+	stosb
+	add di,77
 	loop renderLineEven
 	
+	; Copy odd lines.s
 	mov cx,4
 	mov di,bx
 renderLineOdd:
 	lodsw
 	stosw
-	add di,78
+	lodsb
+	stosb
+	add di,77
 	loop renderLineOdd
 
 	ret
