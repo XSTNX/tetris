@@ -2,9 +2,9 @@ include code\ascii.inc
 include code\bios.inc
 include code\dos.inc
 
-consoleGoToNextLine macro
-    consolePrintCharCR
-    consolePrintCharLF
+consoleNextLine macro
+    consolePrintChar ASCII_CR
+    consolePrintChar ASCII_LF
 endm
 
 ; Input: aChar, moved to dl (unsigned byte).
@@ -14,14 +14,6 @@ ifdifi <aChar>, <dl>
 endif
 	mov ah,DOS_REQUEST_FUNC_PRINT_CHAR
 	int DOS_REQUEST_INT
-endm
-
-consolePrintCharCR macro
-    consolePrintChar ASCII_CR
-endm
-
-consolePrintCharLF macro
-    consolePrintChar ASCII_LF
 endm
 
 ; Input: ds:dx (address of ASCII string ending in '$').
