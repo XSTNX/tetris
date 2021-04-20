@@ -86,7 +86,7 @@ skipShotCoolDownDecrement:
 	mov cx,[PlayerShotCount]
 	jcxz short loopShotDone
 	mov dx,PLAYER_SHOT_SPEED_PACKED
-	mov si,offset PlayerShotPosYPacked
+	mov si,offset allSegments:PlayerShotPosYPacked
 	mov di,si
 loopShot:
 	lodsw
@@ -128,7 +128,7 @@ autoMoveDone:
 	; Check if need to flip direction to right.
 else
 	; Read keyboard and store the direction of movement in al.
-	xor al,al
+	mov al,0
 	keyboardIsKeyPressed PLAYER_KEY_LEFT
 	jnz short skipKeyLeftPressed
 	dec ax
@@ -184,22 +184,22 @@ ife PLAYER_AUTO_MOVE
 	keyboardIsKeyPressed PLAYER_KEY_SHOOT
 	jnz short skipShot
 endif
-	mov cx,[PlayerShotCount]
-	cmp cx,PLAYER_SHOT_MAX_COUNT
+	mov ax,[PlayerShotCount]
+	cmp al,PLAYER_SHOT_MAX_COUNT
 	je short skipShot
 	cmp [PlayerShotCooldown],0
 	jne short skipShot
 	mov [PlayerShotCooldown],PLAYER_SHOT_COOLDOWN
 	; Don't need to read this again if dx is not overriden.
 	mov dx,[PlayerPosX]
-	mov di,cx
+	mov di,ax
 	shl di,1
 	mov [PlayerShotPosX + di],dx
 	mov [PlayerShotPosYPacked + di],PLAYER_SHOT_POSY_START_PACKED
 	; If the shot was updated after this, setting prev pos wouldn't be needed, is it worth doing?
 	mov byte ptr [PlayerShotPrevPosY + di],PLAYER_SHOT_POSY_START
-	inc cx
-	mov byte ptr [PlayerShotCount],cl
+	inc ax
+	mov byte ptr [PlayerShotCount],al
 skipShot:
 
 	ret
