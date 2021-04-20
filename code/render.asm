@@ -152,7 +152,7 @@ renderLineEven:
 	add di,77
 	loop renderLineEven
 	
-	; Copy odd lines.s
+	; Copy odd lines.
 	mov cx,4
 	mov di,bx
 renderLineOdd:
