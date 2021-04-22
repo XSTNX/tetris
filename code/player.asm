@@ -302,16 +302,16 @@ if PLAYER_USE_SPRITES
 	call renderEraseSprite8x8
 
 	; Draw current player.
+	; PosX.	
 	mov cx,[PlayerPosX]
-	; PosX.
 	sub cx,PLAYER_HALF_WIDTH
+	; PosY.
+	mov dl,PLAYER_POSY_START
 	; Select the proper bitmap based on posLeft mod 4.
 	mov si,cx
 	and si,11b
 	shl si,1
 	mov si,[si+offset allSegments:PlayerGfx]
-	; PosY.
-	mov dl,PLAYER_POSY_START
 	call renderSprite8x8
 else
 	; Erase previous player.
