@@ -134,11 +134,6 @@ renderLineOdd:
 renderEraseSprite8x8 endp
 
 renderSprite8x8 proc
-	; Select the proper bitmap based on posX mod 4.
-	mov bx,cx
-	and bx,11b
-	shl bx,1
-	mov si,[bx+si]
 	; Compute addr in video memory to copy the bitmap to.
 	computeVideoAddr320x200x4
 
