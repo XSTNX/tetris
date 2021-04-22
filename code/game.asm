@@ -4,17 +4,17 @@ include code\keyboard.inc
 include code\render.inc
 
 setLevelGameState macro
-	mov [GameInitProc],offset levelInit
-	mov [GameInitRenderProc],offset levelInitRender
-	mov [GameUpdateProc],offset levelUpdate
-	mov [GameRenderProc],offset levelRender
+	mov [GameInitProc],offset allSegments:levelInit
+	mov [GameInitRenderProc],offset allSegments:levelInitRender
+	mov [GameUpdateProc],offset allSegments:levelUpdate
+	mov [GameRenderProc],offset allSegments:levelRender
 endm
 
 setTestGameState macro
-	mov [GameInitProc],offset testInit
-	mov [GameInitRenderProc],offset testInitRender
-	mov [GameUpdateProc],offset testUpdate
-	mov [GameRenderProc],offset testRender
+	mov [GameInitProc],offset allSegments:testInit
+	mov [GameInitRenderProc],offset allSegments:testInitRender
+	mov [GameUpdateProc],offset allSegments:testUpdate
+	mov [GameRenderProc],offset allSegments:testRender
 endm
 
 WAIT_VSYNC macro
@@ -150,7 +150,7 @@ testPaletteChange endp
 ifdef DEBUG
 
 testKeyboardScancode proc private
-	mov dx,offset strStart
+	mov dx,offset ds:strStart
 	call consolePrintString
 
 nextKey:
@@ -161,8 +161,8 @@ nextKey:
 	; Save returned data.
 	push ax
 
-	; Print scancode.	
-	mov dx,offset strScancode
+	; Print scancode.
+	mov dx,offset ds:strScancode
 	call consolePrintString
 	pop ax
 	push ax
@@ -170,12 +170,12 @@ nextKey:
 	call consolePrintByteHex
 
 	; Print ascii.
-	mov dx,offset strASCII
+	mov dx,offset ds:strASCII
 	call consolePrintString
 	pop ax
 	consolePrintChar al
 
-	consoleGoToNextLine
+	consoleNextLine
 	jmp short nextKey
 
 quit:
@@ -196,7 +196,7 @@ nextKey:
 	mov dl,al
 	call consolePrintByteHex
 
-	consoleGoToNextLine
+	consoleNextLine
 
 	; Continue until a key is pressed.
 	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
@@ -213,7 +213,7 @@ testDOSVersion proc private
 	push bx
 	push ax
 
-	mov dx,offset strVer
+	mov dx,offset ds:strVer
 	call consolePrintString
 
 	; Major version.
@@ -228,7 +228,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByte
 	
-	mov dx,offset strDOSType
+	mov dx,offset ds:strDOSType
 	call consolePrintString
 
 	; Dos type.
