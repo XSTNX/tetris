@@ -149,7 +149,7 @@ endif
 	; Limit posX if needed.
 	cmp dx,PLAYER_POSX_LIMIT_LOW
 	jae short skipLimitPosXLeft
-	xor cl,cl
+	mov cl,0
 	mov dx,PLAYER_POSX_LIMIT_LOW
 skipLimitPosXLeft:
 	; Save new posX.
@@ -170,7 +170,7 @@ skipMoveLeft:
 	; Limit posX if needed.
 	cmp dx,PLAYER_POSX_LIMIT_HIGH
 	jb short skipLimitPosXRight
-	xor cl,cl
+	mov cl,0
 	mov dx,PLAYER_POSX_LIMIT_HIGH
 skipLimitPosXRight:
 	; Save new posX.
