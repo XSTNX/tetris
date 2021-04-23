@@ -18,8 +18,7 @@ PLAYER_POSX_LIMIT_LOW 			equ 30
 PLAYER_POSX_LIMIT_HIGH 			equ BIOS_VIDEO_MODE_320_200_4_WIDTH - PLAYER_POSX_LIMIT_LOW
 PLAYER_POSX_START 				equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
 PLAYER_POSY                     equ BIOS_VIDEO_MODE_320_200_4_HEIGHT - PLAYER_HALF_HEIGHT - 5
-PLAYER_POSY_START			    equ PLAYER_POSY - PLAYER_HALF_HEIGHT
-PLAYER_POSY_END				    equ PLAYER_POSY_START + PLAYER_HEIGHT
+PLAYER_POSY_LOW					equ PLAYER_POSY - PLAYER_HALF_HEIGHT
 PLAYER_SPEEDX_BYTE_FRACTION		equ 0
 ; static_assert(PLAYER_SPEEDX_BYTE_FRACTION < 256)
 PLAYER_SPEEDX	 				equ 5
@@ -27,7 +26,7 @@ PLAYER_SHOT_WIDTH				equ 2
 PLAYER_SHOT_HALF_WIDTH			equ PLAYER_SHOT_WIDTH / 2
 PLAYER_SHOT_HEIGHT				equ 6
 PLAYER_SHOT_HALF_HEIGHT			equ PLAYER_SHOT_HEIGHT / 2
-PLAYER_SHOT_POSY_START 			equ PLAYER_POSY_START - PLAYER_SHOT_HALF_HEIGHT
+PLAYER_SHOT_POSY_START 			equ PLAYER_POSY_LOW - PLAYER_SHOT_HALF_HEIGHT
 PLAYER_SHOT_POSY_START_PACKED 	equ PLAYER_SHOT_POSY_START * 256
 PLAYER_SHOT_SPEED_PACKED        equ 400h
 PLAYER_SHOT_COOLDOWN 			equ 10
@@ -294,44 +293,22 @@ endif
 	loop loopShot
 loopShotDone:
 
-if PLAYER_USE_SPRITES
 	; Erase previous player.
 	mov cx,[PlayerPrevPosX]
 	sub cx,PLAYER_HALF_WIDTH
-	mov dl,PLAYER_POSY_START
+	mov dl,PLAYER_POSY_LOW
 	call renderEraseSprite8x8
 
 	; Draw current player.
-	; PosX.	
 	mov cx,[PlayerPosX]
 	sub cx,PLAYER_HALF_WIDTH
-	; PosY.
-	mov dl,PLAYER_POSY_START
+	mov dl,PLAYER_POSY_LOW
 	; Select the proper bitmap based on posLeft mod 4.
 	mov si,cx
 	and si,11b
 	shl si,1
 	mov si,[si+offset allSegments:PlayerGfx]
 	call renderSprite8x8
-else
-	; Erase previous player.
-	mov cx,[PlayerPrevPosX]
-	sub cx,PLAYER_HALF_WIDTH
-	mov bx,cx
-	add bx,PLAYER_WIDTH
-	mov dx,PLAYER_POSY_START + (PLAYER_POSY_END * 256)
-	mov al,0
-	call renderBox320x200x4
-
-	; Draw current player.
-	mov cx,[PlayerPosX]
-	sub cx,PLAYER_HALF_WIDTH
-	mov bx,cx
-	add bx,PLAYER_WIDTH
-	mov dx,PLAYER_POSY_START + (PLAYER_POSY_END * 256)
-	mov al,3
-	call renderBox320x200x4
-endif
 
 ifdef DEBUG
 	call playerDebugPrintKeyboard
