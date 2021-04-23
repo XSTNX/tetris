@@ -111,7 +111,11 @@ nextLine:
 	ret
 renderBox320x200x4 endp
 
+; Input.
+;	cx: posXLow (unsigned word).
+;	dl: posYLow (unsigned byte).
 renderEraseSprite8x8 proc
+	; Compute addr in video memory to erase.
 	computeVideoAddr320x200x4
 
 	xor ax,ax
@@ -133,6 +137,10 @@ renderLineOdd:
 	ret
 renderEraseSprite8x8 endp
 
+; Input.
+;	cx: posXLow (unsigned word).
+;	dl: posYLow (unsigned byte).
+;	si: bitmap (near ptr).
 renderSprite8x8 proc
 	; Compute addr in video memory to copy the bitmap to.
 	computeVideoAddr320x200x4
