@@ -1,13 +1,13 @@
 include code\console.inc
 include code\keyboard.inc
 
-TEST_BOX_WIDTH					equ 16
-TEST_BOX_HALF_WIDTH 			equ TEST_BOX_WIDTH / 2
-TEST_BOX_HEIGHT 				equ 16
-TEST_BOX_HALF_HEIGHT 			equ TEST_BOX_HEIGHT / 2
-TEST_BOX_POSX_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
-TEST_BOX_POSY_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
-TEST_BOX_SPEEDY_PACKED 			equ 280h
+TEST2_BOX_WIDTH					equ 16
+TEST2_BOX_HALF_WIDTH 			equ TEST2_BOX_WIDTH / 2
+TEST2_BOX_HEIGHT 				equ 16
+TEST2_BOX_HALF_HEIGHT 			equ TEST2_BOX_HEIGHT / 2
+TEST2_BOX_POSX_START            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
+TEST2_BOX_POSY_START            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
+TEST2_BOX_SPEEDY_PACKED 		equ 40h
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
@@ -17,33 +17,33 @@ code segment public
 extern consolePrintByte:proc, consolePrintByteHex:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
-testInit proc
-    mov [TestPosXLow],0
-	mov [TestPosXHigh],TEST_BOX_POSX_START
-    mov [TestPosYPacked],TEST_BOX_POSY_START * 256
-	mov [TestPrevPosY],TEST_BOX_POSY_START
+test2Init proc
+    mov [Test2PosXLow],0
+	mov [Test2PosXHigh],TEST2_BOX_POSX_START
+    mov [Test2PosYPacked],TEST2_BOX_POSY_START * 256
+	mov [Test2PrevPosY],TEST2_BOX_POSY_START
 
     ret
-testInit endp
+test2Init endp
 
-testInitRender proc
-    call testRender
+test2InitRender proc
+    call test2Render
     
     ; Top.
 	mov cx,0
     mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    mov dx,TEST_BOX_HEIGHT * 256
+    mov dx,TEST2_BOX_HEIGHT * 256
     mov al,2
 	call renderBox320x200x4
     ; Bottom.
 	mov cx,0
     mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST_BOX_HEIGHT) + (BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256)
+    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST2_BOX_HEIGHT) + (BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256)
     mov al,2
 	call renderBox320x200x4
     ; Center vert.
-	mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST_BOX_HALF_WIDTH
-    mov bx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST_BOX_HALF_WIDTH
+	mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST2_BOX_HALF_WIDTH
+    mov bx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST2_BOX_HALF_WIDTH
     mov dx,BIOS_VIDEO_MODE_320_200_4_HEIGHT * 256
     mov al,1
 	call renderBox320x200x4
@@ -55,43 +55,43 @@ testInitRender proc
 	call renderHorizLine320x200x4
 
     ret
-testInitRender endp
+test2InitRender endp
 
-testUpdate proc
-    mov ax,[TestPosYPacked]
-    mov [TestPrevPosY],ah
-    add ax,TEST_BOX_SPEEDY_PACKED
+test2Update proc
+    mov ax,[Test2PosYPacked]
+    mov [Test2PrevPosY],ah
+    add ax,TEST2_BOX_SPEEDY_PACKED
     cmp ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
     jb skipRoll
     xor ah,ah
 skipRoll:
-    mov [TestPosYPacked],ax
+    mov [Test2PosYPacked],ax
 
     ret
-testUpdate endp
+test2Update endp
 
-testRender proc
+test2Render proc
     ; Erase previous box.
-	mov cx,[TestPosXHigh]
-	sub cx,TEST_BOX_HALF_WIDTH
+	mov cx,[Test2PosXHigh]
+	sub cx,TEST2_BOX_HALF_WIDTH
 	mov bx,cx
-	add bx,TEST_BOX_WIDTH
-    mov dl,[TestPrevPosY]
-	sub dl,TEST_BOX_HALF_HEIGHT
+	add bx,TEST2_BOX_WIDTH
+    mov dl,[Test2PrevPosY]
+	sub dl,TEST2_BOX_HALF_HEIGHT
 	mov dh,dl
-    add dh,TEST_BOX_HEIGHT
+    add dh,TEST2_BOX_HEIGHT
     mov al,1
 	call renderBox320x200x4
 
     ; Draw current box.
-	mov cx,[TestPosXHigh]
-	sub cx,TEST_BOX_HALF_WIDTH
+	mov cx,[Test2PosXHigh]
+	sub cx,TEST2_BOX_HALF_WIDTH
 	mov bx,cx
-	add bx,TEST_BOX_WIDTH
-    mov dl,byte ptr [TestPosYPacked + 1]
-	sub dl,TEST_BOX_HALF_HEIGHT
+	add bx,TEST2_BOX_WIDTH
+    mov dl,byte ptr [Test2PosYPacked + 1]
+	sub dl,TEST2_BOX_HALF_HEIGHT
 	mov dh,dl
-    add dh,TEST_BOX_HEIGHT
+    add dh,TEST2_BOX_HEIGHT
 ifdef DEBUG
     ; Save top and bottom of the box to print it later.
     push dx
@@ -112,7 +112,7 @@ ifdef DEBUG
     mov dl,dh
 	call consolePrintByte
     consoleSetCursorPos 0, 1
-    mov dl,byte ptr [TestPosYPacked + 1]
+    mov dl,byte ptr [Test2PosYPacked + 1]
     call consolePrintByte
     consoleSetCursorPos 0, 2
     mov dl,"N"
@@ -124,7 +124,7 @@ skipKeyPressed:
 endif
 
     ret
-testRender endp
+test2Render endp
 
 ; ---------;
 ; Private. ;
@@ -133,10 +133,10 @@ testRender endp
 code ends
 
 data segment public
-	TestPosXLow             dw ?
-	TestPosXHigh            dw ?
-    TestPosYPacked          dw ?
-    TestPrevPosY            db ?
+	Test2PosXLow            dw ?
+	Test2PosXHigh           dw ?
+    Test2PosYPacked         dw ?
+    Test2PrevPosY           db ?
 data ends
 
 end

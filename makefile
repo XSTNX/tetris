@@ -5,7 +5,7 @@ EXECUTABLE_NAME = invdrs
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
 LINK_OPTIONS = /NOLOGO /TINY
 # Keep game.obj first, since a com file is created.
-OBJ_FILES = obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj
+OBJ_FILES = obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj
 
 all : bin\$(EXECUTABLE_NAME).com
 
@@ -38,6 +38,9 @@ obj\render.obj : code\render.asm code\bios.inc
 
 obj\test.obj : code\test.asm code\console.inc code\keyboard.inc
 	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
+
+obj\test2.obj : code\test2.asm code\console.inc code\keyboard.inc
+	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
 
 clean :
 	-del bin\*.com

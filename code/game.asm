@@ -17,6 +17,13 @@ setTestGameState macro
 	mov [GameRenderProc],offset allSegments:testRender
 endm
 
+setTest2GameState macro
+	mov [GameInitProc],offset allSegments:test2Init
+	mov [GameInitRenderProc],offset allSegments:test2InitRender
+	mov [GameUpdateProc],offset allSegments:test2Update
+	mov [GameRenderProc],offset allSegments:test2Render
+endm
+
 WAIT_VSYNC macro
 local vsyncWait0, vsyncWait1
 	mov dx,3dah
@@ -38,6 +45,7 @@ code segment public
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
 extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
+extern test2Init:proc, test2InitRender:proc, test2Update:proc, test2Render:proc
 
 ;----------;
 ; Private. ;
@@ -82,6 +90,7 @@ skipVideoModeError:
 	; Start the game directly on the level for now.
 	setLevelGameState
 	;setTestGameState
+	;setTest2GameState
 
 	call [GameInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
