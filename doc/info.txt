@@ -21,6 +21,7 @@ MASM
 - What is the difference between ML option W2 and W3? Look in the documentation for details.
 - Using /MAP with the linker creates the map in the current folder, not sure how to specify which folder I want.
 - Maybe the different asm files should have its own data segment for variables they don't share with other files?
+- Should I use .no87 to disable math coprocessor opcodes?
 
 IBM PC
 ------
@@ -36,6 +37,7 @@ IBM PC
 - What is the difference between BIOS_VIDEO_MODE_320_200_4_COLOR and BIOS_VIDEO_MODE_320_200_4_BW really?
 - Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.
 - The way that I capture the keys but don't send them to the buffer maybe it's not ideal, since ctrl-alt-del will probably not work.
+- Should I make structs word aligned? This would be better for newer cpus, but bad for the 8086.
 
 GAME
 ----

@@ -113,7 +113,7 @@ endif
 
 quit:
 	call keyboardStop
-	dosQuit
+	dosQuitCOM
 main endp
 
 ife KEYBOARD_ENABLED
@@ -179,7 +179,7 @@ nextKey:
 	jmp short nextKey
 
 quit:
-	dosQuit
+	dosQuitCOM
 
 strStart:
 	db "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
