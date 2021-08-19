@@ -12,7 +12,6 @@ MASM
 ----
 - Do I need to put the includes as dependencies in the makefile or is there a simple way of dealing with that?
 - The makefile doesn't always do the link step after assembling, so it has to be run twice, why is that exactly?
-- Is there any way to make the constData segment really const?
 - I think I should separate the data segment into two segments with initialized and uninitialized data. This should make the executable smaller.
 - Figure out an equivalent to .if DEBUG that you can use outside of segments, so you can avoid including certain files, for instance.
 - Figure out how to define a struct to the defines that start with BIOS_SYSTEM_ENVIRONMENT_ make more sense.

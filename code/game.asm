@@ -243,7 +243,7 @@ endif
 
 code ends
 
-constData segment public
+constData segment readonly public
 	StrErrorVideoCard		byte "Video Error: You need a Color Graphics Adapter to play this game.", 0
 	StrErrorKeyboard		byte "Keyboard error.", 0
 constData ends

@@ -419,7 +419,7 @@ playerDeleteShot endp
 
 code ends
 
-constData segment public
+constData segment readonly public
 	PlayerGfx					word PlayerGfx0, PlayerGfx1, PlayerGfx2, PlayerGfx3
 	PlayerGfx0					byte 0ffh, 0ffh, 000h
 								byte 0ffh, 0ffh, 000h

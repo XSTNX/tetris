@@ -175,7 +175,7 @@ renderSprite8x8 endp
 
 code ends
 
-constData segment public
+constData segment readonly public
 	RenderPixelMask320x200x4		byte 00111111b, 11001111b, 11110011b, 11111100b
 	RenderPixelShift320x200x4		byte         6,         4,         2,         0
 constData ends
