@@ -24,19 +24,6 @@ setTest2GameState macro
 	mov [GameRenderProc],offset allSegments:test2Render
 endm
 
-WAIT_VSYNC macro
-local vsyncWait0, vsyncWait1
-	mov dx,3dah
-vsyncWait0:
-	in al,dx
-	test al,8
-	jnz short vsyncWait0
-vsyncWait1:
-	in al,dx
-	test al,8
-	jz short vsyncWait1
-endm
-
 allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
@@ -96,7 +83,7 @@ skipVideoModeError:
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
-	WAIT_VSYNC
+	waitVSync
 	call [GameInitRenderProc]
 gameLoop:
 	call [GameUpdateProc]
@@ -104,7 +91,7 @@ gameLoop:
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
-	WAIT_VSYNC
+	waitVSync
 	call [GameRenderProc]
 
 	; Continue gameloop until ESC is pressed.

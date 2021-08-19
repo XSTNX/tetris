@@ -22,6 +22,7 @@ MASM
 - Using /MAP with the linker creates the map in the current folder, not sure how to specify which folder I want.
 - Maybe the different asm files should have its own data segment for variables they don't share with other files?
 - Should I use .no87 to disable math coprocessor opcodes?
+- I think I should use caps for macros again.
 
 IBM PC
 ------
@@ -38,6 +39,7 @@ IBM PC
 - Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.
 - The way that I capture the keys but don't send them to the buffer maybe it's not ideal, since ctrl-alt-del will probably not work.
 - Should I make structs word aligned? This would be better for newer cpus, but bad for the 8086.
+- What happens with the stack pointer on DOS if the computer has less than 64KB free?
 
 GAME
 ----
