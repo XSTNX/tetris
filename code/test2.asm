@@ -12,7 +12,7 @@ TEST2_BOX_SPEEDY_PACKED 		equ 40h
 allSegments group code, data
     assume cs:allSegments, ds:allSegments
 
-code segment public
+code segment readonly public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc

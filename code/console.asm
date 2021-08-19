@@ -3,7 +3,7 @@ include code\console.inc
 allSegments group code
     assume cs:allSegments, ds:allSegments
 
-code segment public
+code segment readonly public
 
 ; Input: dl (only the low nibble).
 consolePrintNibbleHex proc

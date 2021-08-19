@@ -16,7 +16,6 @@ MASM
 - Figure out an equivalent to .if DEBUG that you can use outside of segments, so you can avoid including certain files, for instance.
 - Figure out how to define a struct to the defines that start with BIOS_SYSTEM_ENVIRONMENT_ make more sense.
 - Figure out if thereis a way to create enums, so the defines that start with ERROR_CODE_ make more sense.
-- Which directive can I use to align KeyboardBIOSSystemIntHandlerDWordPtr?
 - What is the difference between ML option W2 and W3? Look in the documentation for details.
 - Using /MAP with the linker creates the map in the current folder, not sure how to specify which folder I want.
 - Maybe the different asm files should have its own data segment for variables they don't share with other files?
@@ -39,6 +38,7 @@ IBM PC
 - The way that I capture the keys but don't send them to the buffer maybe it's not ideal, since ctrl-alt-del will probably not work.
 - Should I make structs word aligned? This would be better for newer cpus, but bad for the 8086.
 - What happens with the stack pointer on DOS if the computer has less than 64KB free?
+- Should I align the data in the code segment in keyboard.asm?
 
 GAME
 ----

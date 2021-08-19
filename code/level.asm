@@ -3,7 +3,7 @@ include code\bios.inc
 allSegments group code
     assume cs:allSegments, ds:allSegments
 
-code segment public
+code segment readonly public
 
 extern playerInit:proc, playerInitRender:proc, playerUpdate:proc, playerRender:proc
 extern renderHorizLine320x200x4:proc

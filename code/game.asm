@@ -27,7 +27,7 @@ endm
 allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments
 
-code segment public
+code segment readonly public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
 extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc

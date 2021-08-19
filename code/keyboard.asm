@@ -9,6 +9,7 @@ allSegments group code
 
 ; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume segment registers have
 ; the same value on enter.
+; The code segment is not readonly because the data is stored there as well and it will be modified by the interrupt handler.
 code segment public
 
 ; Output: al (error code).
@@ -97,8 +98,9 @@ skipKeyProcess:
     ; No, let the BIOS handle it.
     jmp cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
 keyboardSystemInt endp
-
-    ; Data is stored in the code segment since it needs to be accesible to the new interrupt.
+    
+    ; Data is stored in the code segment since it needs to be accesible to interrupt handler.
+    ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
     KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(KEYBOARD_KEY_PRESSED_COUNT)

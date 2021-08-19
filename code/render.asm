@@ -53,7 +53,7 @@ endm
 allSegments group code, constData
     assume cs:allSegments, ds:allSegments
 
-code segment public
+code segment readonly public
 
 ; Input:
 ;	cx (unsigned left limit).
