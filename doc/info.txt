@@ -37,7 +37,7 @@ IBM PC
 - Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.
 - The way that I capture the keys but don't send them to the buffer maybe it's not ideal, since ctrl-alt-del will probably not work.
 - Should I make structs word aligned? This would be better for newer cpus, but bad for the 8086.
-- What happens with the stack pointer on DOS if the computer has less than 64KB free?
+- What happens with the stack pointer on DOS if the computer has less than 64KB free? Should I create an explicit stack segment so I'm saying exactly how much memory I need to run the game?
 - Should I align the data in the code segment in keyboard.asm?
 
 GAME
