@@ -1,5 +1,5 @@
-allSegments group code, data
-    assume cs:allSegments, ds:allSegments
+allSegments group code, constData, data
+    assume cs:allSegments, ds:allSegments, ss:allSegments
 
 code segment readonly public
 
@@ -47,6 +47,9 @@ test2Render endp
 ; ---------;
 
 code ends
+
+constData segment readonly public
+constData ends
 
 data segment public
 data ends
