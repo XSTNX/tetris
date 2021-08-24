@@ -39,7 +39,7 @@ obj\render.obj : code\render.asm code\bios.inc
 obj\test.obj : code\test.asm code\console.inc code\keyboard.inc
 	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
 
-obj\test2.obj : code\test2.asm
+obj\test2.obj : code\test2.asm code\assumSeg.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
 
 clean :

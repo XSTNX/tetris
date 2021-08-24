@@ -1,11 +1,12 @@
-allSegments group code, constData, data
-    assume cs:allSegments, ds:allSegments, ss:allSegments
+include code\assumSeg.inc
 
 code segment readonly public
 
 extern renderHorizLine320x200x4:proc
 
 test2Init proc
+    ;int 3
+    mov al,[testData]
     ret
 test2Init endp
 
@@ -48,10 +49,14 @@ test2Render endp
 
 code ends
 
+    ; It's supposed to prevent from using instructions in data segments, but doesn't seem to work, maybe I'm doing it wrong?
+    assume cs:error
 constData segment readonly public
 constData ends
 
 data segment public
+testData label byte
+    mov ax,1
 data ends
 
 end
