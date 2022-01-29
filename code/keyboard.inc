@@ -9,7 +9,7 @@ extern KeyboardKeyPressed:byte
 endif
 
 ; Input: scancode (scancode of the key, from 0 to 7fh).
-; Output: zf (zero flag set means the key is pressed).
+; Output: zf (zero flag set if the key is pressed).
 keyboardIsKeyPressed macro scancode:req
-    test cs:[KeyboardKeyPressed + scancode],KEYBOARD_KEY_PRESSED_COUNT
+    test cs:[KeyboardKeyPressed + scancode],080h
 endm

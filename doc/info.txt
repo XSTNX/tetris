@@ -39,6 +39,7 @@ IBM PC
 - Should I make structs word aligned? This would be better for newer cpus, but bad for the 8086.
 - What happens with the stack pointer on DOS if the computer has less than 64KB free? Should I create an explicit stack segment so I'm saying exactly how much memory I need to run the game?
 - Should I align the data in the code segment in keyboard.asm?
+- Document for bios and dos the functions that I use, so I can confirm if I'm using them properly without checking online.
 
 GAME
 ----

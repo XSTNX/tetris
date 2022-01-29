@@ -5,7 +5,7 @@ include code\dos.inc
 include code\errcode.inc
 
 allSegments group code
-    assume cs:allSegments
+    assume cs:allSegments, ds:allSegments, es:allSegments
 
 ; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume segment registers have
 ; the same value on enter.
@@ -72,24 +72,23 @@ keyboardStop endp
 ; ---------;
 
 ; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
+assume cs:allSegments, ds:nothing, es:nothing
 keyboardSystemInt proc private
     ; Is it the keyboard intercept function?
     cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
     jne short skipKeyProcess
 
     ; Store key state.
-    push bx
-    mov bl,al
-    and bx,KEYBOARD_KEY_PRESSED_COUNT - 1
-    mov cs:[KeyboardKeyPressed + bx],al
-    pop bx
+    push bp
+    mov bp,ax
+    and bp,KEYBOARD_KEY_PRESSED_COUNT - 1
+    mov cs:[KeyboardKeyPressed + bp],al
     
     ; Clear carry flag to consume the scancode.
-    add sp,4
-    popf
-    clc
-    pushf
-    sub sp,4
+    ; Offset is 6 because bp is still in the stack.
+    mov bp,sp
+    and byte ptr [bp + 6],0feh
+    pop bp
 
     ; Done.
     iret
@@ -99,11 +98,11 @@ skipKeyProcess:
     jmp cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
 keyboardSystemInt endp
     
-    ; Data is stored in the code segment since it needs to be accesible to interrupt handler.
+    ; Data is stored in the code segment since it needs to be accesible to the interrupt handler.
     ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(KEYBOARD_KEY_PRESSED_COUNT)
+    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
     KeyboardBIOSSystemIntHandlerDWordPtr    label dword
     KeyboardBIOSSystemIntHandlerOffset      word ?
     KeyboardBIOSSystemIntHandlerSegment     word ?
