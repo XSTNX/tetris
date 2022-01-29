@@ -48,10 +48,6 @@ GAME
 - Do I need to disable interrupts in keyboardSystemInt?
 - Add flag to completely disable keyboard and use the simpler dos call to detect quit.
 
-MISC
-----
-- OSFMount, program to create DOS floppy disk images.
-
 LINKS
 -----
 https://www.pcjs.org/machines/pcx86/ibm/5160/cga/ (web emulator)
@@ -62,6 +58,7 @@ http://qzx.com/pc-gpe/
 https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
 http://www.verycomputer.com/viewlist_12_873.htm (msdos programming forum)
 https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
+https://www.osforensics.com/tools/mount-disk-images.html (OSFMount, program to create DOS floppy disk images)
 
 GAMES
 -----
