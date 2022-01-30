@@ -102,7 +102,8 @@ gameLoop:
 if KEYBOARD_ENABLED
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ESC
 else
-	call checkForESCKey
+	; If keyboard is disabled, a different way to check for ESC is needed.
+	call testCheckForESCKey
 endif
 	jnz short gameLoop
 
@@ -118,7 +119,7 @@ main endp
 
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
-checkForESCKey proc private
+testCheckForESCKey proc private
 	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
 	int BIOS_KEYBOARD_INT
 	jnz getKey
@@ -130,7 +131,7 @@ getKey:
 	int BIOS_KEYBOARD_INT
 	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
 	ret
-checkForESCKey endp
+testCheckForESCKey endp
 endif
 
 testPaletteChange proc private
