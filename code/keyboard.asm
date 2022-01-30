@@ -12,6 +12,10 @@ allSegments group code
 ; The code segment is not readonly because the data is stored there as well and it will be modified by the interrupt handler.
 code segment public
 
+; ------------;
+; Code public ;
+; ------------;
+
 ; Output: al (error code).
 keyboardStart proc
 if KEYBOARD_ENABLED
@@ -67,9 +71,9 @@ endif
     ret
 keyboardStop endp
 
-; ---------;
-; Private. ;
-; ---------;
+; -------------;
+; Code private ;
+; -------------;
 
 ; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 assume cs:allSegments, ds:nothing, es:nothing

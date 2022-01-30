@@ -4,6 +4,10 @@ code segment readonly public
 
 extern renderHorizLine320x200x4:proc
 
+; ------------;
+; Code public ;
+; ------------;
+
 test2Init proc
     ;int 3
     mov al,[testData]
@@ -43,9 +47,9 @@ lineLoop:
     ret
 test2Render endp
 
-; ---------;
-; Private. ;
-; ---------;
+; -------------;
+; Code private ;
+; -------------;
 
 code ends
 

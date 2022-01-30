@@ -5,6 +5,10 @@ allSegments group code
 
 code segment readonly public
 
+; ------------;
+; Code public ;
+; ------------;
+
 ; Input: dl (only the low nibble).
 consolePrintNibbleHex proc
 	and dl,0fh
@@ -109,9 +113,9 @@ printLoopDone:
 	ret
 consolePrintString endp
 
-; ---------;
-; Private. ;
-; ---------;
+; -------------;
+; Code private ;
+; -------------;
 
 code ends
 

@@ -55,6 +55,10 @@ allSegments group code, constData
 
 code segment readonly public
 
+; ------------;
+; Code public ;
+; ------------;
+
 ; Input:
 ;	cx (unsigned left limit).
 ;	bx (unsigned right limit + 1).
@@ -169,9 +173,9 @@ renderLineOdd:
 	ret
 renderSprite8x8 endp
 
-; ---------;
-; Private. ;
-; ---------;
+; -------------;
+; Code private ;
+; -------------;
 
 code ends
 

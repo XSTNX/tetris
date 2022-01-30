@@ -8,6 +8,10 @@ code segment readonly public
 extern playerInit:proc, playerInitRender:proc, playerUpdate:proc, playerRender:proc
 extern renderHorizLine320x200x4:proc
 
+; ------------;
+; Code public ;
+; ------------;
+
 levelInit proc
 	call playerInit
 	ret
@@ -32,6 +36,10 @@ levelRender proc
 	call playerRender
 	ret
 levelRender endp
+
+; -------------;
+; Code private ;
+; -------------;
 
 code ends
 

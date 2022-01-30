@@ -17,6 +17,10 @@ code segment readonly public
 extern consolePrintByte:proc, consolePrintByteHex:proc
 extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
+; ------------;
+; Code public ;
+; ------------;
+
 testInit proc
     mov [TestPosXLow],0
 	mov [TestPosXHigh],TEST_BOX_POSX_START
@@ -126,9 +130,9 @@ endif
     ret
 testRender endp
 
-; ---------;
-; Private. ;
-; ---------;
+; -------------;
+; Code private ;
+; -------------;
 
 code ends
 
