@@ -128,7 +128,7 @@ checkBuffer:
 	or ah,0ffh
 	ret
 getKey:
-	; Remove key from the buffer.
+	; Remove key from buffer.
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC

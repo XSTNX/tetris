@@ -45,6 +45,10 @@ code segment readonly public
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
 extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderSprite8x8:proc
 
+; ------------;
+; Code public ;
+; ------------;
+
 playerInit proc
 	xor ax,ax
 	mov [PlayerShotCount],ax
@@ -319,13 +323,14 @@ endif
 	ret
 playerRender endp
 
-; ---------;
-; Private. ;
-; ---------;
+; -------------;
+; Code private ;
+; -------------;
 
 ifdef DEBUG
 
 playerDebugPrintKeyboard proc private
+ife PLAYER_AUTO_MOVE
 	; Left.
 	consoleSetCursorPos 0, 0
 	keyboardIsKeyPressed PLAYER_KEY_LEFT
@@ -352,7 +357,7 @@ skipPressedKeyRight:
 	mov dl,"1"
 skipPressedKeyShoot:
 	consolePrintChar dl
-
+endif
 	ret
 playerDebugPrintKeyboard endp
 
