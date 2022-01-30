@@ -4,6 +4,8 @@ include code\bios.inc
 include code\dos.inc
 include code\errcode.inc
 
+KEYBOARD_KEY_PRESSED_COUNT      equ 128
+
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:allSegments
 
@@ -75,8 +77,10 @@ keyboardStop endp
 ; Code private ;
 ; -------------;
 
-; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 assume cs:allSegments, ds:nothing, es:nothing
+
+if KEYBOARD_ENABLED
+; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 keyboardSystemInt proc private
     ; Is it the keyboard intercept function?
     cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
@@ -101,15 +105,18 @@ skipKeyProcess:
     ; No, let the BIOS handle it.
     jmp cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
 keyboardSystemInt endp
-    
+endif
+
     ; Data is stored in the code segment since it needs to be accesible to the interrupt handler.
     ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
     KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
+if KEYBOARD_ENABLED
     KeyboardBIOSSystemIntHandlerDWordPtr    label dword
     KeyboardBIOSSystemIntHandlerOffset      word ?
     KeyboardBIOSSystemIntHandlerSegment     word ?
+endif
 
 code ends
 

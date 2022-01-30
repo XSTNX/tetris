@@ -34,9 +34,13 @@ extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 extern test2Init:proc, test2InitRender:proc, test2Update:proc, test2Render:proc
 
-;----------;
-; Private. ;
-;----------;
+; ------------;
+; Code public ;
+; ------------;
+
+; -------------;
+; Code private ;
+; -------------;
 
 	org 100h
 main proc private
@@ -113,13 +117,13 @@ quit:
 main endp
 
 ife KEYBOARD_ENABLED
-checkForESCKey proc
+; Output: zf (zero flag set if ESC is pressed).
+checkForESCKey proc private
 	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
 	int BIOS_KEYBOARD_INT
 	jnz getKey
-	; Return zero flag clear.
-	inc al
-	inc al
+	; Return zero flag clear, since no key was pressed.
+	or ah,0ffh
 	ret
 getKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
@@ -129,7 +133,7 @@ getKey:
 checkForESCKey endp
 endif
 
-testPaletteChange proc
+testPaletteChange proc private
 	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_1
 	jnz skipChangePaletteNum0
 	renderSetPalette320x200x4 0
@@ -200,7 +204,7 @@ nextKey:
 	test al,al
 	jz short nextKey
 
-	ret
+	dosQuitCOM
 testKeyboardFlags endp
 
 testDOSVersion proc private
@@ -232,7 +236,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByteHex
 
-	ret
+	dosQuitCOM
 strVer:
 	db "Ver: ", 0
 strDOSType:

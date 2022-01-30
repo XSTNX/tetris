@@ -6,7 +6,6 @@ ASM
 - Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory? How does DOS make sure in general there is enough memory to run the game?
 - Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
 - Is there an assert directive I can use?
-- What is the simplest way to clear the zero flag? I'm doing "inc al" twice on proc checkForESCKey in game.asm.
 
 MASM
 ----
