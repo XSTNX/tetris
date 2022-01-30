@@ -316,8 +316,8 @@ loopShotDone:
 
 ifdef DEBUG
 	call playerDebugPrintKeyboard
-	;call playerDebugPrintPlayer
-	;call playerDebugPrintShot
+	call playerDebugPrintPlayer
+	call playerDebugPrintShot
 endif
 
 	ret
@@ -362,20 +362,20 @@ endif
 playerDebugPrintKeyboard endp
 
 playerDebugPrintPlayer proc private
-	consoleSetCursorPos 0, 0
+	consoleSetCursorPos 0, 1
 	mov dx,[PlayerPosX]
 	call consolePrintWord
-	consoleSetCursorPos 0, 1
+	consoleSetCursorPos 6, 1
 	mov dl,[PlayerPosXByteFraction]
 	call consolePrintByteHex
 	ret
 playerDebugPrintPlayer endp
 
 playerDebugPrintShot proc private
-	consoleSetCursorPos 0, 0
+	consoleSetCursorPos 0, 2
 	mov dl,byte ptr [PlayerShotCount]
 	call consolePrintByte
-	consoleSetCursorPos 0, 1
+	consoleSetCursorPos 4, 2
 	mov dl,[PlayerShotCooldown]
 	call consolePrintByte
 	ret
