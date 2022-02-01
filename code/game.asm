@@ -46,7 +46,7 @@ extern test2Init:proc, test2InitRender:proc, test2Update:proc, test2Render:proc
 main proc private
 	; Game states should assume the direction flag is always reset.
 	cld
-
+	
 	call keyboardStart
 	; Check if keyboard started properly.
 	cmp al,ERROR_CODE_KEYBOARD_NONE
@@ -195,19 +195,21 @@ strASCII:
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
-nextKey:
+printFlags:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
 	mov dl,al
 	call consolePrintByteHex
-
 	consoleNextLine
 
 	; Continue until a key is pressed.
-	mov ah,DOS_REQUEST_FUNC_INPUT_STATUS
-	int DOS_REQUEST_INT
-	test al,al
-	jz short nextKey
+	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
+	int BIOS_KEYBOARD_INT
+	jz short printFlags
+
+	; Remove key from buffer.
+	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
+	int BIOS_KEYBOARD_INT
 
 	dosQuitCOM
 testKeyboardFlags endp
