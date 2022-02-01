@@ -44,9 +44,8 @@ IBM PC
 GAME
 ----
 - Print error codes properly when the game quits, probably this means the error number and a string describing it.
-- Look for the best/fastest way to clear the carry flag to consume the scancode in keyboardSystemInt.
 - Do I need to disable interrupts in keyboardSystemInt?
-- Add flag to completely disable keyboard and use the simpler dos call to detect quit.
+- Make sure I use as few DOS functions as possible, since the final goal is to make a booteable game.
 
 LINKS
 -----
