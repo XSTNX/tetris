@@ -9,7 +9,7 @@ KEYBOARD_KEY_PRESSED_COUNT      equ 128
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:allSegments
 
-; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume segment registers have
+; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume all segment registers have
 ; the same value on enter.
 ; The code segment is not readonly because the data is stored there as well and it will be modified by the interrupt handler.
 code segment public
@@ -21,19 +21,22 @@ code segment public
 ; Output: al (error code).
 keyboardStart proc
 if KEYBOARD_ENABLED
-    push ds
     push es
 
     ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
     mov ax,(DOS_REQUEST_FUNC_GET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     int DOS_REQUEST_INT
-    mov ds:[KeyboardBIOSSystemIntHandlerOffset],bx
-    mov ds:[KeyboardBIOSSystemIntHandlerSegment],es
+    mov ds:[KeyboardPrevSystemIntHandlerOffset],bx
+    mov ds:[KeyboardPrevSystemIntHandlerSegment],es
 
     ; Get system environment.
     mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
     int BIOS_SYSTEM_INT
+    jnc short skipCallError
+    mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_SUPPORT
+    jmp short quit
+skipCallError:
 
     ; Check if the environment size is big enough to contain the configuration.
     cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
@@ -52,11 +55,10 @@ skipInterceptNotAvaiableError:
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     mov dx,offset allSegments:keyboardSystemInt
     int DOS_REQUEST_INT
-    mov al,ERROR_CODE_KEYBOARD_NONE
+    mov al,ERROR_CODE_NONE
 
 quit:
     pop es
-    pop ds
 endif    
     ret
 keyboardStart endp
@@ -66,7 +68,7 @@ if KEYBOARD_ENABLED
     ; Restore previous keyboard interrupt handler.
     mov ax,(DOS_REQUEST_FUNC_SET_INT_VECTOR * 256) + BIOS_SYSTEM_INT
     push ds
-    lds dx,ds:[KeyboardBIOSSystemIntHandlerDWordPtr]
+    lds dx,ds:[KeyboardPrevSystemIntHandlerFarPtr]
     int DOS_REQUEST_INT
     pop ds
 endif
@@ -102,8 +104,8 @@ keyboardSystemInt proc private
     iret
 
 skipKeyProcess:
-    ; No, let the BIOS handle it.
-    jmp cs:[KeyboardBIOSSystemIntHandlerDWordPtr]
+    ; No, the prev handler should take care of it.
+    jmp cs:[KeyboardPrevSystemIntHandlerFarPtr]
 keyboardSystemInt endp
 endif
 
@@ -113,9 +115,9 @@ endif
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
     KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
 if KEYBOARD_ENABLED
-    KeyboardBIOSSystemIntHandlerDWordPtr    label dword
-    KeyboardBIOSSystemIntHandlerOffset      word ?
-    KeyboardBIOSSystemIntHandlerSegment     word ?
+    KeyboardPrevSystemIntHandlerFarPtr      label dword
+    KeyboardPrevSystemIntHandlerOffset      word ?
+    KeyboardPrevSystemIntHandlerSegment     word ?
 endif
 
 code ends

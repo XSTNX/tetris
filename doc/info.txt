@@ -46,6 +46,7 @@ GAME
 - Print error codes properly when the game quits, probably this means the error number and a string describing it.
 - Do I need to disable interrupts in keyboardSystemInt?
 - Make sure I use as few DOS functions as possible, since the final goal is to make a booteable game.
+- Maybe the console procedures should save all registers, they are not used for performant code so maybe it's better to go for convenience.
 
 LINKS
 -----

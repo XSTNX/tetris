@@ -25,7 +25,7 @@ setTest2GameState macro
 endm
 
 allSegments group code, constData, data
-    assume cs:allSegments, ds:allSegments
+    assume cs:allSegments, ds:allSegments, es:allSegments
 
 code segment readonly public
 
@@ -49,11 +49,9 @@ main proc private
 	
 	call keyboardStart
 	; Check if keyboard started properly.
-	cmp al,ERROR_CODE_KEYBOARD_NONE
+	cmp al,ERROR_CODE_NONE
 	je short skipKeyboardStartError
-	; If not, print error message and quit.
-	mov dx,offset StrErrorKeyboard
-	call consolePrintString
+	call printError
 	jmp short quit
 skipKeyboardStartError:
 
@@ -63,9 +61,8 @@ skipKeyboardStartError:
 	; Check if video card is valid.
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
 	jne short skipVideoModeError
-	; If not, print error message and quit.
-	mov dx,offset StrErrorVideoCard
-	call consolePrintString
+	mov al,ERROR_CODE_VIDEO
+	call printError
 	jmp short quit
 skipVideoModeError:
 
@@ -116,6 +113,16 @@ quit:
 	call keyboardStop
 	dosQuitCOM
 main endp
+
+; Input: al (error code).
+printError proc private
+	push ax
+	mov dx,offset ErrorStr
+	call consolePrintString
+	pop dx
+	call consolePrintByte
+	ret
+printError endp
 
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
@@ -255,8 +262,7 @@ endif
 code ends
 
 constData segment readonly public
-	StrErrorVideoCard		byte "Video Error: You need a Color Graphics Adapter to play this game.", 0
-	StrErrorKeyboard		byte "Keyboard error.", 0
+	ErrorStr				byte "Quitting with error code ", 0
 constData ends
 
 data segment public
