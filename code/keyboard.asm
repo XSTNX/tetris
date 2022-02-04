@@ -25,13 +25,17 @@ if KEYBOARD_ENABLED
 
     ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
+    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0
+    mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 2    
     xor ax,ax
-    mov es,ax
-    ; Do I really need to disable interrupts here? If so, the code should be shorter.
+    push ds
+    mov ds,ax
+    ; Do I really need to disable interrupts here?
     cli
-    mov ax,es:[KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0]
-    mov dx,es:[KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 2]
+    mov ax,ds:[si]
+    mov dx,ds:[di]
     sti
+    pop ds
     mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
     mov ds:[KeyboardPrevSystemIntHandlerSegment],dx
 
