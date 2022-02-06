@@ -84,18 +84,21 @@ keyboardStop endp
 ; Code private ;
 ; -------------;
 
-; Input: stack arg0 (far ptr).
+; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetInterrupHandler proc private
-    ; Set si only, no need to set ds since it's equal to ss.
+    ; Source is in the stack, set si only, since ds is equal to ss.
     mov si,sp
+    ; Handler is a far ptr, two words must be copied.
     mov cx,2
+    ; Stack arg0 is two bytes past sp.
     add si,cx
 
+    ; Destination.
     xor di,di
     mov es,di
     mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
 
-    ; Interrupts must be disabled, otherwise they could try to write at the same time on this vector.
+    ; Update vector, interrupts must be disabled, otherwise they could try to write on the vector at the same time.
     cli
     rep movsw
     sti
