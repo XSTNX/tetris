@@ -84,11 +84,12 @@ keyboardStop endp
 ; Code private ;
 ; -------------;
 
-; Input: stack0 (far ptr).
+; Input: stack arg0 (far ptr).
 keyboardSetInterrupHandler proc private
     ; Set si only, no need to set ds since it's equal to ss.
     mov si,sp
-    add si,2
+    inc si
+    inc si
 
     xor di,di
     mov es,di
