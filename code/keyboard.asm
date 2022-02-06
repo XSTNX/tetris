@@ -88,14 +88,13 @@ keyboardStop endp
 keyboardSetInterrupHandler proc private
     ; Set si only, no need to set ds since it's equal to ss.
     mov si,sp
-    inc si
-    inc si
+    mov cx,2
+    add si,cx
 
     xor di,di
     mov es,di
     mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
 
-    mov cx,2
     ; Interrupts must be disabled, otherwise they could try to write at the same time on this vector.
     cli
     rep movsw
