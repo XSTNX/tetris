@@ -38,7 +38,7 @@ PLAYER_KEY_RIGHT				equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 PLAYER_KEY_SHOOT				equ BIOS_KEYBOARD_SCANCODE_E
 
 allSegments group code, constData, data
-    assume cs:allSegments, ds:allSegments
+    assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
 
@@ -50,6 +50,9 @@ extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderSprite8x8:proc
 ; ------------;
 
 playerInit proc
+	mov ax,ds
+	mov es,ax
+
 	xor ax,ax
 	mov [PlayerShotCount],ax
 	mov [PlayerRenderDeleteCount],ax

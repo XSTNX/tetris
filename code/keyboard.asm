@@ -21,8 +21,6 @@ code segment public
 ; Output: al (error code).
 keyboardStart proc
 if KEYBOARD_ENABLED
-    push es
-
     ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
     mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0
@@ -68,7 +66,6 @@ skipInterceptNotAvaiableError:
     mov al,ERROR_CODE_NONE
 
 done:
-    pop es
 endif
     ret
 keyboardStart endp
