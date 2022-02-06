@@ -7,7 +7,7 @@ KEYBOARD_KEY_PRESSED_COUNT              equ 128
 KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET    equ (BIOS_SYSTEM_INT * 4)
 
 allSegments group code
-    assume cs:allSegments, ds:allSegments, es:allSegments
+    assume cs:allSegments, ds:allSegments, es:nothing
 
 ; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume all segment registers have
 ; the same value on enter.
@@ -44,39 +44,40 @@ if KEYBOARD_ENABLED
     int BIOS_SYSTEM_INT
     jnc short skipCallError
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_SUPPORT
-    jmp short quit
+    jmp short done
 skipCallError:
 
     ; Check if the environment size is big enough to contain the configuration.
     cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
     jae short skipSizeError
     mov al,ERROR_CODE_KEYBOARD_SIZE
-    jmp short quit
+    jmp short done
 skipSizeError:
     ; Check in the configuration if the keyboard intercept funcion is available.
     test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET], BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
     jnz skipInterceptNotAvaiableError
     mov al,ERROR_CODE_KEYBOARD_NO_INTRCPT
-    jmp short quit
+    jmp short done
 skipInterceptNotAvaiableError:
 
     ; Set new system interrupt handler.
+    push cs
     mov ax,offset allSegments:keyboardSystemInt
-    mov dx,cs
+    push ax
     call keyboardSetInterrupHandler
     mov al,ERROR_CODE_NONE
 
-quit:
+done:
     pop es
-endif    
+endif
     ret
 keyboardStart endp
 
 keyboardStop proc
 if KEYBOARD_ENABLED
     ; Restore previous keyboard interrupt handler.
-    mov ax,ds:[KeyboardPrevSystemIntHandlerOffset]
-    mov dx,ds:[KeyboardPrevSystemIntHandlerSegment]
+    push ds:[KeyboardPrevSystemIntHandlerSegment]
+    push ds:[KeyboardPrevSystemIntHandlerOffset]
     call keyboardSetInterrupHandler
 endif
     ret
@@ -86,20 +87,23 @@ keyboardStop endp
 ; Code private ;
 ; -------------;
 
-; Input: dx:ax (handler address).
+; Input: stack0 (far ptr).
 keyboardSetInterrupHandler proc private
-    ; Doing it this way should work for all ints but nmi.
-    xor bx,bx
-    push ds
-    mov ds,bx
-    mov bx,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0
-    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 2
+    ; Set si only, no need to set ds since it's equal to ss.
+    mov si,sp
+    add si,2
+
+    xor di,di
+    mov es,di
+    mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
+
+    mov cx,2
+    ; Interrupts must be disabled, otherwise they could try to write at the same time on this vector.
     cli
-    mov ds:[bx],ax
-    mov ds:[si],dx
+    rep movsw
     sti
-    pop ds
-    ret
+
+    ret 4
 keyboardSetInterrupHandler endp
 
 assume cs:allSegments, ds:nothing, es:nothing
