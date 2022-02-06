@@ -10,7 +10,7 @@ TEST_BOX_POSY_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
 TEST_BOX_SPEEDY_PACKED 			equ 280h
 
 allSegments group code, data
-    assume cs:allSegments, ds:allSegments
+    assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
 
