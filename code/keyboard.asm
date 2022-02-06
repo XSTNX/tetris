@@ -89,14 +89,14 @@ keyboardStop endp
 ; Input: dx:ax (handler address).
 keyboardSetInterrupHandler proc private
     ; Doing it this way should work for all ints but nmi.
-    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0
-    mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 2
     xor bx,bx
     push ds
     mov ds,bx
+    mov bx,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0
+    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 2
     cli
-    mov ds:[si],ax
-    mov ds:[di],dx
+    mov ds:[bx],ax
+    mov ds:[si],dx
     sti
     pop ds
     ret
