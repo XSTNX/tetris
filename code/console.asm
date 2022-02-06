@@ -1,7 +1,7 @@
 include code\console.inc
 
 allSegments group code
-    assume cs:allSegments, ds:allSegments
+    assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
 
@@ -97,7 +97,7 @@ consolePrintWordHex proc
 	ret
 consolePrintWordHex endp
 
-; Input: ds:dx (address of a null-terminated string).
+; Input: ds:dx (far ptr to a null-terminated string).
 consolePrintString proc
 	pushf
 	cld

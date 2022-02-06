@@ -1,7 +1,7 @@
 include code\bios.inc
 
 allSegments group code
-    assume cs:allSegments, ds:allSegments
+    assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
 
