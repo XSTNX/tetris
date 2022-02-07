@@ -91,7 +91,8 @@ keyboardSetInterrupHandler proc private
     mov es,di
     mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
 
-    ; Write vector, interrupts must be disabled, otherwise they could write on the vector after one iteration of the repeat.
+    ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
+    ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
     cli
     rep movsw
     sti
