@@ -41,13 +41,13 @@ skipCallError:
     ; Check if the environment size is big enough to contain the configuration.
     cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
     jae short skipSizeError
-    mov al,ERROR_CODE_KEYBOARD_SIZE
+    mov al,ERROR_CODE_KEYBOARD_GET_ENV_WRONG_SIZE
     jmp short done
 skipSizeError:
     ; Check in the configuration if the keyboard intercept funcion is available.
-    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET], BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
+    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET],BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
     jnz skipInterceptNotAvaiableError
-    mov al,ERROR_CODE_KEYBOARD_NO_INTRCPT
+    mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_INTRCPT
     jmp short done
 skipInterceptNotAvaiableError:
 
@@ -57,7 +57,6 @@ skipInterceptNotAvaiableError:
     push ax
     call keyboardSetInterrupHandler
     mov al,ERROR_CODE_NONE
-
 done:
 endif
     ret
