@@ -21,21 +21,24 @@ code segment public
 ; Output: al (error code).
 keyboardStart proc
 if KEYBOARD_ENABLED
-    ; Save BIOS system interrupt handler first, so calling keyboardStop will still work even if the intercept
+    ; Save current system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
-    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 0
-    mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET + 2    
-    xor ax,ax
     push ds
-    mov ds,ax
-    ; Do I really need to disable interrupts here?
+    pop es
+    push ds       
+    ; Source.
+    xor si,si
+    mov ds,si
+    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
+    ; Destination, update di only, since es was set earlier.
+    mov di,offset KeyboardPrevSystemIntHandlerOffset
+    ; Copy two words.
+    mov cx,2
+    ; Read vector, interrupts must be disabled, otherwise they could write on the vector after one iteration of the repeat.
     cli
-    mov ax,ds:[si]
-    mov dx,ds:[di]
+    rep movsw
     sti
     pop ds
-    mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
-    mov ds:[KeyboardPrevSystemIntHandlerSegment],dx
 
     ; Get system environment.
     mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
@@ -98,7 +101,7 @@ keyboardSetInterrupHandler proc private
     mov es,di
     mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
 
-    ; Update vector, interrupts must be disabled, otherwise they could try to write on the vector at the same time.
+    ; Write vector, interrupts must be disabled, otherwise they could write on the vector after one iteration of the repeat.
     cli
     rep movsw
     sti
