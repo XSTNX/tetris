@@ -37,15 +37,15 @@ if KEYBOARD_ENABLED
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_SUPPORT
     jmp short done
 skipCallError:
-
     ; Check if the environment size is big enough to contain the configuration.
+    ; Check documentation again, what is this plus one??????????????????????????
     cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
     jae short skipSizeError
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_WRONG_SIZE
     jmp short done
 skipSizeError:
     ; Check in the configuration if the keyboard intercept funcion is available.
-    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET],BIOS_SYSTEM_ENVIRONMENT_CFG_MASK
+    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET],BIOS_SYSTEM_ENVIRONMENT_CFG_KI_MASK
     jnz skipInterceptNotAvaiableError
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_INTRCPT
     jmp short done
