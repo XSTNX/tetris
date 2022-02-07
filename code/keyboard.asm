@@ -25,7 +25,7 @@ if KEYBOARD_ENABLED
     ; function can't be overriden.
     push ds
     pop es
-    push ds       
+    push ds
     ; Source.
     xor si,si
     mov ds,si
