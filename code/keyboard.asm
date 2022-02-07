@@ -23,22 +23,12 @@ keyboardStart proc
 if KEYBOARD_ENABLED
     ; Save current system interrupt handler first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
-    push ds
-    pop es
-    push ds
-    ; Source.
-    xor si,si
-    mov ds,si
-    mov si,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
-    ; Destination, update di only, since es was set earlier.
-    mov di,offset KeyboardPrevSystemIntHandlerOffset
-    ; Copy two words.
-    mov cx,2
-    ; Read vector, interrupts must be disabled, otherwise they could write on the vector after one iteration of the repeat.
-    cli
-    rep movsw
-    sti
-    pop ds
+    xor ax,ax
+    mov es,ax
+    ; Read current handler with one instruction, so an interrupt can't modify it while the memory is fetched.
+    les ax,es:[KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET]
+    mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
+    mov ds:[KeyboardPrevSystemIntHandlerSegment],es
 
     ; Get system environment.
     mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
