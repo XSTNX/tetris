@@ -20,11 +20,17 @@ code segment public
 ; Output: al (error code).
 keyboardStart proc
 if KEYBOARD_ENABLED
-    ; Save current system interrupt handler first, so calling keyboardStop will still work even if the intercept
+    ; Save current interrupt handlers first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
+    ; Read current handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
+    les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
+    mov ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset],ax
+    mov ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment],es
     ; Read current handler with one instruction, so an interrupt can't modify it while the memory is fetched.
+    xor ax,ax
+    mov es,ax
     les ax,es:[BIOS_SYSTEM_INT_ADDR_OFFSET]
     mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
     mov ds:[KeyboardPrevSystemIntHandlerSegment],es
@@ -50,11 +56,15 @@ skipSizeError:
     jmp short done
 skipInterceptNotAvaiableError:
 
-    ; Set new system interrupt handler.
+    ; Set new interrupt handlers.
     push cs
     mov ax,offset allSegments:keyboardSystemInt
     push ax
-    call keyboardSetInterrupHandler
+    call keyboardSetSystemIntHandler
+    push cs
+    mov ax,offset allSegments:keyboardKeyboardRequiredInt
+    push ax
+    call keyboardSetKeyboardRequiredIntHandler
     mov al,ERROR_CODE_NONE
 done:
 endif
@@ -63,10 +73,13 @@ keyboardStart endp
 
 keyboardStop proc
 if KEYBOARD_ENABLED
-    ; Restore previous keyboard interrupt handler.
+    ; Restore previous interrupt handlers.
+    push ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment]
+    push ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset]
+    call keyboardSetKeyboardRequiredIntHandler
     push ds:[KeyboardPrevSystemIntHandlerSegment]
     push ds:[KeyboardPrevSystemIntHandlerOffset]
-    call keyboardSetInterrupHandler
+    call keyboardSetSystemIntHandler
 endif
     ret
 keyboardStop endp
@@ -75,8 +88,32 @@ keyboardStop endp
 ; Code private ;
 ; -------------;
 
+if KEYBOARD_ENABLED
 ; Input: stack arg0 (Interrupt handler address, far ptr).
-keyboardSetInterrupHandler proc private
+keyboardSetKeyboardRequiredIntHandler proc private
+    ; Source is in the stack, set si only, since ds is equal to ss.
+    mov si,sp
+    ; Handler is a far ptr, two words must be copied.
+    mov cx,2
+    ; Stack arg0 is two bytes past sp.
+    add si,cx
+
+    ; Destination.
+    xor di,di
+    mov es,di
+    mov di,BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
+
+    ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
+    ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
+    cli
+    rep movsw
+    sti
+
+    ret 4
+keyboardSetKeyboardRequiredIntHandler endp
+
+; Input: stack arg0 (Interrupt handler address, far ptr).
+keyboardSetSystemIntHandler proc private
     ; Source is in the stack, set si only, since ds is equal to ss.
     mov si,sp
     ; Handler is a far ptr, two words must be copied.
@@ -96,18 +133,25 @@ keyboardSetInterrupHandler proc private
     sti
 
     ret 4
-keyboardSetInterrupHandler endp
+keyboardSetSystemIntHandler endp
+endif
 
 assume cs:allSegments, ds:nothing, es:nothing
 
 if KEYBOARD_ENABLED
+keyboardKeyboardRequiredInt proc private
+    jmp cs:[KeyboardPrevKeyboardRequiredIntHandlerFarPtr]
+keyboardKeyboardRequiredInt endp
+
 ; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 keyboardSystemInt proc private
-    sti
 
     ; Is it the keyboard intercept function?
     cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
     jne short skipKeyProcess
+
+    ; Should I enable interrupts here? What if I do it at the beginning of the function?
+    sti
 
     ; Store key state.
     push bp
@@ -134,11 +178,14 @@ endif
     ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                      byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
+    KeyboardKeyPressed                              byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
 if KEYBOARD_ENABLED
-    KeyboardPrevSystemIntHandlerFarPtr      label dword
-    KeyboardPrevSystemIntHandlerOffset      word ?
-    KeyboardPrevSystemIntHandlerSegment     word ?
+    KeyboardPrevKeyboardRequiredIntHandlerFarPtr    label dword
+    KeyboardPrevKeyboardRequiredIntHandlerOffset    word ?
+    KeyboardPrevKeyboardRequiredIntHandlerSegment   word ?
+    KeyboardPrevSystemIntHandlerFarPtr              label dword
+    KeyboardPrevSystemIntHandlerOffset              word ?
+    KeyboardPrevSystemIntHandlerSegment             word ?
 endif
 
 code ends
