@@ -4,7 +4,6 @@ include code\bios.inc
 include code\errcode.inc
 
 KEYBOARD_KEY_PRESSED_COUNT              equ 128
-KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET    equ (BIOS_SYSTEM_INT * 4)
 
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -26,7 +25,7 @@ if KEYBOARD_ENABLED
     xor ax,ax
     mov es,ax
     ; Read current handler with one instruction, so an interrupt can't modify it while the memory is fetched.
-    les ax,es:[KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET]
+    les ax,es:[BIOS_SYSTEM_INT_ADDR_OFFSET]
     mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
     mov ds:[KeyboardPrevSystemIntHandlerSegment],es
 
@@ -88,7 +87,7 @@ keyboardSetInterrupHandler proc private
     ; Destination.
     xor di,di
     mov es,di
-    mov di,KEYBOARD_BIOS_SYSTEM_INT_ADDR_OFFSET
+    mov di,BIOS_SYSTEM_INT_ADDR_OFFSET
 
     ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
     ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.

@@ -1,5 +1,10 @@
+; Keyboard required.
+BIOS_KEYBOARD_REQUIRED_INT              equ 009h
+BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET  equ (BIOS_KEYBOARD_REQUIRED_INT * 4)
+
 ; Video.
 BIOS_VIDEO_INT                          equ 010h
+BIOS_VIDEO_INT_ADDR_OFFSET              equ (BIOS_VIDEO_INT * 4)
 
 BIOS_VIDEO_FUNC_SET_VIDEO_MODE          equ 000h
 BIOS_VIDEO_FUNC_SET_CURSOR_POS          equ 002h
@@ -26,6 +31,7 @@ BIOS_VIDEO_SET_PLT_BKG_BDR_PALETTE      equ 001h
 
 ; System services.
 BIOS_SYSTEM_INT                         equ 015h
+BIOS_SYSTEM_INT_ADDR_OFFSET             equ (BIOS_SYSTEM_INT * 4)
 
 BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT     equ 04fh
 BIOS_SYSTEM_FUNC_GET_ENVIRONMENT        equ 0c0h
@@ -37,6 +43,7 @@ BIOS_SYSTEM_ENVIRONMENT_CFG_KI_MASK     equ 010h
 
 ; Keyboard.
 BIOS_KEYBOARD_INT                       equ 016h
+BIOS_KEYBOARD_INT_ADDR_OFFSET           equ (BIOS_KEYBOARD_INT * 4)
 
 BIOS_KEYBOARD_FUNC_GET_KEY              equ 000h
 BIOS_KEYBOARD_FUNC_CHECK_KEY            equ 001h
