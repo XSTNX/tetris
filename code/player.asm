@@ -333,7 +333,6 @@ playerRender endp
 ifdef DEBUG
 
 playerDebugPrintKeyboard proc private
-ife PLAYER_AUTO_MOVE
 	; Left.
 	consoleSetCursorPos 0, 0
 	keyboardIsKeyPressed PLAYER_KEY_LEFT
@@ -360,7 +359,6 @@ skipPressedKeyRight:
 	mov dl,"1"
 skipPressedKeyShoot:
 	consolePrintChar dl
-endif
 	ret
 playerDebugPrintKeyboard endp
 
