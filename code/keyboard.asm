@@ -4,6 +4,7 @@ include code\bios.inc
 include code\errcode.inc
 
 KEYBOARD_KEY_PRESSED_COUNT              equ 128
+KEYBOARD_USE_KEYBOARD_REQUIRED_INT      equ 1
 
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -20,15 +21,23 @@ code segment public
 ; Output: al (error code).
 keyboardStart proc
 if KEYBOARD_ENABLED
+if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
     ; Save current interrupt handlers first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
-    ; Read current handler with one instruction, so an interrupt can't modify it while the memory is fetched.
+    ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
     les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
     mov ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset],ax
     mov ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment],es
-    ; Read current handler with one instruction, so an interrupt can't modify it while the memory is fetched.
+    ; Set new interrupt handler.
+    push cs
+    mov ax,offset allSegments:keyboardKeyboardRequiredInt
+    push ax
+    call keyboardSetKeyboardRequiredIntHandler
+    mov al,ERROR_CODE_NONE
+else
+    ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
     les ax,es:[BIOS_SYSTEM_INT_ADDR_OFFSET]
@@ -56,30 +65,30 @@ skipSizeError:
     jmp short done
 skipInterceptNotAvaiableError:
 
-    ; Set new interrupt handlers.
+    ; Set new interrupt handler.
     push cs
     mov ax,offset allSegments:keyboardSystemInt
     push ax
     call keyboardSetSystemIntHandler
-    push cs
-    mov ax,offset allSegments:keyboardKeyboardRequiredInt
-    push ax
-    call keyboardSetKeyboardRequiredIntHandler
     mov al,ERROR_CODE_NONE
 done:
+endif
 endif
     ret
 keyboardStart endp
 
 keyboardStop proc
 if KEYBOARD_ENABLED
-    ; Restore previous interrupt handlers.
+    ; Restore previous interrupt handler.
+if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
     push ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment]
     push ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset]
     call keyboardSetKeyboardRequiredIntHandler
+else
     push ds:[KeyboardPrevSystemIntHandlerSegment]
     push ds:[KeyboardPrevSystemIntHandlerOffset]
     call keyboardSetSystemIntHandler
+endif
 endif
     ret
 keyboardStop endp
@@ -89,6 +98,7 @@ keyboardStop endp
 ; -------------;
 
 if KEYBOARD_ENABLED
+if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
 ; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetKeyboardRequiredIntHandler proc private
     ; Source is in the stack, set si only, since ds is equal to ss.
@@ -111,7 +121,7 @@ keyboardSetKeyboardRequiredIntHandler proc private
 
     ret 4
 keyboardSetKeyboardRequiredIntHandler endp
-
+else
 ; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetSystemIntHandler proc private
     ; Source is in the stack, set si only, since ds is equal to ss.
@@ -135,14 +145,30 @@ keyboardSetSystemIntHandler proc private
     ret 4
 keyboardSetSystemIntHandler endp
 endif
+endif
 
 assume cs:allSegments, ds:nothing, es:nothing
 
 if KEYBOARD_ENABLED
+if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
 keyboardKeyboardRequiredInt proc private
-    jmp cs:[KeyboardPrevKeyboardRequiredIntHandlerFarPtr]
+    ; Should I enable interrupts here somewhere??????????????
+    ; Read scancode.
+    push ax
+    in al,060h
+    ; Store key state.
+    push bx
+    mov bx,ax
+    and bx,KEYBOARD_KEY_PRESSED_COUNT - 1
+    mov cs:[KeyboardKeyPressed + bx],al
+    ; Send end of interrupt.
+    mov al,20h
+    out 20h,al
+    pop bx
+    pop ax
+    iret
 keyboardKeyboardRequiredInt endp
-
+else
 ; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 keyboardSystemInt proc private
 
@@ -150,7 +176,7 @@ keyboardSystemInt proc private
     cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
     jne short skipKeyProcess
 
-    ; Should I enable interrupts here? What if I do it at the beginning of the function?
+    ; Should I enable interrupts here? What if I do it at the beginning of the function??????????????
     sti
 
     ; Store key state.
@@ -173,6 +199,7 @@ skipKeyProcess:
     jmp cs:[KeyboardPrevSystemIntHandlerFarPtr]
 keyboardSystemInt endp
 endif
+endif
 
     ; Data is stored in the code segment since it needs to be accesible to the interrupt handler.
     ; Should I align the data?
@@ -180,12 +207,15 @@ endif
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
     KeyboardKeyPressed                              byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
 if KEYBOARD_ENABLED
+if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
     KeyboardPrevKeyboardRequiredIntHandlerFarPtr    label dword
     KeyboardPrevKeyboardRequiredIntHandlerOffset    word ?
     KeyboardPrevKeyboardRequiredIntHandlerSegment   word ?
+else    
     KeyboardPrevSystemIntHandlerFarPtr              label dword
     KeyboardPrevSystemIntHandlerOffset              word ?
     KeyboardPrevSystemIntHandlerSegment             word ?
+endif    
 endif
 
 code ends
