@@ -22,12 +22,11 @@ code segment public
 keyboardStart proc
 if KEYBOARD_ENABLED
 if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
-    ; Save current interrupt handlers first, so calling keyboardStop will still work even if the intercept
-    ; function can't be overriden.
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
     les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
+    ; Save current interrupt handler.
     mov ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset],ax
     mov ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment],es
     ; Set new interrupt handler.
@@ -37,10 +36,13 @@ if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
     call keyboardSetKeyboardRequiredIntHandler
     mov al,ERROR_CODE_NONE
 else
+    ; Save current interrupt handlers first, so calling keyboardStop will still work even if the intercept
+    ; function can't be overriden.
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
     les ax,es:[BIOS_SYSTEM_INT_ADDR_OFFSET]
+    ; Save current interrupt handler.
     mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
     mov ds:[KeyboardPrevSystemIntHandlerSegment],es
 
