@@ -40,6 +40,7 @@ IBM PC
 - Should I align the data in the code segment in keyboard.asm?
 - Document for bios and dos the functions that I use, so I can confirm if I'm using them properly without checking online.
 - Keys 1 and 2 don't seem to work perfectly on the web emulator, is it a problem with the emulator or with my code?
+- Should the keyboard code call the original int 9 handler anyway? Not sure if this could help with tsr programs running on the computer, I think I would need to use int 15 to consume the scancode as well.
 - Create some defines for in and out ports used in the keyboad code.
 
 GAME
