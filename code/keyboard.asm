@@ -4,7 +4,31 @@ include code\bios.inc
 include code\errcode.inc
 
 KEYBOARD_KEY_PRESSED_COUNT              equ 128
+; Decide if the scancodes will be intercepted in BIOS_KEYBOARD_REQUIRED_INT or in BIOS_SYSTEM_INT. The later doesn't work on the original IBM PC.
 KEYBOARD_USE_KEYBOARD_REQUIRED_INT      equ 1
+
+; Input: stack arg0 (Interrupt handler address, far ptr).
+keyboardSetIntHandler macro aAddrOffset:req
+    ;; Source is in the stack, set si only, since ds is equal to ss.
+    mov si,sp
+    ;; Handler is a far ptr, two words must be copied.
+    mov cx,2
+    ;; Stack arg0 is two bytes past sp.
+    add si,cx
+
+    ;; Destination.
+    xor di,di
+    mov es,di
+    mov di,aAddrOffset
+
+    ;; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
+    ;; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
+    cli
+    rep movsw
+    sti
+
+    ret 4
+endm
 
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -103,48 +127,12 @@ if KEYBOARD_ENABLED
 if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
 ; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetKeyboardRequiredIntHandler proc private
-    ; Source is in the stack, set si only, since ds is equal to ss.
-    mov si,sp
-    ; Handler is a far ptr, two words must be copied.
-    mov cx,2
-    ; Stack arg0 is two bytes past sp.
-    add si,cx
-
-    ; Destination.
-    xor di,di
-    mov es,di
-    mov di,BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
-
-    ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
-    ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
-    cli
-    rep movsw
-    sti
-
-    ret 4
+    keyboardSetIntHandler BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
 keyboardSetKeyboardRequiredIntHandler endp
 else
 ; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetSystemIntHandler proc private
-    ; Source is in the stack, set si only, since ds is equal to ss.
-    mov si,sp
-    ; Handler is a far ptr, two words must be copied.
-    mov cx,2
-    ; Stack arg0 is two bytes past sp.
-    add si,cx
-
-    ; Destination.
-    xor di,di
-    mov es,di
-    mov di,BIOS_SYSTEM_INT_ADDR_OFFSET
-
-    ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
-    ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
-    cli
-    rep movsw
-    sti
-
-    ret 4
+    keyboardSetIntHandler BIOS_SYSTEM_INT_ADDR_OFFSET
 keyboardSetSystemIntHandler endp
 endif
 endif
