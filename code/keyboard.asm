@@ -137,6 +137,7 @@ keyboardSetSystemIntHandler endp
 endif
 endif
 
+; The following code doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt that changed ds.
 assume cs:allSegments, ds:nothing, es:nothing
 
 if KEYBOARD_ENABLED
@@ -159,7 +160,6 @@ keyboardKeyboardRequiredInt proc private
     iret
 keyboardKeyboardRequiredInt endp
 else
-; This procedure doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt.
 keyboardSystemInt proc private
 
     ; Is it the keyboard intercept function?
