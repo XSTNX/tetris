@@ -44,7 +44,7 @@ extern test2Init:proc, test2InitRender:proc, test2Update:proc, test2Render:proc
 
 	org 100h
 main proc private
-	; All procedures should assume the direction flag is always reset.
+	; All procedures should assume the direction flag is reset.
 	cld
 	
 	call keyboardStart
