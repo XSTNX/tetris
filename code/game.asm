@@ -111,7 +111,7 @@ endif
 
 quit:
 	call keyboardStop
-	dosQuitCOM
+	ret
 main endp
 
 ; Input: al (error code).
