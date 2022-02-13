@@ -35,7 +35,7 @@ lineLoop:
     pop bx
     pop ax
     dec ax
-    jne lineLoop
+    jne short lineLoop
     ret
 test2InitRender endp
 
