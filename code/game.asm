@@ -69,8 +69,7 @@ skipVideoModeError:
 	; Save current video mode.
 	mov [GamePrevVideoMode],al
 	; Set new video mode.
-	mov al,BIOS_VIDEO_MODE_320_200_4_COLOR
-	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
+	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR + (BIOS_VIDEO_FUNC_SET_VIDEO_MODE * 256)
 	int BIOS_VIDEO_INT
 	; Set palette num.
 	renderSetPalette320x200x4 0
