@@ -15,8 +15,27 @@ test2Init proc
 test2Init endp
 
 test2InitRender proc
-    call test2Render    
-
+    ; ax (line count)
+    ; cx (unsigned left limit).
+    ; bx (unsigned right limit + 1).
+    ; dl (unsigned posY).
+    ; dh (color).
+    mov ax,3
+    xor cx,cx
+    mov bx,319
+    mov dx,99 + (1 * 256);
+lineLoop:
+    push ax
+    push bx
+    push cx
+    call renderHorizLine320x200x4
+    ; Increment posY and color.
+    add dx,101h
+    pop cx
+    pop bx
+    pop ax
+    dec ax
+    jne lineLoop
     ret
 test2InitRender endp
 
@@ -25,25 +44,6 @@ test2Update proc
 test2Update endp
 
 test2Render proc
-;	cx (unsigned left limit).
-;	bx (unsigned right limit + 1).
-;	dl (unsigned posY).
-;	dh (color).
-    xor cx,cx
-    mov bx,319
-    mov dx,(1 * 256) + 99;
-    mov si,3
-lineLoop:
-    push bx
-    push cx
-    push si
-    call renderHorizLine320x200x4
-    pop si
-    pop cx  
-    pop bx
-    add dx,101h
-    dec si
-    jne lineLoop
     ret
 test2Render endp
 
