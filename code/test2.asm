@@ -8,7 +8,6 @@ code segment readonly public
 ; ------------;
 
 test2Init proc
-    ;int 3
     mov al,[testData]
     ret
 test2Init endp
