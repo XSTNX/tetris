@@ -1,6 +1,7 @@
 include code\console.inc
 include code\errcode.inc
 include code\keyboard.inc
+include code\level.inc
 include code\render.inc
 
 setLevelGameState macro
@@ -30,7 +31,6 @@ allSegments group code, constData, data
 code segment readonly public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
-extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
 extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 extern test2Init:proc, test2InitRender:proc, test2Update:proc, test2Render:proc
 
