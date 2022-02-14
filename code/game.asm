@@ -70,7 +70,7 @@ skipVideoModeError:
 	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR + (BIOS_VIDEO_FUNC_SET_VIDEO_MODE * 256)
 	int BIOS_VIDEO_INT
 	; Set palette num.
-	renderSetPalette320x200x4 0
+	RENDER_SET_PALETTE_320x200x4 0
 
 	; Start the game directly on the level for now.
 	setLevelGameState
@@ -81,7 +81,7 @@ skipVideoModeError:
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
-	waitVSync
+	WAIT_VSYNC
 	call [GameInitRenderProc]
 gameLoop:
 	call [GameUpdateProc]
@@ -89,12 +89,12 @@ gameLoop:
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
-	waitVSync
+	WAIT_VSYNC
 	call [GameRenderProc]
 
 	; Continue gameloop until ESC is pressed.
 if KEYBOARD_ENABLED
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ESC
+	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ESC
 else
 	; If keyboard is disabled, a different way to check for ESC is needed.
 	call testCheckKeyboardBufferForESCKey
@@ -143,15 +143,15 @@ testCheckKeyboardBufferForESCKey endp
 endif
 
 testPaletteChange proc private
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_1
+	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_1
 	jnz skipChangePaletteNum0
-	renderSetPalette320x200x4 0
+	RENDER_SET_PALETTE_320x200x4 0
 	; Returns here just in case, so the palette can't be changed two times in the same frame.
 	ret
 skipChangePaletteNum0:
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_2
+	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_2
 	jnz skipChangePaletteNum1
-	renderSetPalette320x200x4 1
+	RENDER_SET_PALETTE_320x200x4 1
 skipChangePaletteNum1:
 	ret
 testPaletteChange endp
@@ -182,13 +182,13 @@ nextKey:
 	mov dx,offset ds:strASCII
 	call consolePrintString
 	pop ax
-	consolePrintChar al
+	CONSOLE_PRINT_CHAR al
 
-	consoleNextLine
+	CONSOLE_NEXT_LINE
 	jmp short nextKey
 
 quit:
-	dosQuitCOM
+	DOS_QUIT_COM
 
 strStart:
 	db "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
@@ -204,7 +204,7 @@ printFlags:
 	int BIOS_KEYBOARD_INT
 	mov dl,al
 	call consolePrintByteHex
-	consoleNextLine
+	CONSOLE_NEXT_LINE
 
 	; Continue until a key is pressed.
 	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
@@ -215,7 +215,7 @@ printFlags:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 
-	dosQuitCOM
+	DOS_QUIT_COM
 testKeyboardFlags endp
 
 testDOSVersion proc private
@@ -232,7 +232,7 @@ testDOSVersion proc private
 	push dx
 	call consolePrintByte
 
-	consolePrintChar "."
+	CONSOLE_PRINT_CHAR "."
 	
 	; Minor version.
 	pop dx
@@ -247,7 +247,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByteHex
 
-	dosQuitCOM
+	DOS_QUIT_COM
 strVer:
 	db "Ver: ", 0
 strDOSType:

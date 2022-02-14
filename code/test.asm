@@ -105,26 +105,26 @@ endif
 
 ifdef DEBUG
     ; Print debug info.
-	consoleSetCursorPos 0, 0
+	CONSOLE_SET_CURSOR_POS 0, 0
     pop dx
     push dx
 	call consolePrintByte
-    consoleSetCursorPos 3, 0
-    consolePrintChar "-"
-    consoleSetCursorPos 4, 0
+    CONSOLE_SET_CURSOR_POS 3, 0
+    CONSOLE_PRINT_CHAR "-"
+    CONSOLE_SET_CURSOR_POS 4, 0
     pop dx
     mov dl,dh
 	call consolePrintByte
-    consoleSetCursorPos 0, 1
+    CONSOLE_SET_CURSOR_POS 0, 1
     mov dl,byte ptr [TestPosYPacked + 1]
     call consolePrintByte
-    consoleSetCursorPos 0, 2
+    CONSOLE_SET_CURSOR_POS 0, 2
     mov dl,"N"
-	keyboardIsKeyPressed BIOS_KEYBOARD_SCANCODE_ARROW_UP
+	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_UP
 	jnz skipKeyPressed
 	mov dl,"Y"
 skipKeyPressed:
-    consolePrintChar dl
+    CONSOLE_PRINT_CHAR dl
 endif
 
     ret

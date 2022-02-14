@@ -7,13 +7,13 @@ extern consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:pr
 extern consolePrintString:proc
 endif
 
-consoleNextLine macro
-    consolePrintChar ASCII_CR
-    consolePrintChar ASCII_LF
+CONSOLE_NEXT_LINE macro
+    CONSOLE_PRINT_CHAR ASCII_CR
+    CONSOLE_PRINT_CHAR ASCII_LF
 endm
 
 ; Input: aChar, moved to dl (unsigned byte).
-consolePrintChar macro aChar:req
+CONSOLE_PRINT_CHAR macro aChar:req
 ifdifi <aChar>, <dl>
     mov dl,aChar
 endif
@@ -22,13 +22,13 @@ endif
 endm
 
 ; Input: ds:dx (address of ASCII string ending in '$').
-consolePrintDOSStr macro
+CONSOLE_PRINT_DOS_STR macro
 	mov ah,DOS_REQUEST_FUNC_PRINT_STRING
 	int DOS_REQUEST_INT
 endm
 
 ; Input: aCol (X coord - unsigned byte), aRow (Y coord - unsigned byte).
-consoleSetCursorPos macro aCol:req, aRow:req
+CONSOLE_SET_CURSOR_POS macro aCol:req, aRow:req
     mov dx,aCol + (aRow * 256)
     ;; Use page number 0.
     xor bh,bh

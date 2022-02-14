@@ -5,13 +5,13 @@ extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderHorizLine320x20
 endif
 
 ; Input: aPaletteNum, has to be a literal (unsigned byte).
-renderSetPalette320x200x4 macro aPaletteNum:req
+RENDER_SET_PALETTE_320x200x4 macro aPaletteNum:req
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
     mov bx,aPaletteNum + (BIOS_VIDEO_SET_PLT_BKG_BDR_PALETTE * 256)
 	int BIOS_VIDEO_INT
 endm
 
-waitVSync macro
+WAIT_VSYNC macro
 local vsyncWait0, vsyncWait1
 	mov dx,3dah
 vsyncWait0:

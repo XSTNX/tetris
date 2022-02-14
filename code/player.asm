@@ -135,11 +135,11 @@ autoMoveDone:
 else
 	; Read keyboard and store the direction of movement in al.
 	mov al,0
-	keyboardIsKeyPressed PLAYER_KEY_LEFT
+	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
 	jnz short skipKeyLeftPressed
 	dec ax
 skipKeyLeftPressed:
-	keyboardIsKeyPressed PLAYER_KEY_RIGHT
+	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_RIGHT
 	jnz short skipKeyRightPressed
 	inc ax
 skipKeyRightPressed:
@@ -187,7 +187,7 @@ skipMoveRight:
 
 	; Shoot.
 ife PLAYER_AUTO_MOVE
-	keyboardIsKeyPressed PLAYER_KEY_SHOOT
+	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_SHOOT
 	jnz short skipShot
 endif
 	mov ax,[PlayerShotCount]
@@ -333,49 +333,49 @@ ifdef DEBUG
 
 playerDebugPrintKeyboard proc private
 	; Left.
-	consoleSetCursorPos 0, 0
-	keyboardIsKeyPressed PLAYER_KEY_LEFT
+	CONSOLE_SET_CURSOR_POS 0, 0
+	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
 	mov dl,"0"
 	jnz short skipPressedKeyLeft
 	mov dl,"1"
 skipPressedKeyLeft:
-	consolePrintChar dl
+	CONSOLE_PRINT_CHAR dl
 
 	; Right.
-	consoleSetCursorPos 1, 0
-	keyboardIsKeyPressed PLAYER_KEY_RIGHT
+	CONSOLE_SET_CURSOR_POS 1, 0
+	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_RIGHT
 	mov dl,"0"
 	jnz short skipPressedKeyRight
 	mov dl,"1"
 skipPressedKeyRight:
-	consolePrintChar dl
+	CONSOLE_PRINT_CHAR dl
 
 	; SHOOT.
-	consoleSetCursorPos 2, 0
-	keyboardIsKeyPressed PLAYER_KEY_SHOOT
+	CONSOLE_SET_CURSOR_POS 2, 0
+	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_SHOOT
 	mov dl,"0"
 	jnz short skipPressedKeyShoot
 	mov dl,"1"
 skipPressedKeyShoot:
-	consolePrintChar dl
+	CONSOLE_PRINT_CHAR dl
 	ret
 playerDebugPrintKeyboard endp
 
 playerDebugPrintPlayer proc private
-	consoleSetCursorPos 0, 1
+	CONSOLE_SET_CURSOR_POS 0, 1
 	mov dx,[PlayerPosX]
 	call consolePrintWord
-	consoleSetCursorPos 6, 1
+	CONSOLE_SET_CURSOR_POS 6, 1
 	mov dl,[PlayerPosXByteFraction]
 	call consolePrintByteHex
 	ret
 playerDebugPrintPlayer endp
 
 playerDebugPrintShot proc private
-	consoleSetCursorPos 0, 2
+	CONSOLE_SET_CURSOR_POS 0, 2
 	mov dl,byte ptr [PlayerShotCount]
 	call consolePrintByte
-	consoleSetCursorPos 4, 2
+	CONSOLE_SET_CURSOR_POS 4, 2
 	mov dl,[PlayerShotCooldown]
 	call consolePrintByte
 	ret
