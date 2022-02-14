@@ -20,6 +20,7 @@ local skipOdd
 skipOdd:
 endm
 
+; Should assert on the debug configuration if the positions are out of range!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ; Input:
 ;	cx (unsigned posX).
 ;	dl (unsigned posY).
@@ -44,12 +45,12 @@ notOddRow:
 	shr cx,1
 	shr cx,1
 	add bx,cx
-	;; Read the byte in video memory where the pixel is.
+	;; Read the byte in video memory where the pixel is and mask it.
 	mov al,es:[bx]
-	;; Mask the previous pixel.
-	and al,RenderPixelMask320x200x4[si]
+	shl si,1
+	mov cx,word ptr [RenderPixelShiftMask320x200x4 + si]
+	and al,ch
 	;; Add the new pixel.
-	mov cl,RenderPixelShift320x200x4[si]
 	shl dh,cl
 	or al,dh
 	;; Write the updated byte to video memory.
@@ -191,8 +192,7 @@ renderSprite8x8 endp
 code ends
 
 constData segment readonly public
-	RenderPixelMask320x200x4		byte 00111111b, 11001111b, 11110011b, 11111100b
-	RenderPixelShift320x200x4		byte         6,         4,         2,         0
+	RenderPixelShiftMask320x200x4	byte 6, 00111111b, 4, 11001111b, 2, 11110011b, 0, 11111100b
 constData ends
 
 end
