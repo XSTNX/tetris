@@ -1,3 +1,5 @@
+PLAYER_NO_EXTERNS equ 1
+include code\player.inc
 include code\console.inc
 include code\keyboard.inc
 include code\render.inc

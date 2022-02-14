@@ -1,12 +1,11 @@
 include code\bios.inc
+include code\player.inc
 include code\render.inc
 
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
-
-extern playerInit:proc, playerInitRender:proc, playerUpdate:proc, playerRender:proc
 
 ; ------------;
 ; Code public ;

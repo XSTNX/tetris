@@ -27,10 +27,10 @@ obj\game.obj : code\game.asm code\console.inc code\errcode.inc code\keyboard.inc
 obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc code\errcode.inc
 	ml $(ML_OPTIONS) /Fo"obj\keyboard.obj" /Fl"obj\keyboard.lst" code\keyboard.asm
 
-obj\level.obj : code\level.asm code\bios.inc code\render.inc
+obj\level.obj : code\level.asm code\bios.inc code\player.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\level.obj" /Fl"obj\level.lst" code\level.asm
 
-obj\player.obj : code\player.asm code\console.inc code\keyboard.inc code\render.inc
+obj\player.obj : code\player.asm code\player.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\player.obj" /Fl"obj\player.lst" code\player.asm
 
 obj\render.obj : code\render.asm code\render.inc code\bios.inc
