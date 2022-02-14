@@ -1,3 +1,5 @@
+TEST_NO_EXTERNS equ 1
+include code\test.inc
 include code\console.inc
 include code\keyboard.inc
 include code\render.inc

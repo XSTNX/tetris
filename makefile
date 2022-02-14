@@ -21,7 +21,7 @@ code\render.inc : code\bios.inc
 obj\console.obj : code\console.asm code\console.inc
 	ml $(ML_OPTIONS) /Fo"obj\console.obj" /Fl"obj\console.lst" code\console.asm
 
-obj\game.obj : code\game.asm code\console.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc
+obj\game.obj : code\game.asm code\console.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc
 	ml $(ML_OPTIONS) /Fo"obj\game.obj" /Fl"obj\game.lst" code\game.asm
 
 obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc code\errcode.inc
@@ -36,10 +36,10 @@ obj\player.obj : code\player.asm code\player.inc code\console.inc code\keyboard.
 obj\render.obj : code\render.asm code\render.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\render.obj" /Fl"obj\render.lst" code\render.asm
 
-obj\test.obj : code\test.asm code\console.inc code\keyboard.inc code\render.inc
+obj\test.obj : code\test.asm code\test.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
 
-obj\test2.obj : code\test2.asm code\assumSeg.inc code\render.inc
+obj\test2.obj : code\test2.asm code\test2.inc code\assumSeg.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
 
 clean :

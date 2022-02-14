@@ -3,6 +3,8 @@ include code\errcode.inc
 include code\keyboard.inc
 include code\level.inc
 include code\render.inc
+include code\test.inc
+include code\test2.inc
 
 setLevelGameState macro
 	mov [GameInitProc],offset allSegments:levelInit
@@ -31,8 +33,6 @@ allSegments group code, constData, data
 code segment readonly public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
-extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
-extern test2Init:proc, test2InitRender:proc, test2Update:proc, test2Render:proc
 
 ; ------------;
 ; Code public ;
