@@ -1,3 +1,4 @@
+CONSOLE_NO_EXTERNS equ 1
 include code\console.inc
 
 allSegments group code

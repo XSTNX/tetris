@@ -32,8 +32,6 @@ allSegments group code, constData, data
 
 code segment readonly public
 
-extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintString:proc
-
 ; ------------;
 ; Code public ;
 ; ------------;

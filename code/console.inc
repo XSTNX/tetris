@@ -2,6 +2,11 @@ include code\ascii.inc
 include code\bios.inc
 include code\dos.inc
 
+ifndef CONSOLE_NO_EXTERNS
+extern consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
+extern consolePrintString:proc
+endif
+
 consoleNextLine macro
     consolePrintChar ASCII_CR
     consolePrintChar ASCII_LF

@@ -17,8 +17,6 @@ allSegments group code, data
 
 code segment readonly public
 
-extern consolePrintByte:proc, consolePrintByteHex:proc
-
 ; ------------;
 ; Code public ;
 ; ------------;
