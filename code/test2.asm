@@ -1,8 +1,7 @@
 include code\assumSeg.inc
+include code\render.inc
 
 code segment readonly public
-
-extern renderHorizLine320x200x4:proc
 
 ; ------------;
 ; Code public ;
@@ -44,6 +43,18 @@ test2Update proc
 test2Update endp
 
 test2Render proc
+    xor cx,cx
+    xor dx,dx
+@@:
+    push cx
+    push dx
+    call renderPixel320x200x4
+    pop dx
+    pop cx
+    inc cx
+    inc dh
+    cmp dh,4
+    jne @b
     ret
 test2Render endp
 

@@ -24,22 +24,22 @@ obj\console.obj : code\console.asm code\console.inc
 obj\game.obj : code\game.asm code\console.inc code\errcode.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\game.obj" /Fl"obj\game.lst" code\game.asm
 
-obj\keyboard.obj : code\keyboard.asm code\bios.inc code\errcode.inc code\keyboard.inc
+obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc code\errcode.inc
 	ml $(ML_OPTIONS) /Fo"obj\keyboard.obj" /Fl"obj\keyboard.lst" code\keyboard.asm
 
-obj\level.obj : code\level.asm code\bios.inc
+obj\level.obj : code\level.asm code\bios.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\level.obj" /Fl"obj\level.lst" code\level.asm
 
-obj\player.obj : code\player.asm code\console.inc code\keyboard.inc
+obj\player.obj : code\player.asm code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\player.obj" /Fl"obj\player.lst" code\player.asm
 
-obj\render.obj : code\render.asm code\bios.inc
+obj\render.obj : code\render.asm code\render.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\render.obj" /Fl"obj\render.lst" code\render.asm
 
-obj\test.obj : code\test.asm code\console.inc code\keyboard.inc
+obj\test.obj : code\test.asm code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
 
-obj\test2.obj : code\test2.asm code\assumSeg.inc
+obj\test2.obj : code\test2.asm code\assumSeg.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
 
 clean :

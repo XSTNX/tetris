@@ -1,4 +1,5 @@
 include code\bios.inc
+include code\render.inc
 
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -6,7 +7,6 @@ allSegments group code
 code segment readonly public
 
 extern playerInit:proc, playerInitRender:proc, playerUpdate:proc, playerRender:proc
-extern renderHorizLine320x200x4:proc
 
 ; ------------;
 ; Code public ;

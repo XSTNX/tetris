@@ -1,3 +1,5 @@
+RENDER_NO_EXTERNS equ 1
+include code\render.inc
 include code\bios.inc
 
 computeVideoAddr320x200x4 macro
@@ -18,7 +20,11 @@ local skipOdd
 skipOdd:
 endm
 
-renderPixel320x200x4 macro
+; Input:
+;	cx (unsigned posX).
+;	dl (unsigned posY).
+;	dh (2bit color).
+RENDER_PIXEL_320x200x4 macro
 local notOddRow
 	xor bx,bx
 	;; Divide posY by two, since the even rows go in one bank and the odd rows in another.
@@ -59,11 +65,16 @@ code segment readonly public
 ; Code public ;
 ; ------------;
 
+renderPixel320x200x4 proc
+	RENDER_PIXEL_320x200x4
+	ret
+renderPixel320x200x4 endp
+
 ; Input:
 ;	cx (unsigned left limit).
 ;	bx (unsigned right limit + 1).
 ;	dl (unsigned posY).
-;	dh (color).
+;	dh (2bit color).
 ; Note:
 ; 	Will render garbage if cx, bx or dl is outside the limits of the video mode.
 renderHorizLine320x200x4 proc
@@ -71,7 +82,7 @@ nextPixel:
 	push bx
 	push cx
 	push dx
-	renderPixel320x200x4
+	RENDER_PIXEL_320x200x4
 	pop dx
 	pop cx
 	pop bx
@@ -86,7 +97,7 @@ renderHorizLine320x200x4 endp
 ;	bx (unsigned right limit + 1).
 ;	dl (unsigned top limit).
 ;	dh (unsigned bottom limit + 1).
-;	al (color).
+;	al (2bit color).
 ; Note:
 ; 	Will render garbage if cx or bx is outside the limits of the video mode.
 ; 	Can only handle either dl or dh being outside the limits of the video mode, if both are it will render garbage.

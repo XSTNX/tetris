@@ -1,5 +1,9 @@
 include code\bios.inc
 
+ifndef RENDER_NO_EXTERNS
+extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderHorizLine320x200x4:proc, renderPixel320x200x4:proc, renderSprite8x8:proc
+endif
+
 ; Input: aPaletteNum, has to be a literal (unsigned byte).
 renderSetPalette320x200x4 macro aPaletteNum:req
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR

@@ -1,5 +1,6 @@
 include code\console.inc
 include code\keyboard.inc
+include code\render.inc
 
 TEST_BOX_WIDTH					equ 16
 TEST_BOX_HALF_WIDTH 			equ TEST_BOX_WIDTH / 2
@@ -15,7 +16,6 @@ allSegments group code, data
 code segment readonly public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc
-extern renderBox320x200x4:proc, renderHorizLine320x200x4:proc
 
 ; ------------;
 ; Code public ;

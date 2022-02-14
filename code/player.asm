@@ -1,5 +1,6 @@
 include code\console.inc
 include code\keyboard.inc
+include code\render.inc
 
 ; Config.
 if KEYBOARD_ENABLED
@@ -35,7 +36,7 @@ PLAYER_SHOT_MAX_COUNT 			equ 5
 PLAYER_RENDER_DELETE_MAX_COUNT	equ PLAYER_SHOT_MAX_COUNT * 2
 PLAYER_KEY_LEFT					equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 PLAYER_KEY_RIGHT				equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
-PLAYER_KEY_SHOOT				equ BIOS_KEYBOARD_SCANCODE_E
+PLAYER_KEY_SHOOT				equ BIOS_KEYBOARD_SCANCODE_LEFT_SHIFT
 
 allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -43,7 +44,6 @@ allSegments group code, constData, data
 code segment readonly public
 
 extern consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
-extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderSprite8x8:proc
 
 ; ------------;
 ; Code public ;
@@ -59,7 +59,7 @@ playerInit proc
 	mov [PlayerShotCooldown],al
 	mov [PlayerPosXByteFraction],al
 	; Zero out both PlayerRenderDeleteWidth and PlayerRenderDeleteHeight
-	mov cx,PLAYER_RENDER_DELETE_MAX_COUNT * 2
+	mov cx,2 * PLAYER_RENDER_DELETE_MAX_COUNT
 	mov di,offset PlayerRenderDeleteWidth
 	rep stosw
 
@@ -218,8 +218,7 @@ playerInitRender endp
 playerRender proc
 	; Clear deleted sprites.
 	mov cx,[PlayerRenderDeleteCount]
-	test cx,cx
-	jz short loopDeleteDone
+	jcxz short loopDeleteDone
 	xor di,di
 loopDelete:
 	push cx
