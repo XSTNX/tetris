@@ -47,8 +47,7 @@ main proc private
 	
 	call keyboardStart
 	; Check if keyboard started properly.
-	cmp al,ERROR_CODE_NONE
-	je short skipKeyboardStartError
+	jnc short skipKeyboardStartError
 	call printError
 	jmp short quit
 skipKeyboardStartError:

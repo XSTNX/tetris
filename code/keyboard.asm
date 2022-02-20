@@ -42,7 +42,7 @@ code segment public
 ; Code public ;
 ; ------------;
 
-; Output: al (error code).
+; Output: cf (set if there is an error), al (error code when cf is set only).
 keyboardStart proc
 if KEYBOARD_ENABLED
 if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
@@ -58,7 +58,7 @@ if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
     mov ax,offset allSegments:keyboardKeyboardRequiredInt
     push ax
     call keyboardSetKeyboardRequiredIntHandler
-    mov al,ERROR_CODE_NONE
+    clc
 else
     ; Save current interrupt handlers first, so calling keyboardStop will still work even if the intercept
     ; function can't be overriden.
@@ -75,6 +75,7 @@ else
     int BIOS_SYSTEM_INT
     jnc short skipCallError
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_SUPPORT
+    stc
     jmp short done
 skipCallError:
     ; Check if the environment size is big enough to contain the configuration.
@@ -82,12 +83,14 @@ skipCallError:
     cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
     jae short skipSizeError
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_WRONG_SIZE
+    stc
     jmp short done
 skipSizeError:
     ; Check in the configuration if the keyboard intercept funcion is available.
     test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET],BIOS_SYSTEM_ENVIRONMENT_CFG_KI_MASK
     jnz skipInterceptNotAvaiableError
     mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_INTRCPT
+    stc
     jmp short done
 skipInterceptNotAvaiableError:
 
@@ -96,7 +99,7 @@ skipInterceptNotAvaiableError:
     mov ax,offset allSegments:keyboardSystemInt
     push ax
     call keyboardSetSystemIntHandler
-    mov al,ERROR_CODE_NONE
+    clc
 done:
 endif
 endif
