@@ -52,6 +52,10 @@ GAME
 - Make sure I use as few DOS functions as possible, since the final goal is to make a booteable game.
 - Maybe the console procedures should save all registers, they are not used for performant code so maybe it's better to go for convenience.
 
+VISUAL STUDIO CODE
+------------------
+Using "MASM" extension to highlight masm syntax: https://marketplace.visualstudio.com/items?itemName=blindtiger.masm
+
 LINKS
 -----
 https://www.pcjs.org/machines/pcx86/ibm/5160/cga/
