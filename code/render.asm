@@ -21,20 +21,23 @@ skipOdd:
 endm
 
 ; Should assert on the debug configuration if the positions are out of range!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+; Document which registers it destroys!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ; Input:
 ;	cx (unsigned posX).
 ;	dl (unsigned posY).
 ;	dh (2bit color).
+;   es (pointing to start of video ram).
 RENDER_PIXEL_320x200x4 macro
 local notOddRow
 	xor bx,bx
-	;; Divide posY by two, since the even rows go in one bank and the odd rows in another.
+	;; Divide posY by two, since even rows go in one bank and odd rows in another.
 	shr dl,1
-	jnc notOddRow
+	jnc skipOddRow
 	;; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
 	mov bh,20h
-notOddRow:
+skipOddRow:
 	;; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
+	;; I assume shifting and adding is faster than multiplying but it would be nice to confirm it???????????
 	mov al,80
 	mul dl
 	or bx,ax
