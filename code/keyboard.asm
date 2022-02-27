@@ -8,7 +8,7 @@ KEYBOARD_KEY_PRESSED_COUNT              equ 128
 KEYBOARD_USE_KEYBOARD_REQUIRED_INT      equ 1
 
 ; Input: stack arg0 (Interrupt handler address, far ptr).
-keyboardSetIntHandler macro aAddrOffset:req
+KEYBOARD_SET_INT_HANDLER macro aAddrOffset:req
     ;; Source is in the stack, set si only, since ds is equal to ss.
     mov si,sp
     ;; Handler is a far ptr, two words must be copied.
@@ -130,12 +130,12 @@ if KEYBOARD_ENABLED
 if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
 ; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetKeyboardRequiredIntHandler proc private
-    keyboardSetIntHandler BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
+    KEYBOARD_SET_INT_HANDLER BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
 keyboardSetKeyboardRequiredIntHandler endp
 else
 ; Input: stack arg0 (Interrupt handler address, far ptr).
 keyboardSetSystemIntHandler proc private
-    keyboardSetIntHandler BIOS_SYSTEM_INT_ADDR_OFFSET
+    KEYBOARD_SET_INT_HANDLER BIOS_SYSTEM_INT_ADDR_OFFSET
 keyboardSetSystemIntHandler endp
 endif
 endif
