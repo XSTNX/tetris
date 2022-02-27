@@ -19,7 +19,7 @@ MASM
 - Using /MAP with the linker creates the map in the current folder, not sure how to specify which folder I want.
 - Maybe the different asm files should have its own data segment for variables they don't share with other files?
 - Should I use .no87 to disable math coprocessor opcodes?
-- If I use an instruction not available on the 8086 on main.asm, like movzx, I get an error message but not if used in render.asm. Why is that? In the case of using a register like eax, both files give different errors.
+- If I use movzx, an opcode not available on the 8086, I get an error as I'm supposed to, but not when I use it inside a macro. Is this a bug in masm? Would it happen with other opcodes?
 
 IBM PC
 ------
