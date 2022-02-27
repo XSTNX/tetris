@@ -26,7 +26,7 @@ endm
 ;	cx (unsigned posX).
 ;	dl (unsigned posY).
 ;	dh (2bit color).
-;   es (pointing to start of video ram).
+;   es (video ram).
 RENDER_PIXEL_320x200x4 macro
 local notOddRow
 	xor bx,bx
