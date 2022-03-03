@@ -29,18 +29,6 @@ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT   equ BIOS_VIDEO_MODE_320_200_4_HEIGHT / 2
 
 BIOS_VIDEO_SET_PLT_BKG_BDR_PALETTE      equ 001h
 
-; System services.
-BIOS_SYSTEM_INT                         equ 015h
-BIOS_SYSTEM_INT_ADDR_OFFSET             equ (BIOS_SYSTEM_INT * 4)
-
-BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT     equ 04fh
-BIOS_SYSTEM_FUNC_GET_ENVIRONMENT        equ 0c0h
-
-; Probably better to write a struct, don't know how you define it yet!!!
-BIOS_SYSTEM_ENVIRONMENT_LENGTH          equ 000h
-BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET      equ 005h
-BIOS_SYSTEM_ENVIRONMENT_CFG_KI_MASK     equ 010h
-
 ; Keyboard.
 BIOS_KEYBOARD_INT                       equ 016h
 BIOS_KEYBOARD_INT_ADDR_OFFSET           equ (BIOS_KEYBOARD_INT * 4)

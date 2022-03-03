@@ -3,33 +3,6 @@ include code\keyboard.inc
 include code\bios.inc
 include code\errcode.inc
 
-KEYBOARD_KEY_PRESSED_COUNT              equ 128
-; Decide if the scancodes will be intercepted in BIOS_KEYBOARD_REQUIRED_INT or in BIOS_SYSTEM_INT. The later doesn't work on the original IBM PC.
-KEYBOARD_USE_KEYBOARD_REQUIRED_INT      equ 1
-
-; Input: stack arg0 (Interrupt handler address, far ptr).
-KEYBOARD_SET_INT_HANDLER macro aAddrOffset:req
-    ;; Source is in the stack, set si only, since ds is equal to ss.
-    mov si,sp
-    ;; Handler is a far ptr, two words must be copied.
-    mov cx,2
-    ;; Stack arg0 is two bytes past sp.
-    add si,cx
-
-    ;; Destination.
-    xor di,di
-    mov es,di
-    mov di,aAddrOffset
-
-    ;; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
-    ;; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
-    cli
-    rep movsw
-    sti
-
-    ret 4
-endm
-
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
 
@@ -42,66 +15,20 @@ code segment public
 ; Code public ;
 ; ------------;
 
-; Output: cf (set if there is an error), al (error code when cf is set only).
 keyboardStart proc
 if KEYBOARD_ENABLED
-if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
     les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
     ; Save current interrupt handler.
-    mov ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset],ax
-    mov ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment],es
+    mov ds:[KeyboardPrevIntHandlerOffset],ax
+    mov ds:[KeyboardPrevIntHandlerSegment],es
     ; Set new interrupt handler.
     push cs
-    mov ax,offset allSegments:keyboardKeyboardRequiredInt
+    mov ax,offset allSegments:keyboardIntHandler
     push ax
-    call keyboardSetKeyboardRequiredIntHandler
-    clc
-else
-    ; Save current interrupt handlers first, so calling keyboardStop will still work even if the intercept
-    ; function can't be overriden.
-    ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
-    xor ax,ax
-    mov es,ax
-    les ax,es:[BIOS_SYSTEM_INT_ADDR_OFFSET]
-    ; Save current interrupt handler.
-    mov ds:[KeyboardPrevSystemIntHandlerOffset],ax
-    mov ds:[KeyboardPrevSystemIntHandlerSegment],es
-
-    ; Get system environment.
-    mov ah,BIOS_SYSTEM_FUNC_GET_ENVIRONMENT
-    int BIOS_SYSTEM_INT
-    jnc short skipCallError
-    mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_SUPPORT
-    stc
-    jmp short done
-skipCallError:
-    ; Check if the environment size is big enough to contain the configuration.
-    ; Check documentation again, what is this plus one??????????????????????????
-    cmp word ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_LENGTH],BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET + 1
-    jae short skipSizeError
-    mov al,ERROR_CODE_KEYBOARD_GET_ENV_WRONG_SIZE
-    stc
-    jmp short done
-skipSizeError:
-    ; Check in the configuration if the keyboard intercept funcion is available.
-    test byte ptr es:[bx + BIOS_SYSTEM_ENVIRONMENT_CFG_OFFSET],BIOS_SYSTEM_ENVIRONMENT_CFG_KI_MASK
-    jnz skipInterceptNotAvaiableError
-    mov al,ERROR_CODE_KEYBOARD_GET_ENV_NO_INTRCPT
-    stc
-    jmp short done
-skipInterceptNotAvaiableError:
-
-    ; Set new interrupt handler.
-    push cs
-    mov ax,offset allSegments:keyboardSystemInt
-    push ax
-    call keyboardSetSystemIntHandler
-    clc
-done:
-endif
+    call keyboardSetIntHandler
 endif
     ret
 keyboardStart endp
@@ -109,15 +36,9 @@ keyboardStart endp
 keyboardStop proc
 if KEYBOARD_ENABLED
     ; Restore previous interrupt handler.
-if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
-    push ds:[KeyboardPrevKeyboardRequiredIntHandlerSegment]
-    push ds:[KeyboardPrevKeyboardRequiredIntHandlerOffset]
-    call keyboardSetKeyboardRequiredIntHandler
-else
-    push ds:[KeyboardPrevSystemIntHandlerSegment]
-    push ds:[KeyboardPrevSystemIntHandlerOffset]
-    call keyboardSetSystemIntHandler
-endif
+    push ds:[KeyboardPrevIntHandlerSegment]
+    push ds:[KeyboardPrevIntHandlerOffset]
+    call keyboardSetIntHandler
 endif
     ret
 keyboardStop endp
@@ -127,26 +48,38 @@ keyboardStop endp
 ; -------------;
 
 if KEYBOARD_ENABLED
-if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
 ; Input: stack arg0 (Interrupt handler address, far ptr).
-keyboardSetKeyboardRequiredIntHandler proc private
-    KEYBOARD_SET_INT_HANDLER BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
-keyboardSetKeyboardRequiredIntHandler endp
-else
-; Input: stack arg0 (Interrupt handler address, far ptr).
-keyboardSetSystemIntHandler proc private
-    KEYBOARD_SET_INT_HANDLER BIOS_SYSTEM_INT_ADDR_OFFSET
-keyboardSetSystemIntHandler endp
-endif
+keyboardSetIntHandler proc private
+    ; Source is in the stack, set si only, since ds is equal to ss.
+    mov si,sp
+    ; Handler is a far ptr, two words must be copied.
+    mov cx,2
+    ; Stack arg0 is two bytes past sp.
+    add si,cx
+
+    ; Destination.
+    xor di,di
+    mov es,di
+    mov di,BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
+
+    ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
+    ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
+    cli
+    rep movsw
+    sti
+
+    ret 4
+keyboardSetIntHandler endp
 endif
 
 ; The following code doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt that changed ds.
 assume cs:allSegments, ds:nothing, es:nothing
 
 if KEYBOARD_ENABLED
-if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
-keyboardKeyboardRequiredInt proc private
+keyboardIntHandler proc private
     ; Should I enable interrupts here somewhere??????????????
+    ; Wolfenstein 3D tells the XT keyboard to clear the key, which I'm not doing but probably should?????????
+
     ; Read scancode.
     push ax
     in al,060h
@@ -161,54 +94,18 @@ keyboardKeyboardRequiredInt proc private
     pop bx
     pop ax
     iret
-keyboardKeyboardRequiredInt endp
-else
-keyboardSystemInt proc private
-
-    ; Is it the keyboard intercept function?
-    cmp ah,BIOS_SYSTEM_FUNC_KEYBOARD_INTERCEPT
-    jne short skipKeyProcess
-
-    ; Should I enable interrupts here? What if I do it at the beginning of the function??????????????
-    sti
-
-    ; Store key state.
-    push bp
-    mov bp,ax
-    and bp,KEYBOARD_KEY_PRESSED_COUNT - 1
-    mov cs:[KeyboardKeyPressed + bp],al
-    
-    ; Clear carry flag to consume the scancode.
-    ; Offset is 6 because bp is still in the stack.
-    mov bp,sp
-    and byte ptr [bp + 6],0feh
-    pop bp
-
-    ; Done.
-    iret
-
-skipKeyProcess:
-    ; No, the prev handler should take care of it.
-    jmp cs:[KeyboardPrevSystemIntHandlerFarPtr]
-keyboardSystemInt endp
-endif
+keyboardIntHandler endp
 endif
 
     ; Data is stored in the code segment since it needs to be accesible to the interrupt handler.
     ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                              byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
+    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
 if KEYBOARD_ENABLED
-if KEYBOARD_USE_KEYBOARD_REQUIRED_INT
-    KeyboardPrevKeyboardRequiredIntHandlerFarPtr    label dword
-    KeyboardPrevKeyboardRequiredIntHandlerOffset    word ?
-    KeyboardPrevKeyboardRequiredIntHandlerSegment   word ?
-else    
-    KeyboardPrevSystemIntHandlerFarPtr              label dword
-    KeyboardPrevSystemIntHandlerOffset              word ?
-    KeyboardPrevSystemIntHandlerSegment             word ?
-endif    
+    KeyboardPrevIntHandlerFarPtr        label dword
+    KeyboardPrevIntHandlerOffset        word ?
+    KeyboardPrevIntHandlerSegment       word ?
 endif
 
 code ends

@@ -44,13 +44,8 @@ code segment readonly public
 main proc private
 	; All procedures should assume the direction flag is reset.
 	cld
-	
+
 	call keyboardStart
-	; Check if keyboard started properly.
-	jnc short skipKeyboardStartError
-	call printError
-	jmp short quit
-skipKeyboardStartError:
 
 	; Read current video mode.
 	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
