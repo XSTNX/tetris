@@ -1,3 +1,5 @@
+GAME_NO_EXTERNS equ 1
+include code\game.inc
 include code\console.inc
 include code\errcode.inc
 include code\keyboard.inc
@@ -7,33 +9,24 @@ include code\test.inc
 include code\test2.inc
 
 GAME_SET_LEVEL_GAME_STATE macro
-	mov [GameInitProc],offset allSegments:levelInit
-	mov [GameInitRenderProc],offset allSegments:levelInitRender
-	mov [GameUpdateProc],offset allSegments:levelUpdate
-	mov [GameRenderProc],offset allSegments:levelRender
+	mov [GameStateInitProc],offset allSegments:levelInit
+	mov [GameStateInitRenderProc],offset allSegments:levelInitRender
+	mov [GameStateUpdateProc],offset allSegments:levelUpdate
+	mov [GameStateRenderProc],offset allSegments:levelRender
 endm
 
 GAME_SET_TEST_GAME_STATE macro
-	mov [GameInitProc],offset allSegments:testInit
-	mov [GameInitRenderProc],offset allSegments:testInitRender
-	mov [GameUpdateProc],offset allSegments:testUpdate
-	mov [GameRenderProc],offset allSegments:testRender
+	mov [GameStateInitProc],offset allSegments:testInit
+	mov [GameStateInitRenderProc],offset allSegments:testInitRender
+	mov [GameStateUpdateProc],offset allSegments:testUpdate
+	mov [GameStateRenderProc],offset allSegments:testRender
 endm
 
 GAME_SET_TEST2_GAME_STATE macro
-	mov [GameInitProc],offset allSegments:test2Init
-	mov [GameInitRenderProc],offset allSegments:test2InitRender
-	mov [GameUpdateProc],offset allSegments:test2Update
-	mov [GameRenderProc],offset allSegments:test2Render
-endm
-
-GAME_QUIT macro
-	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_NONE
-endm
-
-GAME_QUIT_WITH_ERROR_ARG macro errorCode:req
-	mov al,errorCode
-	call gameQuitWithErrorArg
+	mov [GameStateInitProc],offset allSegments:test2Init
+	mov [GameStateInitRenderProc],offset allSegments:test2InitRender
+	mov [GameStateUpdateProc],offset allSegments:test2Update
+	mov [GameStateRenderProc],offset allSegments:test2Render
 endm
 
 VIDEO_START macro
@@ -88,20 +81,20 @@ gameMain proc private
 	;GAME_SET_TEST_GAME_STATE
 	;GAME_SET_TEST2_GAME_STATE
 
-	call [GameInitProc]
+	call [GameStateInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 	WAIT_VSYNC
-	call [GameInitRenderProc]
+	call [GameStateInitRenderProc]
 gameLoop:
-	call [GameUpdateProc]
+	call [GameStateUpdateProc]
 	call testPaletteChange
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 	WAIT_VSYNC
-	call [GameRenderProc]
+	call [GameStateRenderProc]
 
 	; Continue gameloop until ESC is pressed.
 if KEYBOARD_ENABLED
@@ -117,7 +110,6 @@ gameMain endp
 
 ; Input: al (error code).
 ; Output: does not return.
-; Notes: This is the only public procedure of the file.
 gameQuitWithErrorArg proc
 	; Save error code.
 	push ax
@@ -137,7 +129,6 @@ gameQuitWithErrorArg proc
 @@:	
 	DOS_QUIT_COM
 gameQuitWithErrorArg endp
-
 
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
@@ -281,10 +272,10 @@ constData segment readonly public
 constData ends
 
 data segment public
-	GameInitProc					word ?
-	GameInitRenderProc				word ?
-	GameUpdateProc					word ?
-	GameRenderProc					word ?
+	GameStateInitProc				word ?
+	GameStateInitRenderProc			word ?
+	GameStateUpdateProc				word ?
+	GameStateRenderProc				word ?
 	GameVideoAlreadyInitalized		byte 0
 	GamePrevVideoMode				byte ?
 data ends

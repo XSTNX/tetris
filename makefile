@@ -21,7 +21,7 @@ code\render.inc : code\bios.inc
 obj\console.obj : code\console.asm code\console.inc
 	ml $(ML_OPTIONS) /Fo"obj\console.obj" /Fl"obj\console.lst" code\console.asm
 
-obj\game.obj : code\game.asm code\console.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc
+obj\game.obj : code\game.asm code\game.inc code\console.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc
 	ml $(ML_OPTIONS) /Fo"obj\game.obj" /Fl"obj\game.lst" code\game.asm
 
 obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc code\errcode.inc
