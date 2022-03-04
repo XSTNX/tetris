@@ -20,7 +20,7 @@ test3InitRender proc
     ; dh (color).
     mov ax,3
     xor cx,cx
-    mov bx,319
+    mov bx,320
     mov dx,99 + (1 * 256);
 lineLoop:
     push ax
