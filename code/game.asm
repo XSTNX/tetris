@@ -6,25 +6,61 @@ include code\render.inc
 include code\test.inc
 include code\test2.inc
 
-setLevelGameState macro
+GAME_SET_LEVEL_GAME_STATE macro
 	mov [GameInitProc],offset allSegments:levelInit
 	mov [GameInitRenderProc],offset allSegments:levelInitRender
 	mov [GameUpdateProc],offset allSegments:levelUpdate
 	mov [GameRenderProc],offset allSegments:levelRender
 endm
 
-setTestGameState macro
+GAME_SET_TEST_GAME_STATE macro
 	mov [GameInitProc],offset allSegments:testInit
 	mov [GameInitRenderProc],offset allSegments:testInitRender
 	mov [GameUpdateProc],offset allSegments:testUpdate
 	mov [GameRenderProc],offset allSegments:testRender
 endm
 
-setTest2GameState macro
+GAME_SET_TEST2_GAME_STATE macro
 	mov [GameInitProc],offset allSegments:test2Init
 	mov [GameInitRenderProc],offset allSegments:test2InitRender
 	mov [GameUpdateProc],offset allSegments:test2Update
 	mov [GameRenderProc],offset allSegments:test2Render
+endm
+
+VIDEO_START macro
+local skip, skipNotValid
+	cmp [GameVideoAlreadyInitalized],0
+	jne short skip
+	;; Read current video mode.
+	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
+	int BIOS_VIDEO_INT
+	;; Check if video mode is valid.
+	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
+	jne short skipNotValid
+	mov al,ERROR_CODE_VIDEO
+	;; A jmp is good enough, since the procedure will not return.
+	jmp short gameQuit
+skipNotValid:
+	; Save current video mode.
+	mov [GamePrevVideoMode],al
+	; Set new video mode.
+	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR + (BIOS_VIDEO_FUNC_SET_VIDEO_MODE * 256)
+	int BIOS_VIDEO_INT
+	; Set palette num.
+	RENDER_SET_PALETTE_320x200x4 0
+	inc [GameVideoAlreadyInitalized]
+skip:
+endm
+
+VIDEO_STOP macro
+	cmp [GameVideoAlreadyInitalized],1
+	jne short @f
+	; Restore previous video mode.
+	mov al,[GamePrevVideoMode]
+	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
+	int BIOS_VIDEO_INT
+	dec [GameVideoAlreadyInitalized]
+@@:
 endm
 
 allSegments group code, constData, data
@@ -41,35 +77,17 @@ code segment readonly public
 ; -------------;
 
 	org 100h
-main proc private
+gameMain proc private
 	; All procedures should assume the direction flag is reset.
 	cld
 
 	call keyboardStart
-
-	; Read current video mode.
-	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
-	int BIOS_VIDEO_INT
-	; Check if video card is valid.
-	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
-	jne short skipVideoModeError
-	mov al,ERROR_CODE_VIDEO
-	call printError
-	jmp short quit
-skipVideoModeError:
-
-	; Save current video mode.
-	mov [GamePrevVideoMode],al
-	; Set new video mode.
-	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR + (BIOS_VIDEO_FUNC_SET_VIDEO_MODE * 256)
-	int BIOS_VIDEO_INT
-	; Set palette num.
-	RENDER_SET_PALETTE_320x200x4 0
+	VIDEO_START
 
 	; Start the game directly on the level for now.
-	setLevelGameState
-	;setTestGameState
-	;setTest2GameState
+	GAME_SET_LEVEL_GAME_STATE
+	;GAME_SET_TEST_GAME_STATE
+	;GAME_SET_TEST2_GAME_STATE
 
 	call [GameInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
@@ -94,26 +112,32 @@ else
 	call testCheckKeyboardBufferForESCKey
 endif
 	jnz short gameLoop
-
-	; Restore previous video mode.
-	mov al,[GamePrevVideoMode]
-	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
-	int BIOS_VIDEO_INT
-
-quit:
-	call keyboardStop
-	ret
-main endp
+	
+	; Will continue executing gameQuit, since it's the next procedure.
+	mov al,ERROR_CODE_NONE
+gameMain endp
 
 ; Input: al (error code).
-printError proc private
+; Output: does not return.
+gameQuit proc private
+	; Save error code.
+	push ax
+	; Stop video and keyboard.
+	VIDEO_STOP
+	call keyboardStop
+	; Check for error.
+	pop ax
+	cmp al,ERROR_CODE_NONE
+	je @f
+	; Print error.
 	push ax
 	mov dx,offset ErrorStr
 	call consolePrintString
 	pop dx
-	call consolePrintByte
-	ret
-printError endp
+	call consolePrintByteHex
+@@:	
+	DOS_QUIT_COM
+gameQuit endp
 
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
@@ -253,15 +277,16 @@ endif
 code ends
 
 constData segment readonly public
-	ErrorStr				byte "Quitting with error code ", 0
+	ErrorStr				byte "Quitting with error code 0x", 0
 constData ends
 
 data segment public
-	GameInitProc			word ?
-	GameInitRenderProc		word ?
-	GameUpdateProc			word ?
-	GameRenderProc			word ?
-	GamePrevVideoMode		byte ?
+	GameInitProc					word ?
+	GameInitRenderProc				word ?
+	GameUpdateProc					word ?
+	GameRenderProc					word ?
+	GameVideoAlreadyInitalized		byte 0
+	GamePrevVideoMode				byte ?
 data ends
 
-end main
+end gameMain
