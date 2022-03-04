@@ -3,7 +3,7 @@ include code\keyboard.inc
 include code\bios.inc
 include code\errcode.inc
 
-allSegments group code
+allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
 ; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume all segment registers have
@@ -17,21 +17,21 @@ code segment public
 
 keyboardStart proc
 if KEYBOARD_ENABLED
-    cmp ds:[KeyboardAlreadyInitialized],0
+    cmp [KeyboardAlreadyInitialized],0
     jne short @f
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
     les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
     ; Save current interrupt handler.
-    mov ds:[KeyboardPrevIntHandlerOffset],ax
-    mov ds:[KeyboardPrevIntHandlerSegment],es
+    mov [KeyboardPrevIntHandlerOffset],ax
+    mov [KeyboardPrevIntHandlerSegment],es
     ; Set new interrupt handler.
     push cs
     mov ax,offset allSegments:keyboardIntHandler
     push ax
     call keyboardSetIntHandler
-    inc ds:[KeyboardAlreadyInitialized]
+    inc [KeyboardAlreadyInitialized]
 @@:
 endif
     ret
@@ -39,13 +39,13 @@ keyboardStart endp
 
 keyboardStop proc
 if KEYBOARD_ENABLED
-    cmp ds:[KeyboardAlreadyInitialized],1
+    cmp [KeyboardAlreadyInitialized],1
     jne short @f
     ; Restore previous interrupt handler
-    push ds:[KeyboardPrevIntHandlerSegment]
-    push ds:[KeyboardPrevIntHandlerOffset]
+    push [KeyboardPrevIntHandlerSegment]
+    push [KeyboardPrevIntHandlerOffset]
     call keyboardSetIntHandler
-    dec ds:[KeyboardAlreadyInitialized]
+    dec [KeyboardAlreadyInitialized]
 @@:
 endif
     ret
@@ -80,10 +80,8 @@ keyboardSetIntHandler proc private
 keyboardSetIntHandler endp
 endif
 
-; The following code doesn't assume ds is equal to cs, since the interrupt could ocurr while its executing another interrupt that changed ds.
-assume cs:allSegments, ds:nothing, es:nothing
-
 if KEYBOARD_ENABLED
+assume cs:allSegments, ds:nothing, es:nothing
 keyboardIntHandler proc private
     ; Should I enable interrupts here somewhere??????????????
     ; Wolfenstein 3D tells the XT keyboard to clear the key, which I'm not doing but probably should?????????
@@ -103,20 +101,23 @@ keyboardIntHandler proc private
     pop ax
     iret
 keyboardIntHandler endp
+assume cs:allSegments, ds:allSegments, es:nothing
 endif
 
-    ; Data is stored in the code segment since it needs to be accesible to the interrupt handler.
+    ; This data is stored in the code segment since it needs to be accesible to the interrupt handler.
     ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
     KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
+code ends
+
+data segment public
 if KEYBOARD_ENABLED
     KeyboardPrevIntHandlerFarPtr        label dword
     KeyboardPrevIntHandlerOffset        word ?
     KeyboardPrevIntHandlerSegment       word ?
-    KeyboardAlreadyInitialized          byte 0    
+    KeyboardAlreadyInitialized          byte 0
 endif
-
-code ends
+data ends
 
 end
