@@ -1,6 +1,7 @@
 GAME_NO_EXTERNS equ 1
 include code\game.inc
 include code\console.inc
+include code\errcode.inc
 include code\keyboard.inc
 include code\level.inc
 include code\render.inc
@@ -68,6 +69,10 @@ VIDEO_STOP macro
 	int BIOS_VIDEO_INT
 	dec [GameVideoAlreadyInitalized]
 @@:
+endm
+
+GAME_QUIT macro
+	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_NONE
 endm
 
 allSegments group code, constData, data

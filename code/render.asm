@@ -1,7 +1,7 @@
 RENDER_NO_EXTERNS equ 1
 include code\render.inc
+include code\assert.inc
 include code\bios.inc
-include code\game.inc
 
 computeVideoAddr320x200x4 macro
 local skipOdd
@@ -29,7 +29,7 @@ endm
 ;   es (video ram).
 RENDER_PIXEL_320x200x4 macro
 local notOddRow, error, skipError
-ifdef ASSERT
+if ASSERT_ENABLED
     cmp cx,320
     jae short error
     cmp dl,200
@@ -37,7 +37,7 @@ ifdef ASSERT
 	cmp dh,4
 	jb skipError
 error:
-    GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_ASSERT
+    ASSERT
 skipError:
 endif
 	xor bx,bx
