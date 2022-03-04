@@ -1,7 +1,24 @@
 include code\assumSeg.inc
+include code\game.inc
 include code\render.inc
 
 TEST2_PIXELS_PER_FRAME      equ 1024
+
+; Input:
+;	cx (unsigned posX).
+;	dl (unsigned posY).
+TEST2_ASSERT_POS macro
+local error, skipError
+ifdef ASSERT
+    cmp cx,320
+    jae short error
+    cmp dl,200
+    jb short skipError
+error:
+    GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_ASSERT
+skipError:
+endif
+endm
 
 code segment readonly public
 
@@ -55,6 +72,7 @@ test2Render proc
     mov dx,[Test2PosYColor]
 
 nextPixel:
+    TEST2_ASSERT_POS
     push ax
     push cx
     push dx

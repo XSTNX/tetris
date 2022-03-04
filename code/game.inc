@@ -1,3 +1,5 @@
+include code\errcode.inc
+
 ifndef GAME_NO_EXTERNS
 extern gameQuitWithErrorArg:proc
 endif

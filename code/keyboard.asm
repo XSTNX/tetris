@@ -1,7 +1,6 @@
 KEYBOARD_NO_EXTERNS equ 1
 include code\keyboard.inc
 include code\bios.inc
-include code\errcode.inc
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing

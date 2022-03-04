@@ -1,7 +1,6 @@
 GAME_NO_EXTERNS equ 1
 include code\game.inc
 include code\console.inc
-include code\errcode.inc
 include code\keyboard.inc
 include code\level.inc
 include code\render.inc
