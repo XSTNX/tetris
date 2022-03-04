@@ -18,10 +18,10 @@ test3InitRender proc
     ; bx (unsigned right limit + 1).
     ; dl (unsigned posY).
     ; dh (color).
-    mov ax,3
+    mov ax,200
     xor cx,cx
     mov bx,320
-    mov dx,99 + (1 * 256);
+    xor dx,dx
 lineLoop:
     push ax
     push bx
@@ -29,6 +29,7 @@ lineLoop:
     call renderHorizLine320x200x4
     ; Increment posY and color.
     add dx,101h
+    and dh,11b
     pop cx
     pop bx
     pop ax

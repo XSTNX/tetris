@@ -34,7 +34,7 @@ obj\level.obj : code\level.asm code\level.inc code\bios.inc code\player.inc code
 obj\player.obj : code\player.asm code\player.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\player.obj" /Fl"obj\player.lst" code\player.asm
 
-obj\render.obj : code\render.asm code\render.inc code\bios.inc
+obj\render.obj : code\render.asm code\render.inc code\bios.inc code\game.inc
 	ml $(ML_OPTIONS) /Fo"obj\render.obj" /Fl"obj\render.lst" code\render.asm
 
 obj\test.obj : code\test.asm code\test.inc code\console.inc code\keyboard.inc code\render.inc
