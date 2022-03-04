@@ -48,9 +48,24 @@ endif
 	mov bh,20h
 skipOddRow:
 	;; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
-	;; I assume shifting and adding is faster than multiplying but it would be nice to confirm it???????????
+	;; Might be a faster way of multiplying by 80, don't know if this code does it, it's a lot of instructions.
+if 1
 	mov al,80
 	mul dl
+else
+	push cx
+	push dx
+	mov al,dl
+	xor ah,ah
+	mov cl,6
+	shl ax,cl
+	xor dh,dh
+	mov cl,4
+	shl dx,cl
+	add ax,dx
+	pop dx
+	pop cx
+endif
 	or bx,ax
 	;; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
 	mov si,cx
