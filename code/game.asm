@@ -6,6 +6,7 @@ include code\level.inc
 include code\render.inc
 include code\test.inc
 include code\test2.inc
+include code\test3.inc
 
 GAME_SET_LEVEL_GAME_STATE macro
 	mov [GameStateInitProc],offset allSegments:levelInit
@@ -26,6 +27,13 @@ GAME_SET_TEST2_GAME_STATE macro
 	mov [GameStateInitRenderProc],offset allSegments:test2InitRender
 	mov [GameStateUpdateProc],offset allSegments:test2Update
 	mov [GameStateRenderProc],offset allSegments:test2Render
+endm
+
+GAME_SET_TEST3_GAME_STATE macro
+	mov [GameStateInitProc],offset allSegments:test3Init
+	mov [GameStateInitRenderProc],offset allSegments:test3InitRender
+	mov [GameStateUpdateProc],offset allSegments:test3Update
+	mov [GameStateRenderProc],offset allSegments:test3Render
 endm
 
 VIDEO_START macro
@@ -79,6 +87,7 @@ gameMain proc private
 	GAME_SET_LEVEL_GAME_STATE
 	;GAME_SET_TEST_GAME_STATE
 	;GAME_SET_TEST2_GAME_STATE
+	;GAME_SET_TEST3_GAME_STATE
 
 	call [GameStateInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.

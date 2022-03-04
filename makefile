@@ -5,7 +5,7 @@ EXECUTABLE_NAME = invdrs
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
 LINK_OPTIONS = /NOLOGO /TINY
 # Keep game.obj first, since a com file is created.
-OBJ_FILES = obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj
+OBJ_FILES = obj\game.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj
 
 all : bin\$(EXECUTABLE_NAME).com
 
@@ -22,7 +22,7 @@ code\render.inc : code\bios.inc
 obj\console.obj : code\console.asm code\console.inc
 	ml $(ML_OPTIONS) /Fo"obj\console.obj" /Fl"obj\console.lst" code\console.asm
 
-obj\game.obj : code\game.asm code\game.inc code\console.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc
+obj\game.obj : code\game.asm code\game.inc code\console.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc code\test3.inc
 	ml $(ML_OPTIONS) /Fo"obj\game.obj" /Fl"obj\game.lst" code\game.asm
 
 obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc
@@ -42,6 +42,9 @@ obj\test.obj : code\test.asm code\test.inc code\console.inc code\keyboard.inc co
 
 obj\test2.obj : code\test2.asm code\test2.inc code\assumSeg.inc code\game.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
+
+obj\test3.obj : code\test3.asm code\test3.inc code\assumSeg.inc code\render.inc
+	ml $(ML_OPTIONS) /Fo"obj\test3.obj" /Fl"obj\test3.lst" code\test3.asm
 
 clean :
 	-del bin\*.com
