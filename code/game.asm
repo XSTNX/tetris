@@ -27,6 +27,15 @@ GAME_SET_TEST2_GAME_STATE macro
 	mov [GameRenderProc],offset allSegments:test2Render
 endm
 
+GAME_QUIT macro
+	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_NONE
+endm
+
+GAME_QUIT_WITH_ERROR_ARG macro errorCode:req
+	mov al,errorCode
+	call gameQuitWithErrorArg
+endm
+
 VIDEO_START macro
 local skip, skipNotValid
 	cmp [GameVideoAlreadyInitalized],0
@@ -37,9 +46,7 @@ local skip, skipNotValid
 	;; Check if video mode is valid.
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
 	jne short skipNotValid
-	mov al,ERROR_CODE_VIDEO
-	;; A jmp is good enough, since the procedure will not return.
-	jmp short gameQuit
+	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_VIDEO
 skipNotValid:
 	; Save current video mode.
 	mov [GamePrevVideoMode],al
@@ -67,14 +74,6 @@ allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments, es:allSegments
 
 code segment readonly public
-
-; ------------;
-; Code public ;
-; ------------;
-
-; -------------;
-; Code private ;
-; -------------;
 
 	org 100h
 gameMain proc private
@@ -113,13 +112,13 @@ else
 endif
 	jnz short gameLoop
 	
-	; Will continue executing gameQuit, since it's the next procedure.
-	mov al,ERROR_CODE_NONE
+	GAME_QUIT
 gameMain endp
 
 ; Input: al (error code).
 ; Output: does not return.
-gameQuit proc private
+; Notes: This is the only public procedure of the file.
+gameQuitWithErrorArg proc
 	; Save error code.
 	push ax
 	; Stop video and keyboard.
@@ -137,7 +136,8 @@ gameQuit proc private
 	call consolePrintByteHex
 @@:	
 	DOS_QUIT_COM
-gameQuit endp
+gameQuitWithErrorArg endp
+
 
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
@@ -206,7 +206,7 @@ nextKey:
 	jmp short nextKey
 
 quit:
-	DOS_QUIT_COM
+	GAME_QUIT
 
 strStart:
 	db "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
@@ -233,7 +233,7 @@ printFlags:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 
-	DOS_QUIT_COM
+	GAME_QUIT
 testKeyboardFlags endp
 
 testDOSVersion proc private
@@ -265,7 +265,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByteHex
 
-	DOS_QUIT_COM
+	GAME_QUIT
 strVer:
 	db "Ver: ", 0
 strDOSType:
