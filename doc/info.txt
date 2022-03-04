@@ -20,6 +20,7 @@ MASM
 - Maybe the different asm files should have its own data segment for variables they don't share with other files?
 - Should I use .no87 to disable math coprocessor opcodes?
 - If I use movzx, an opcode not available on the 8086, I get an error as I'm supposed to, but not when I use it inside a macro. Is this a bug in masm? Would it happen with other opcodes?
+- How does the keyword assume works exactly? I'm trying to use it in the keyboard code but doesn't seem to work the way I expect.
 
 IBM PC
 ------

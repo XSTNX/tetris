@@ -18,7 +18,7 @@ code segment public
 keyboardStart proc
 if KEYBOARD_ENABLED
     cmp ds:[KeyboardAlreadyInitialized],0
-    jne @f
+    jne short @f
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
@@ -40,7 +40,7 @@ keyboardStart endp
 keyboardStop proc
 if KEYBOARD_ENABLED
     cmp ds:[KeyboardAlreadyInitialized],1
-    jne @f
+    jne short @f
     ; Restore previous interrupt handler
     push ds:[KeyboardPrevIntHandlerSegment]
     push ds:[KeyboardPrevIntHandlerOffset]
@@ -111,10 +111,10 @@ endif
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
     KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
 if KEYBOARD_ENABLED
-    KeyboardAlreadyInitialized          byte 0
     KeyboardPrevIntHandlerFarPtr        label dword
     KeyboardPrevIntHandlerOffset        word ?
     KeyboardPrevIntHandlerSegment       word ?
+    KeyboardAlreadyInitialized          byte 0    
 endif
 
 code ends
