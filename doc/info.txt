@@ -41,6 +41,7 @@ IBM PC
 - Should I align the data in the code segment in keyboard.asm?
 - Document for bios and dos the functions that I use, so I can confirm if I'm using them properly without checking online.
 - Keys 1 and 2 don't seem to work perfectly on the web emulator, is it a problem with the emulator or with my code?
+- Should keyboardIntHandler enable interrupts?
 - Wolfenstein 3D tells the XT keyboard to clear the key, which I'm not doing but probably should.
 - Create some defines for in and out ports used in the keyboad code.
 - If the game is run on a computer with an hercules video card would it be detected as an error or not?
