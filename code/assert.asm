@@ -1,8 +1,8 @@
 ASSERT_NO_EXTERNS equ 1
 include code\assert.inc
-include code\game.inc
-
 if ASSERT_ENABLED
+
+include code\game.inc
 
 allSegments group code
     assume cs:allSegments, ds:allSegments, es:nothing
