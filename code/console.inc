@@ -6,6 +6,7 @@ endif
 
 include code\ascii.inc
 if CONSOLE_ENABLED
+include code\assert.inc
 include code\bios.inc
 
 CONSOLE_COLS        equ 40
@@ -107,6 +108,16 @@ endm
 
 CONSOLE_SET_CURSOR_POS_IN_DX macro
 if CONSOLE_ENABLED
+if ASSERT_ENABLED
+    cmp dl,CONSOLE_COLS
+    jb @f
+    ASSERT
+@@:
+    cmp dh,CONSOLE_ROWS
+    jb @f
+    ASSERT
+@@:
+endif
     mov [ConsoleCursorColRow],dx
     ;; Use page number 0.
     xor bh,bh

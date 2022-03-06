@@ -15,7 +15,7 @@ $(OBJ_FILES), bin\$(EXECUTABLE_NAME).com;
 <<
 
 code\assert.inc : code\errcode.inc
-code\console.inc : code\ascii.inc code\bios.inc
+code\console.inc : code\ascii.inc code\assert.inc code\bios.inc
 code\keyboard.inc : code\assert.inc
 code\render.inc : code\bios.inc
 
