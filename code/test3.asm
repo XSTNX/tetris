@@ -1,5 +1,7 @@
+TEST3_NO_EXTERNS equ 1
+include code\test3.inc
 include code\assumSeg.inc
-include code\game.inc
+include code\console.inc
 include code\render.inc
 
 code segment readonly public
@@ -35,7 +37,12 @@ lineLoop:
     pop ax
     dec ax
     jne short lineLoop
+    ; Text.
+    mov dx,offset allSegments:tmpText
+    call consolePrintString
     ret
+tmpText:
+	db "Es la guitarra de Lolo!", 0
 test3InitRender endp
 
 test3Update proc
@@ -43,6 +50,7 @@ test3Update proc
 test3Update endp
 
 test3Render proc
+    CONSOLE_PRINT_CHAR 'X'
     ret
 test3Render endp
 

@@ -45,6 +45,7 @@ IBM PC
 - Wolfenstein 3D tells the XT keyboard to clear the key, which I'm not doing but probably should.
 - Create some defines for in and out ports used in the keyboad code.
 - If the game is run on a computer with an hercules video card would it be detected as an error or not?
+- Is the direction flag reset when a DOS program starts? What would happen when the game is booteable?
 
 GAME
 ----
@@ -53,6 +54,12 @@ GAME
 - Do I need to enable interrupts in keyboardSystemInt?
 - Make sure I use as few DOS functions as possible, since the final goal is to make a booteable game.
 - Maybe the console procedures should save all registers, they are not used for performant code so maybe it's better to go for convenience.
+- Improve macros CONSOLE_SET_CURSOR_POS_IN_DX and CONSOLE_SET_CURSOR_POS.
+- Add flags for console and asserts, these flags can be set automatically according to debug or release configuration.
+- CONSOLE_SET_CURSOR_POS_IN_DX should assert if the pos is not valid.
+- Macros in console are pretty long now that we don't use DOS, probably makes more sense to make them procedures.
+- testKeyboardScancode had branches commented because the console macros are too long, revert change when they are changed to procedures.
+- PrintChar doesn't scroll text anymore when reaching the bottom, since we don't use DOS anymore.
 
 VISUAL STUDIO CODE
 ------------------

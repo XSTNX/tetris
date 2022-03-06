@@ -1,7 +1,7 @@
 CONSOLE_NO_EXTERNS equ 1
 include code\console.inc
 
-allSegments group code
+allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
@@ -117,6 +117,13 @@ consolePrintString endp
 ; -------------;
 ; Code private ;
 ; -------------;
+
+data segment public
+	public ConsoleCursorColRow
+	ConsoleCursorColRow		label word
+	ConsoleCursorCol		byte ?
+	ConsoleCursorRow		byte ?
+data ends
 
 code ends
 

@@ -1,6 +1,7 @@
 GAME_NO_EXTERNS equ 1
 include code\game.inc
 include code\console.inc
+include code\dos.inc
 include code\errcode.inc
 include code\keyboard.inc
 include code\level.inc
@@ -37,6 +38,16 @@ GAME_SET_TEST3_GAME_STATE macro
 	mov [GameStateRenderProc],offset allSegments:test3Render
 endm
 
+VIDEO_SET_VIDEO_MODE macro
+	; Set new video mode.
+	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR + (BIOS_VIDEO_FUNC_SET_VIDEO_MODE * 256)
+	int BIOS_VIDEO_INT
+	; Set palette num.
+	RENDER_SET_PALETTE_320x200x4 0
+	; Set console cursor pos.
+	call readCurrentCursorPosAndSetConsoleCursorPos
+endm
+
 VIDEO_START macro
 local skip, skipNotValid
 	cmp [GameVideoAlreadyInitalized],0
@@ -49,13 +60,9 @@ local skip, skipNotValid
 	jne short skipNotValid
 	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_VIDEO
 skipNotValid:
-	; Save current video mode.
+	; Save and set current video mode.
 	mov [GamePrevVideoMode],al
-	; Set new video mode.
-	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR + (BIOS_VIDEO_FUNC_SET_VIDEO_MODE * 256)
-	int BIOS_VIDEO_INT
-	; Set palette num.
-	RENDER_SET_PALETTE_320x200x4 0
+	VIDEO_SET_VIDEO_MODE
 	inc [GameVideoAlreadyInitalized]
 skip:
 endm
@@ -84,6 +91,8 @@ code segment readonly public
 gameMain proc private
 	; All procedures should assume the direction flag is reset.
 	cld
+	; Make sure console can print on the right place even before setting the video mode.
+	call readCurrentCursorPosAndSetConsoleCursorPos
 
 	call keyboardStart
 	VIDEO_START
@@ -143,6 +152,13 @@ gameQuitWithErrorArg proc
 	DOS_QUIT_COM
 gameQuitWithErrorArg endp
 
+readCurrentCursorPosAndSetConsoleCursorPos proc private
+	mov ah,BIOS_VIDEO_FUNC_GET_CURSOR_POS_SIZE
+	int BIOS_VIDEO_INT
+	CONSOLE_SET_CURSOR_POS_IN_DX
+	ret
+readCurrentCursorPosAndSetConsoleCursorPos endp
+
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
 testCheckKeyboardBufferForESCKey proc private
@@ -181,6 +197,7 @@ testPaletteChange endp
 ifdef DEBUG
 
 testKeyboardScancode proc private
+	ret
 	mov dx,offset ds:strStart
 	call consolePrintString
 
@@ -188,7 +205,7 @@ nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 	cmp al,3
-	je short quit
+	;je short quit
 	; Save returned data.
 	push ax
 
@@ -207,7 +224,7 @@ nextKey:
 	CONSOLE_PRINT_CHAR al
 
 	CONSOLE_NEXT_LINE
-	jmp short nextKey
+	;jmp short nextKey
 
 quit:
 	GAME_QUIT
