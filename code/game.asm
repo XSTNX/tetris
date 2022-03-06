@@ -298,7 +298,7 @@ endif
 code ends
 
 constData segment readonly public
-	ErrorStr				byte "Quitting with error code 0x", 0
+	ErrorStr				byte "Error code: 0x", 0
 constData ends
 
 data segment public

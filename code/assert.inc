@@ -1,4 +1,8 @@
+ifdef DEBUG
+ASSERT_ENABLED		equ 1
+else
 ASSERT_ENABLED		equ 0
+endif
 
 include code\errcode.inc
 
