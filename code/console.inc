@@ -1,4 +1,11 @@
+ifdef DEBUG
+CONSOLE_ENABLED		equ 1
+else
+CONSOLE_ENABLED		equ 0
+endif
+
 include code\ascii.inc
+if CONSOLE_ENABLED
 include code\bios.inc
 
 CONSOLE_COLS        equ 40
@@ -9,8 +16,10 @@ extern consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:pr
 extern consolePrintString:proc
 extern ConsoleCursorColRow:word
 endif
+endif
 
 CONSOLE_NEXT_LINE macro
+if CONSOLE_ENABLED
     ; Read current cursor pos.
     mov dx,[ConsoleCursorColRow]
     ; Reset col.
@@ -23,13 +32,16 @@ CONSOLE_NEXT_LINE macro
     xor dh,dh
 @@:
     CONSOLE_SET_CURSOR_POS_IN_DX
+endif    
 endm
 
 ; Input: aChar, moved to dl (unsigned byte).
 CONSOLE_PRINT_CHAR macro aChar:req
 local updateCursorPos, incrementCursorRow
+if CONSOLE_ENABLED
     push bx
     push cx
+    push dx
 ifdifi <aChar>, <al>
     ; Char to print.
     mov al,aChar
@@ -72,20 +84,33 @@ incrementCursorRow:
     xor dh,dh
 updateCursorPos:
     CONSOLE_SET_CURSOR_POS_IN_DX
+    pop dx
     pop cx
     pop bx
+endif    
+endm
+
+CONSOLE_PRINT_STRING macro aAddr:req
+if CONSOLE_ENABLED
+    mov dx,aAddr
+    call consolePrintString
+endif
 endm
 
 ; Input: aCol (X coord - unsigned byte), aRow (Y coord - unsigned byte).
 CONSOLE_SET_CURSOR_POS macro aCol:req, aRow:req
+if CONSOLE_ENABLED
     mov dx,aCol + (aRow * 256)
     CONSOLE_SET_CURSOR_POS_IN_DX
+endif    
 endm
 
 CONSOLE_SET_CURSOR_POS_IN_DX macro
+if CONSOLE_ENABLED
     mov [ConsoleCursorColRow],dx
     ;; Use page number 0.
     xor bh,bh
     mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     int BIOS_VIDEO_INT
+endif    
 endm

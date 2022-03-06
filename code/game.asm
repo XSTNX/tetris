@@ -44,8 +44,10 @@ VIDEO_SET_VIDEO_MODE macro
 	int BIOS_VIDEO_INT
 	; Set palette num.
 	RENDER_SET_PALETTE_320x200x4 0
+if CONSOLE_ENABLED
 	; Set console cursor pos.
 	call readCurrentCursorPosAndSetConsoleCursorPos
+endif
 endm
 
 VIDEO_START macro
@@ -91,8 +93,10 @@ code segment readonly public
 gameMain proc private
 	; All procedures should assume the direction flag is reset.
 	cld
+if CONSOLE_ENABLED
 	; Make sure console can print on the right place even before setting the video mode.
 	call readCurrentCursorPosAndSetConsoleCursorPos
+endif
 
 	call keyboardStart
 	VIDEO_START
@@ -133,31 +137,36 @@ gameMain endp
 ; Input: al (error code).
 ; Output: does not return.
 gameQuitWithErrorArg proc
+if CONSOLE_ENABLED
 	; Save error code.
 	push ax
+endif	
 	; Stop video and keyboard.
 	VIDEO_STOP
 	call keyboardStop
+if CONSOLE_ENABLED	
 	; Check for error.
 	pop ax
 	cmp al,ERROR_CODE_NONE
 	je @f
 	; Print error.
 	push ax
-	mov dx,offset ErrorStr
-	call consolePrintString
+	CONSOLE_PRINT_STRING offset allSegments:ErrorStr
 	pop dx
 	call consolePrintByteHex
-@@:	
+@@:
+endif
 	DOS_QUIT_COM
 gameQuitWithErrorArg endp
 
+if CONSOLE_ENABLED
 readCurrentCursorPosAndSetConsoleCursorPos proc private
 	mov ah,BIOS_VIDEO_FUNC_GET_CURSOR_POS_SIZE
 	int BIOS_VIDEO_INT
 	CONSOLE_SET_CURSOR_POS_IN_DX
 	ret
 readCurrentCursorPosAndSetConsoleCursorPos endp
+endif
 
 ife KEYBOARD_ENABLED
 ; Output: zf (zero flag set if ESC is pressed).
@@ -198,8 +207,7 @@ ifdef DEBUG
 
 testKeyboardScancode proc private
 	ret
-	mov dx,offset ds:strStart
-	call consolePrintString
+	CONSOLE_PRINT_STRING offset allSegments:strStart
 
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
@@ -210,16 +218,14 @@ nextKey:
 	push ax
 
 	; Print scancode.
-	mov dx,offset ds:strScancode
-	call consolePrintString
+	CONSOLE_PRINT_STRING offset allSegments:strScancode
 	pop ax
 	push ax
 	mov dl,ah
 	call consolePrintByteHex
 
 	; Print ascii.
-	mov dx,offset ds:strASCII
-	call consolePrintString
+	CONSOLE_PRINT_STRING offset allSegments:strASCII
 	pop ax
 	CONSOLE_PRINT_CHAR al
 
@@ -263,8 +269,7 @@ testDOSVersion proc private
 	push bx
 	push ax
 
-	mov dx,offset ds:strVer
-	call consolePrintString
+	CONSOLE_PRINT_STRING offset allSegments:strVer
 
 	; Major version.
 	pop dx
@@ -278,8 +283,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByte
 	
-	mov dx,offset ds:strDOSType
-	call consolePrintString
+	CONSOLE_PRINT_STRING offset allSegments:strDOSType
 
 	; Dos type.
 	pop dx

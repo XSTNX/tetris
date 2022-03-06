@@ -1,5 +1,6 @@
 CONSOLE_NO_EXTERNS equ 1
 include code\console.inc
+if CONSOLE_ENABLED
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -118,6 +119,8 @@ consolePrintString endp
 ; Code private ;
 ; -------------;
 
+code ends
+
 data segment public
 	public ConsoleCursorColRow
 	ConsoleCursorColRow		label word
@@ -125,6 +128,6 @@ data segment public
 	ConsoleCursorRow		byte ?
 data ends
 
-code ends
+endif
 
 end

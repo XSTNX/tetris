@@ -316,7 +316,7 @@ loopShotDone:
 	mov si,[si+offset allSegments:PlayerGfx]
 	call renderSprite8x8
 
-ifdef DEBUG
+if CONSOLE_ENABLED
 	call playerDebugPrintKeyboard
 	call playerDebugPrintPlayer
 	call playerDebugPrintShot
@@ -329,7 +329,7 @@ playerRender endp
 ; Code private ;
 ; -------------;
 
-ifdef DEBUG
+if CONSOLE_ENABLED
 
 playerDebugPrintKeyboard proc private
 	; Left.

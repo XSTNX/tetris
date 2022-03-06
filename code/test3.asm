@@ -38,8 +38,7 @@ lineLoop:
     dec ax
     jne short lineLoop
     ; Text.
-    mov dx,offset allSegments:tmpText
-    call consolePrintString
+    CONSOLE_PRINT_STRING offset allSegments:tmpText
     ret
 tmpText:
 	db "Es la guitarra de Lolo!", 0

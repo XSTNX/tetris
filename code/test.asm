@@ -103,7 +103,7 @@ endif
     mov al,3
 	call renderBox320x200x4
 
-ifdef DEBUG
+if CONSOLE_ENABLED
     ; Print debug info.
 	CONSOLE_SET_CURSOR_POS 0, 0
     pop dx

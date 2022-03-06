@@ -55,9 +55,8 @@ GAME
 - Make sure I use as few DOS functions as possible, since the final goal is to make a booteable game.
 - Maybe the console procedures should save all registers, they are not used for performant code so maybe it's better to go for convenience.
 - Improve macros CONSOLE_SET_CURSOR_POS_IN_DX and CONSOLE_SET_CURSOR_POS.
-- Add flag for console, should be set automatically according to debug or release configuration.
 - CONSOLE_SET_CURSOR_POS_IN_DX should assert if the pos is not valid.
-- Macros in console are pretty long now that we don't use DOS, probably makes more sense to make them procedures.
+- Macros in console are pretty long now that we don't use DOS, probably makes more sense to make them procedures. Still I could have one macro for each procedure that just calls the procedure, this way I don't have to guard them on release.
 - testKeyboardScancode had branches commented because the console macros are too long, revert change when they are changed to procedures.
 - PrintChar doesn't scroll text anymore when reaching the bottom, since we don't use DOS anymore.
 - SetCursorPos doesn't take int account that in text mode the cols are twice as many.
