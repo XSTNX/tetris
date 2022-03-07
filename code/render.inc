@@ -1,7 +1,8 @@
 include code\bios.inc
 
 ifndef RENDER_NO_EXTERNS
-extern renderBox320x200x4:proc, renderEraseSprite8x8:proc, renderHorizLine320x200x4:proc, renderPixel320x200x4:proc, renderSprite8x8:proc
+extern renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderBox320x200x4:proc
+extern renderSprite8x8:proc, renderEraseSprite8x8:proc
 endif
 
 ; Input: aPaletteNum, has to be a literal (unsigned byte).

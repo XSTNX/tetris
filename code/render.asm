@@ -21,12 +21,14 @@ local skipOdd
 skipOdd:
 endm
 
-; Document which registers it destroys???????
 ; Input:
-;	cx (unsigned posX).
-;	dl (unsigned posY).
-;	dh (2bit color).
-;   es (video ram).
+; cx (unsigned posX).
+; dl (unsigned posY).
+; dh (2bit color).
+; ds (segment of RenderPixelShiftMask320x200x4)
+; es (video ram).
+;
+; Clobber: ax, bx, cx, dx, si
 RENDER_PIXEL_320x200x4 macro
 local notOddRow, error, skipError
 if ASSERT_ENABLED
@@ -101,24 +103,25 @@ renderPixel320x200x4 proc
 renderPixel320x200x4 endp
 
 ; Input:
-;	cx (unsigned left limit).
-;	bx (unsigned right limit + 1).
-;	dl (unsigned posY).
-;	dh (2bit color).
-; Note:
-; 	Will render garbage if cx, bx or dl is outside the limits of the video mode.
+; cx (unsigned lowX).
+; bx (unsigned highX + 1).
+; dl (unsigned posY).
+; dh (2bit color).
+; ds (segment of RenderPixelShiftMask320x200x4)
+; es (video ram).
+;
+; Clobber: ax, bx, cx, dx, si, di, bp
 renderHorizLine320x200x4 proc
-nextPixel:
 	push bx
-	push cx
-	push dx
+	mov di,cx
+	mov bp,dx
 	RENDER_PIXEL_320x200x4
-	pop dx
-	pop cx
+	mov dx,bp
+	mov cx,di
 	pop bx
 	inc cx
 	cmp cx,bx
-	jne short nextPixel
+	jb short renderHorizLine320x200x4
 	ret
 renderHorizLine320x200x4 endp
 

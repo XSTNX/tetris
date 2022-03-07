@@ -22,6 +22,15 @@ test4Update proc
 test4Update endp
 
 test4Render proc
+    ; LowX.
+    mov cx,0
+    ; HighX + 1.
+    mov bx,320
+    ; PosY.
+    mov dl,199
+    ; Color.
+    mov dh,2
+    call renderHorizLine320x200x4
     ret
 test4Render endp
 
