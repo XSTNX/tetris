@@ -112,6 +112,10 @@ renderPixel320x200x4 endp
 ;
 ; Clobber: ax, bx, cx, dx, si, di, bp
 renderHorizLine320x200x4 proc
+	; Tmp code so renderBox320x200x4 continues working.
+	push di
+	push bp
+@@:
 	push bx
 	mov di,cx
 	mov bp,dx
@@ -121,7 +125,10 @@ renderHorizLine320x200x4 proc
 	pop bx
 	inc cx
 	cmp cx,bx
-	jb short renderHorizLine320x200x4
+	jb short @b
+	; Tmp code so renderBox320x200x4 continues working.
+	pop bp
+	pop di
 	ret
 renderHorizLine320x200x4 endp
 
