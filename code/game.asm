@@ -105,7 +105,7 @@ if CONSOLE_ENABLED
 	; Make sure console can print on the right place even before setting the video mode.
 	call readCurrentCursorPosAndSetConsoleCursorPos
 endif
-
+	
 	call keyboardStart
 	VIDEO_START
 
@@ -215,14 +215,12 @@ testPaletteChange endp
 ifdef DEBUG
 
 testKeyboardScancode proc private
-	ret
 	CONSOLE_PRINT_STRING offset allSegments:strStart
-
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 	cmp al,3
-	;je short quit
+	je short quit
 	; Save returned data.
 	push ax
 
@@ -239,8 +237,7 @@ nextKey:
 	CONSOLE_PRINT_CHAR al
 
 	CONSOLE_NEXT_LINE
-	;jmp short nextKey
-
+	jmp short nextKey
 quit:
 	GAME_QUIT
 
