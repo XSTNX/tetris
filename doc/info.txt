@@ -1,14 +1,17 @@
+8088
+----
+Not sure if operating on bytes makes subtractions any faster. Example of where I try to optimize doing this are consolePrintByte and consolePrintWord.
+
 ASM
 ---
-- Near and Far in procedures how are they used exactly?
 - Is it a good idea to push every register modified by a procedure. Maybe there are more efficient alternatives? In particular do I really need to push ax?
 - Figure out how to add debug information to the build.
-- Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory? How does DOS make sure in general there is enough memory to run the game?
-- Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
-- Is there an assert directive I can use?
 
 MASM
 ----
+- Near and Far in procedures how are they used exactly?
+- Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
+- Is there an assert directive I can use?
 - Do I need to put the includes as dependencies in the makefile or is there a simple way of dealing with that?
 - The makefile doesn't always do the link step after assembling, so it has to be run twice, why is that exactly?
 - I think I should separate the data segment into two segments with initialized and uninitialized data. This should make the executable smaller.
@@ -21,6 +24,7 @@ MASM
 - If I use movzx, an opcode not available on the 8086, I get an error as I'm supposed to, but not when I use it inside a macro. Is this a bug in masm? Would it happen with other opcodes?
 - How does the "assume" keyword works exactly? I'm trying to use it in the keyboard code but doesn't seem to work the way I expect.
 - How to detect if a macro argument is a register? Should be used to optimize KEYBOARD_IS_KEY_PRESSED.
+- Might be a good idea to read on how to use the repeat macro to create RenderMultiplyRowBy80Table at assembly time.
 
 IBM PC
 ------
@@ -46,6 +50,7 @@ IBM PC
 - Create some defines for in and out ports used in the keyboad code.
 - If the game is run on a computer with an hercules video card would it be detected as an error or not?
 - Is the direction flag reset when a DOS program starts? What would happen when the game is booteable?
+- Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory? How does DOS make sure in general there is enough memory to run the game?
 
 GAME
 ----

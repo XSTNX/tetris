@@ -49,7 +49,9 @@ endm
 
 CONSOLE_PRINT_STRING macro aAddr:req
 if CONSOLE_ENABLED
-    mov dx,aAddr
+ifdifi <aAddr>, <si>
+    mov si,aAddr
+endif
     call consolePrintString
 endif
 endm

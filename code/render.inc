@@ -1,6 +1,8 @@
 include code\bios.inc
 
 ifndef RENDER_NO_EXTERNS
+; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
+extern renderInitMultiplyRowBy80Table:proc
 extern renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderBox320x200x4:proc
 extern renderSprite8x8:proc, renderEraseSprite8x8:proc
 endif

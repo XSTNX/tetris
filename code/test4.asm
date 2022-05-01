@@ -1,6 +1,7 @@
 TEST4_NO_EXTERNS equ 1
 include code\test4.inc
 include code\assumSeg.inc
+include code\console.inc
 include code\render.inc
 
 code segment readonly public
@@ -14,6 +15,14 @@ test4Init proc
 test4Init endp
 
 test4InitRender proc
+    mov ax,000ah
+    call consolePrintWordHex
+    CONSOLE_PRINT_CHAR "-"
+    mov ax,00e9h
+    call consolePrintWordHex
+    CONSOLE_PRINT_CHAR "-"
+    mov ax,00cf0h
+    call consolePrintWordHex
     ret
 test4InitRender endp
 
@@ -25,12 +34,12 @@ test4Render proc
     ; LowX.
     mov cx,0
     ; HighX + 1.
-    mov bx,320
+    mov di,0
     ; PosY.
     mov dl,199
     ; Color.
     mov dh,2
-    call renderHorizLine320x200x4
+    ;call renderHorizLine320x200x4
     ret
 test4Render endp
 

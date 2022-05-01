@@ -49,7 +49,7 @@ test3Update proc
 test3Update endp
 
 test3Render proc
-    CONSOLE_PRINT_CHAR 'X'
+    CONSOLE_PRINT_CHAR "X"
     ret
 test3Render endp
 

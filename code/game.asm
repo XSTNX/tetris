@@ -105,14 +105,15 @@ if CONSOLE_ENABLED
 	; Make sure console can print on the right place even before setting the video mode.
 	call readCurrentCursorPosAndSetConsoleCursorPos
 endif
-	
+	; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
+	call renderInitMultiplyRowBy80Table
 	call keyboardStart
 	VIDEO_START
 
 	; Start the game directly on the level for now.
-	GAME_SET_LEVEL_GAME_STATE
+	;GAME_SET_LEVEL_GAME_STATE
 	;GAME_SET_TEST_GAME_STATE
-	;GAME_SET_TEST2_GAME_STATE
+	GAME_SET_TEST2_GAME_STATE
 	;GAME_SET_TEST3_GAME_STATE
 	;GAME_SET_TEST4_GAME_STATE
 
@@ -219,7 +220,7 @@ testKeyboardScancode proc private
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
-	cmp al,3
+	cmp al,ASCII_EOT
 	je short quit
 	; Save returned data.
 	push ax

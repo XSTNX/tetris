@@ -49,7 +49,7 @@ obj\test2.obj : code\test2.asm code\test2.inc code\assumSeg.inc code\render.inc
 obj\test3.obj : code\test3.asm code\test3.inc code\assumSeg.inc code\console.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test3.obj" /Fl"obj\test3.lst" code\test3.asm
 
-obj\test4.obj : code\test4.asm code\test4.inc code\assumSeg.inc code\render.inc
+obj\test4.obj : code\test4.asm code\test4.inc code\assumSeg.inc code\console.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test4.obj" /Fl"obj\test4.lst" code\test4.asm
 
 clean :

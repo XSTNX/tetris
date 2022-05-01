@@ -29,18 +29,16 @@ test2Update proc
 test2Update endp
 
 test2Render proc
-    mov ax,TEST2_PIXELS_PER_FRAME
     mov cx,[Test2PosX]
     mov dx,[Test2PosYColor]
+    mov di,TEST2_PIXELS_PER_FRAME    
 
 nextPixel:
-    push ax
     push cx
     push dx
     call renderPixel320x200x4
     pop dx
     pop cx
-    pop ax
     ; Increment posX.
     inc cx
     cmp cx,320
@@ -57,7 +55,7 @@ nextPixel:
     inc dh
     and dh,11b
 skipUpdate:
-    dec ax
+    dec di
     jnz nextPixel
 
     ; Save updated values.

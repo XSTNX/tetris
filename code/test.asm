@@ -10,7 +10,7 @@ TEST_BOX_HEIGHT 				equ 16
 TEST_BOX_HALF_HEIGHT 			equ TEST_BOX_HEIGHT / 2
 TEST_BOX_POSX_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
 TEST_BOX_POSY_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
-TEST_BOX_SPEEDY_PACKED 			equ 280h
+TEST_BOX_SPEEDY_PACKED 			equ 30h
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -66,9 +66,9 @@ testUpdate proc
     mov [TestPrevPosY],ah
     add ax,TEST_BOX_SPEEDY_PACKED
     cmp ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-    jb skipRoll
-    xor ah,ah
-skipRoll:
+    jb @f
+    sub ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+@@:
     mov [TestPosYPacked],ax
 
     ret
@@ -106,25 +106,22 @@ endif
 if CONSOLE_ENABLED
     ; Print debug info.
 	CONSOLE_SET_CURSOR_POS 0, 0
-    pop dx
-    push dx
+    pop ax
+    mov bl,ah
 	call consolePrintByte
-    CONSOLE_SET_CURSOR_POS 3, 0
     CONSOLE_PRINT_CHAR "-"
-    CONSOLE_SET_CURSOR_POS 4, 0
-    pop dx
-    mov dl,dh
+    mov al,bl
 	call consolePrintByte
-    CONSOLE_SET_CURSOR_POS 0, 1
-    mov dl,byte ptr [TestPosYPacked + 1]
+    CONSOLE_NEXT_LINE
+    mov al,byte ptr [TestPosYPacked + 1]
     call consolePrintByte
-    CONSOLE_SET_CURSOR_POS 0, 2
-    mov dl,"N"
+    CONSOLE_NEXT_LINE
+    mov al,"N"
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_UP
-	jnz skipKeyPressed
-	mov dl,"Y"
-skipKeyPressed:
-    CONSOLE_PRINT_CHAR dl
+	jnz @f
+	mov al,"Y"
+@@:
+    call consolePrintChar
 endif
 
     ret

@@ -11,95 +11,105 @@ code segment readonly public
 ; Code public ;
 ; ------------;
 
-; Input: dl (only the low nibble).
+; Input: al (just the low nibble, the high nibble is cleared).
+; Clobber: ax.
 consolePrintNibbleHex proc
-	and dl,0fh
-	cmp dl,10
-	jb short skipLetter
-	add dl,'A' - ('9' + 1)
-skipLetter:
-	add dl,'0'
-	CONSOLE_PRINT_CHAR dl
+	and al,0fh
+	cmp al,10
+	jb short @f
+	add al,"A" - ("9" + 1)
+@@:
+	add al,"0"
+	call consolePrintChar
 	ret
 consolePrintNibbleHex endp
 
-; Input: dl.
+; Input: al.
+; Clobber: ax, cx, dx.
 consolePrintByte proc
-	mov al,dl
-	mov bl,10
-	xor cx,cx
-divide:
+	mov cl,10
+	xor dx,dx
+@@:
 	xor ah,ah
-	div bl
+	div cl
 	push ax
-	inc cx
+	inc dx
 	test al,al
-	jne divide
-	mov bx,3
-	sub bx,cx
-	je nextDigit
-	xor dl,dl
+	jne @b
+	mov cx,3
+	; Operating on bytes is enough here since the result of the subtraction is in [0,2].
+	; Not sure if operating on bytes makes the subtraction any faster???
+	sub cl,dl
+	jz leadingZeroesDone
 leadingZeroes:
+	xor al,al
 	call consolePrintNibbleHex
-	dec bx
-	jnz leadingZeroes
-nextDigit:
-	pop dx
-	mov dl,dh
+	loop leadingZeroes
+leadingZeroesDone:
+	mov cx,dx
+digits:
+	pop ax
+	mov al,ah
 	call consolePrintNibbleHex
-	loop nextDigit
+	loop digits
 	ret
 consolePrintByte endp
 
-; Input: dl.
+; Input: al.
+; Clobber: ax, cx.
 consolePrintByteHex proc
-	mov ch,dl
+	mov ch,al
 	mov cl,4
-	shr dl,cl
+	shr al,cl
 	call consolePrintNibbleHex
-	mov dl,ch
+	mov al,ch
 	call consolePrintNibbleHex
 	ret
 consolePrintByteHex endp
 
-; Input: dx.
+; Input: ax.
+; Clobber: ax, bx, cx, dx.
 consolePrintWord proc
-	mov ax,dx
-	mov bx,10
-	xor cx,cx
-divide:
+	mov cx,10
+	xor bx,bx
+@@:
 	xor dx,dx
-	div bx
+	div cx
 	push dx
-	inc cx
+	inc bx
 	test ax,ax
-	jne divide
-	; Setting bl is enough since bh is zero.
-	mov bl,5
-	sub bl,cl
-	je nextDigit
-leadingZeroes:	
-	xor dl,dl
+	jne @b
+	; Operating on bytes is enough here since ch is zero already and the result of the subtraction is in [0,4].
+	; Not sure if operating on bytes makes the subtraction any faster???
+	mov cl,5
+	sub cl,bl
+	jz leadingZeroesDone
+leadingZeroes:
+	xor al,al
 	call consolePrintNibbleHex
-	dec bx
-	jnz leadingZeroes
-nextDigit:
-	pop dx
+	loop leadingZeroes
+leadingZeroesDone:
+	mov cx,bx
+digits:
+	pop ax
 	call consolePrintNibbleHex
-	loop nextDigit
+	loop digits
 	ret
 consolePrintWord endp
 
-; Input: dx.
+; Input: ax.
+; Clobber: ax, cx, dh.
 consolePrintWordHex proc
-	xchg dl,dh
+	mov dh,al
+	mov al,ah
 	call consolePrintByteHex
-	mov dl,dh
+	mov al,dh
 	call consolePrintByteHex
 	ret
 consolePrintWordHex endp
 
 ; Input: al.
+; Clobber: ax.
 consolePrintChar proc
     push bx
     push cx
@@ -148,16 +158,15 @@ updateCursorPos:
 	ret
 consolePrintChar endp
 
-; Input: ds:dx (far ptr to a null-terminated string).
+; Input: ds:si (far ptr to a null-terminated string).
 consolePrintString proc
 	pushf
 	cld
-	mov si,dx
 printLoop:
 	lodsb
 	test al,al
 	jz short printLoopDone
-	CONSOLE_PRINT_CHAR al
+	call consolePrintChar
 	jmp short printLoop
 printLoopDone:
 	popf

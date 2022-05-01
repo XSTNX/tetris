@@ -25,7 +25,7 @@ endm
 ; cx (unsigned posX).
 ; dl (unsigned posY).
 ; dh (2bit color).
-; ds (segment of RenderPixelShiftMask320x200x4)
+; ds (data).
 ; es (video ram).
 ;
 ; Clobber: ax, bx, cx, dx, si
@@ -43,32 +43,16 @@ error:
 skipError:
 endif
 	xor bx,bx
-	;; Divide posY by two, since even rows go in one bank and odd rows in another.
-	shr dl,1
-	jnc skipOddRow
+	;; Check if posY is even or odd, since even rows go in one bank and odd rows in another.
+	test dl,1
+	jz skipOddRow
 	;; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
 	mov bh,20h
 skipOddRow:
 	;; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
-	;; Might be a faster way of multiplying by 80, don't know if this code does it, it's a lot of instructions.
-if 1
-	mov al,80
-	mul dl
-else
-	push cx
-	push dx
-	mov al,dl
-	xor ah,ah
-	mov cl,6
-	shl ax,cl
-	xor dh,dh
-	mov cl,4
-	shl dx,cl
-	add ax,dx
-	pop dx
-	pop cx
-endif
-	or bx,ax
+	mov si,dx
+	and si,0feh
+	or bx,[RenderMultiplyRowBy80Table + si]
 	;; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
 	mov si,cx
 	and si,11b
@@ -88,7 +72,7 @@ endif
 	mov es:[bx],al
 endm
 
-allSegments group code, constData
+allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
@@ -97,6 +81,24 @@ code segment readonly public
 ; Code public ;
 ; ------------;
 
+; Input: none.
+; Clobber: ax, bx, cx, dx.
+; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
+renderInitMultiplyRowBy80Table proc
+	xor bx,bx
+	mov cx,100
+	mov dl,80
+@@:
+	mov al,bl
+	shr al,1
+	mul dl
+	mov [RenderMultiplyRowBy80Table + bx],ax
+	inc bx
+	inc bx
+	loop @b
+	ret
+renderInitMultiplyRowBy80Table endp
+
 renderPixel320x200x4 proc
 	RENDER_PIXEL_320x200x4
 	ret
@@ -104,31 +106,24 @@ renderPixel320x200x4 endp
 
 ; Input:
 ; cx (unsigned lowX).
-; bx (unsigned highX + 1).
+; di (unsigned highX + 1).
 ; dl (unsigned posY).
 ; dh (2bit color).
 ; ds (segment of RenderPixelShiftMask320x200x4)
 ; es (video ram).
 ;
-; Clobber: ax, bx, cx, dx, si, di, bp
+; Clobber: ax, bx, cx, dx, si, bp.
 renderHorizLine320x200x4 proc
-	; Tmp code so renderBox320x200x4 continues working.
-	push di
-	push bp
+	; Assert that cx < di??????????
 @@:
-	push bx
-	mov di,cx
+	push cx
 	mov bp,dx
 	RENDER_PIXEL_320x200x4
 	mov dx,bp
-	mov cx,di
-	pop bx
+	pop cx
 	inc cx
-	cmp cx,bx
+	cmp cx,di
 	jb short @b
-	; Tmp code so renderBox320x200x4 continues working.
-	pop bp
-	pop di
 	ret
 renderHorizLine320x200x4 endp
 
@@ -233,5 +228,10 @@ code ends
 constData segment readonly public
 	RenderPixelShiftMask320x200x4	byte 6, 00111111b, 4, 11001111b, 2, 11110011b, 0, 11111100b
 constData ends
+
+data segment public
+	; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
+	RenderMultiplyRowBy80Table		word 100 dup(?)
+data ends
 
 end
