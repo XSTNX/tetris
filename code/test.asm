@@ -109,13 +109,14 @@ if CONSOLE_ENABLED
     pop ax
     mov bl,ah
 	call consolePrintByte
-    CONSOLE_PRINT_CHAR "-"
+    mov al,"-"
+    call consolePrintChar
     mov al,bl
 	call consolePrintByte
-    CONSOLE_NEXT_LINE
+    call consoleNextLine
     mov al,byte ptr [TestPosYPacked + 1]
     call consolePrintByte
-    CONSOLE_NEXT_LINE
+    call consoleNextLine
     mov al,"N"
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_UP
 	jnz @f

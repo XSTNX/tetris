@@ -161,7 +161,8 @@ if CONSOLE_ENABLED
 	je @f
 	; Print error.
 	push ax
-	CONSOLE_PRINT_STRING offset allSegments:ErrorStr
+	mov si,offset allSegments:ErrorStr
+	call consolePrintString
 	pop dx
 	call consolePrintByteHex
 @@:
@@ -173,7 +174,7 @@ if CONSOLE_ENABLED
 readCurrentCursorPosAndSetConsoleCursorPos proc private
 	mov ah,BIOS_VIDEO_FUNC_GET_CURSOR_POS_SIZE
 	int BIOS_VIDEO_INT
-	CONSOLE_SET_CURSOR_POS_IN_DX
+	call consoleSetCursorPos
 	ret
 readCurrentCursorPosAndSetConsoleCursorPos endp
 endif
@@ -213,10 +214,11 @@ skipChangePaletteNum1:
 	ret
 testPaletteChange endp
 
-ifdef DEBUG
+if CONSOLE_ENABLED
 
 testKeyboardScancode proc private
-	CONSOLE_PRINT_STRING offset allSegments:strStart
+	mov si,offset allSegments:strStart
+	call consolePrintString
 nextKey:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
@@ -226,18 +228,20 @@ nextKey:
 	push ax
 
 	; Print scancode.
-	CONSOLE_PRINT_STRING offset allSegments:strScancode
+	mov si,offset allSegments:strScancode
+	call consolePrintString
 	pop ax
 	push ax
 	mov dl,ah
 	call consolePrintByteHex
 
 	; Print ascii.
-	CONSOLE_PRINT_STRING offset allSegments:strASCII
+	mov si,offset allSegments:strASCII
+	call consolePrintString
 	pop ax
-	CONSOLE_PRINT_CHAR al
+	call consolePrintChar
 
-	CONSOLE_NEXT_LINE
+	call consoleNextLine
 	jmp short nextKey
 quit:
 	GAME_QUIT
@@ -256,7 +260,7 @@ printFlags:
 	int BIOS_KEYBOARD_INT
 	mov dl,al
 	call consolePrintByteHex
-	CONSOLE_NEXT_LINE
+	call consoleNextLine
 
 	; Continue until a key is pressed.
 	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
@@ -276,21 +280,24 @@ testDOSVersion proc private
 	push bx
 	push ax
 
-	CONSOLE_PRINT_STRING offset allSegments:strVer
+	mov si,offset allSegments:strVer
+	call consolePrintString
 
 	; Major version.
 	pop dx
 	push dx
 	call consolePrintByte
 
-	CONSOLE_PRINT_CHAR "."
+	mov al,"."
+	call consolePrintChar
 	
 	; Minor version.
 	pop dx
 	mov dl,dh
 	call consolePrintByte
-	
-	CONSOLE_PRINT_STRING offset allSegments:strDOSType
+
+	mov si,offset allSegments:strDOSType
+	call consolePrintString
 
 	; Dos type.
 	pop dx

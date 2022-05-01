@@ -38,7 +38,8 @@ lineLoop:
     dec ax
     jne short lineLoop
     ; Text.
-    CONSOLE_PRINT_STRING offset allSegments:tmpText
+	mov si,offset allSegments:tmpText
+	call consolePrintString
     ret
 tmpText:
 	db "Es la guitarra de Lolo!", 0
@@ -49,7 +50,8 @@ test3Update proc
 test3Update endp
 
 test3Render proc
-    CONSOLE_PRINT_CHAR "X"
+	mov al,"X"
+	call consolePrintChar
     ret
 test3Render endp
 

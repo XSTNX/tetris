@@ -17,10 +17,12 @@ test4Init endp
 test4InitRender proc
     mov ax,000ah
     call consolePrintWordHex
-    CONSOLE_PRINT_CHAR "-"
+	mov al,"-"
+	call consolePrintChar
     mov ax,00e9h
     call consolePrintWordHex
-    CONSOLE_PRINT_CHAR "-"
+	mov al,"-"
+	call consolePrintChar
     mov ax,00cf0h
     call consolePrintWordHex
     ret

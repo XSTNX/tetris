@@ -335,29 +335,28 @@ playerDebugPrintKeyboard proc private
 	; Left.
 	CONSOLE_SET_CURSOR_POS 0, 0
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
-	mov dl,"0"
-	jnz short skipPressedKeyLeft
-	mov dl,"1"
-skipPressedKeyLeft:
-	CONSOLE_PRINT_CHAR dl
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
 
 	; Right.
-	CONSOLE_SET_CURSOR_POS 1, 0
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_RIGHT
-	mov dl,"0"
-	jnz short skipPressedKeyRight
-	mov dl,"1"
-skipPressedKeyRight:
-	CONSOLE_PRINT_CHAR dl
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
 
 	; SHOOT.
-	CONSOLE_SET_CURSOR_POS 2, 0
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_SHOOT
-	mov dl,"0"
-	jnz short skipPressedKeyShoot
-	mov dl,"1"
-skipPressedKeyShoot:
-	CONSOLE_PRINT_CHAR dl
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
+	
 	ret
 playerDebugPrintKeyboard endp
 

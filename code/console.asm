@@ -2,6 +2,9 @@ CONSOLE_NO_EXTERNS equ 1
 include code\console.inc
 if CONSOLE_ENABLED
 
+CONSOLE_COLS        equ 40
+CONSOLE_ROWS        equ 25
+
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
@@ -151,7 +154,7 @@ incrementCursorRow:
     ; Reset row.
     xor dh,dh
 updateCursorPos:
-    CONSOLE_SET_CURSOR_POS_IN_DX
+    call consoleSetCursorPos
     pop dx
     pop cx
     pop bx
@@ -172,6 +175,41 @@ done:
 	popf
 	ret
 consolePrintString endp
+
+consoleSetCursorPos proc
+if ASSERT_ENABLED
+    cmp dl,CONSOLE_COLS
+    jb @f
+    ASSERT
+@@:
+    cmp dh,CONSOLE_ROWS
+    jb @f
+    ASSERT
+@@:
+endif
+    mov [ConsoleCursorColRow],dx
+    ;; Use page number 0.
+    xor bh,bh
+    mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
+    int BIOS_VIDEO_INT
+	ret
+consoleSetCursorPos endp
+
+consoleNextLine proc
+    ; Read current cursor pos.
+    mov dx,[ConsoleCursorColRow]
+    ; Reset col.
+    xor dl,dl
+    ; Increment row.
+    inc dh
+    cmp dh,CONSOLE_ROWS
+    jb @f
+    ; Reset row.
+    xor dh,dh
+@@:
+	call consoleSetCursorPos
+	ret
+consoleNextLine endp
 
 ; -------------;
 ; Code private ;
