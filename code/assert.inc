@@ -23,5 +23,5 @@ ASSERT_WITH_ERROR_ARG macro errorCode:req
 if ASSERT_ENABLED
 	mov al,errorCode
 	call assert
-endif	
+endif
 endm
