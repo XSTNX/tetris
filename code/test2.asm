@@ -1,6 +1,9 @@
 TEST2_NO_EXTERNS equ 1
 include code\test2.inc
+include code\assert.inc
 include code\assumSeg.inc
+include code\console.inc
+include code\keyboard.inc
 include code\render.inc
 
 TEST2_PIXELS_PER_FRAME      equ 1024

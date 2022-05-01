@@ -1,7 +1,9 @@
 TEST3_NO_EXTERNS equ 1
 include code\test3.inc
+include code\assert.inc
 include code\assumSeg.inc
 include code\console.inc
+include code\keyboard.inc
 include code\render.inc
 
 code segment readonly public

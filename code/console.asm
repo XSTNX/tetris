@@ -2,6 +2,9 @@ CONSOLE_NO_EXTERNS equ 1
 include code\console.inc
 if CONSOLE_ENABLED
 
+include code\assert.inc
+include code\bios.inc
+
 CONSOLE_COLS        equ 40
 CONSOLE_ROWS        equ 25
 

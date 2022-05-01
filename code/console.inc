@@ -4,16 +4,16 @@ else
 CONSOLE_ENABLED		equ 0
 endif
 
-include code\ascii.inc
 if CONSOLE_ENABLED
-include code\assert.inc
-include code\bios.inc
+
+include code\ascii.inc
 
 ifndef CONSOLE_NO_EXTERNS
 extern consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
 extern consolePrintChar:proc, consolePrintString:proc, consoleSetCursorPos:proc, consoleNextLine:proc
 extern ConsoleCursorColRow:word
 endif
+
 endif
 
 ; Input: aCol (X coord - unsigned byte), aRow (Y coord - unsigned byte).

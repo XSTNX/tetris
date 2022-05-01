@@ -15,14 +15,14 @@ $(OBJ_FILES), bin\$(EXECUTABLE_NAME).com;
 <<
 
 code\assert.inc : code\errcode.inc
-code\console.inc : code\ascii.inc code\assert.inc code\bios.inc
+code\console.inc : code\ascii.inc
 code\keyboard.inc : code\assert.inc
 code\render.inc : code\bios.inc
 
 obj\assert.obj : code\assert.asm code\assert.inc code\game.inc
 	ml $(ML_OPTIONS) /Fo"obj\assert.obj" /Fl"obj\assert.lst" code\assert.asm
 
-obj\console.obj : code\console.asm code\console.inc
+obj\console.obj : code\console.asm code\console.inc code\assert.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\console.obj" /Fl"obj\console.lst" code\console.asm
 
 obj\game.obj : code\game.asm code\game.inc code\console.inc code\dos.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc code\test3.inc code\test4.inc
@@ -40,16 +40,16 @@ obj\player.obj : code\player.asm code\player.inc code\console.inc code\keyboard.
 obj\render.obj : code\render.asm code\render.inc code\assert.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\render.obj" /Fl"obj\render.lst" code\render.asm
 
-obj\test.obj : code\test.asm code\test.inc code\console.inc code\keyboard.inc code\render.inc
+obj\test.obj : code\test.asm code\test.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
 
-obj\test2.obj : code\test2.asm code\test2.inc code\assumSeg.inc code\render.inc
+obj\test2.obj : code\test2.asm code\test2.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
 
-obj\test3.obj : code\test3.asm code\test3.inc code\assumSeg.inc code\console.inc code\render.inc
+obj\test3.obj : code\test3.asm code\test3.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test3.obj" /Fl"obj\test3.lst" code\test3.asm
 
-obj\test4.obj : code\test4.asm code\test4.inc code\assumSeg.inc code\console.inc code\render.inc
+obj\test4.obj : code\test4.asm code\test4.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test4.obj" /Fl"obj\test4.lst" code\test4.asm
 
 clean :

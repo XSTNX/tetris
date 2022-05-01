@@ -1,5 +1,7 @@
 TEST_NO_EXTERNS equ 1
 include code\test.inc
+include code\assert.inc
+include code\assumSeg.inc
 include code\console.inc
 include code\keyboard.inc
 include code\render.inc
@@ -11,9 +13,6 @@ TEST_BOX_HALF_HEIGHT 			equ TEST_BOX_HEIGHT / 2
 TEST_BOX_POSX_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
 TEST_BOX_POSY_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
 TEST_BOX_SPEEDY_PACKED 			equ 30h
-
-allSegments group code, data
-    assume cs:allSegments, ds:allSegments, es:nothing
 
 code segment readonly public
 
@@ -133,6 +132,9 @@ testRender endp
 ; -------------;
 
 code ends
+
+constData segment readonly public
+constData ends
 
 data segment public
 	TestPosXLow             dw ?
