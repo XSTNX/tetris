@@ -158,17 +158,17 @@ updateCursorPos:
 	ret
 consolePrintChar endp
 
-; Input: ds:si (far ptr to a null-terminated string).
+; Input: ds:si (null-terminated string).
 consolePrintString proc
 	pushf
 	cld
-printLoop:
+@@:
 	lodsb
 	test al,al
-	jz short printLoopDone
+	jz short done
 	call consolePrintChar
-	jmp short printLoop
-printLoopDone:
+	jmp short @b
+done:
 	popf
 	ret
 consolePrintString endp
