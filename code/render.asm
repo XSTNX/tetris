@@ -28,7 +28,7 @@ endm
 ; ds (data).
 ; es (video ram).
 ;
-; Clobber: ax, bx, cx, dx, si
+; Clobber: ax, bx, cx, dx, si.
 RENDER_PIXEL_320x200x4 macro
 local notOddRow, error, skipError
 if ASSERT_ENABLED
@@ -109,18 +109,18 @@ renderPixel320x200x4 endp
 ; di (unsigned highX + 1).
 ; dl (unsigned posY).
 ; dh (2bit color).
-; ds (segment of RenderPixelShiftMask320x200x4)
+; ds (data).
 ; es (video ram).
 ;
 ; Clobber: ax, bx, cx, dx, si, bp.
 renderHorizLine320x200x4 proc
 	; Assert that cx < di??????????
 @@:
-	push cx
-	mov bp,dx
-	RENDER_PIXEL_320x200x4
-	mov dx,bp
-	pop cx
+	mov bp,cx
+	push dx
+	call renderPixel320x200x4
+	pop dx
+	mov cx,bp
 	inc cx
 	cmp cx,di
 	jb short @b
