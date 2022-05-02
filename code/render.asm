@@ -120,8 +120,7 @@ renderHorizLine320x200x4 proc
 	push dx
 	call renderPixel320x200x4
 	pop dx
-	mov cx,bp
-	inc cx
+	lea cx,[bp + 1]
 	cmp cx,di
 	jb short @b
 	ret
