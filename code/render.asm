@@ -21,57 +21,6 @@ local skipOdd
 skipOdd:
 endm
 
-; Input:
-; cx (unsigned posX).
-; dl (unsigned posY).
-; dh (2bit color).
-; ds (data).
-; es (video ram).
-;
-; Clobber: ax, bx, cx, dx, si.
-RENDER_PIXEL_320x200x4 macro
-local notOddRow, error, skipError
-if ASSERT_ENABLED
-    cmp cx,320
-    jae short error
-    cmp dl,200
-    jae short error
-	cmp dh,4
-	jb skipError
-error:
-    ASSERT
-skipError:
-endif
-	xor bx,bx
-	;; Check if posY is even or odd, since even rows go in one bank and odd rows in another.
-	test dl,1
-	jz skipOddRow
-	;; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
-	mov bh,20h
-skipOddRow:
-	;; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
-	mov si,dx
-	and si,0feh
-	or bx,[RenderMultiplyRowBy80Table + si]
-	;; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
-	mov si,cx
-	and si,11b
-	;; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
-	shr cx,1
-	shr cx,1
-	add bx,cx
-	;; Read the byte in video memory where the pixel is and mask it.
-	mov al,es:[bx]
-	shl si,1
-	mov cx,word ptr [RenderPixelShiftMask320x200x4 + si]
-	and al,ch
-	;; Add the new pixel.
-	shl dh,cl
-	or al,dh
-	;; Write the updated byte to video memory.
-	mov es:[bx],al
-endm
-
 allSegments group code, constData, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
@@ -99,8 +48,54 @@ renderInitMultiplyRowBy80Table proc
 	ret
 renderInitMultiplyRowBy80Table endp
 
+; Input:
+; cx (unsigned posX).
+; dl (unsigned posY).
+; dh (2bit color).
+; ds (data).
+; es (video ram).
+;
+; Clobber: ax, bx, cx, dx, si.
 renderPixel320x200x4 proc
-	RENDER_PIXEL_320x200x4
+if ASSERT_ENABLED
+    cmp cx,320
+    jae short error
+    cmp dl,200
+    jae short error
+	cmp dh,4
+	jb skipError
+error:
+    ASSERT
+skipError:
+endif
+	xor bx,bx
+	; Check if posY is even or odd, since even rows go in one bank and odd rows in another.
+	test dl,1
+	jz skipOddRow
+	; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
+	mov bh,20h
+skipOddRow:
+	; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
+	mov si,dx
+	and si,0feh
+	or bx,[RenderMultiplyRowBy80Table + si]
+	; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
+	mov si,cx
+	and si,11b
+	; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
+	shr cx,1
+	shr cx,1
+	add bx,cx
+	; Read the byte in video memory where the pixel is and mask it.
+	mov al,es:[bx]
+	shl si,1
+	mov cx,word ptr [RenderPixelShiftMask320x200x4 + si]
+	and al,ch
+	; Add the new pixel.
+	shl dh,cl
+	or al,dh
+	; Write the updated byte to video memory.
+	mov es:[bx],al
 	ret
 renderPixel320x200x4 endp
 
