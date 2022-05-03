@@ -109,7 +109,12 @@ renderPixel320x200x4 endp
 ;
 ; Clobber: ax, bx, cx, dx, si, bp.
 renderHorizLine320x200x4 proc
-	; Assert that cx < di??????????
+if ASSERT_ENABLED	
+	cmp cx,di
+	jb @f
+	ASSERT
+@@:
+endif
 @@:
 	mov bp,cx
 	push dx
