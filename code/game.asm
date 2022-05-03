@@ -70,7 +70,7 @@ local skip, skipNotValid
 	jne short skipNotValid
 	GAME_QUIT ERROR_CODE_VIDEO
 skipNotValid:
-	; Save and set current video mode.
+	;; Save and set current video mode.
 	mov [GamePrevVideoMode],al
 	VIDEO_SET_VIDEO_MODE
 	inc [GameVideoAlreadyInitalized]
@@ -80,7 +80,7 @@ endm
 VIDEO_STOP macro
 	cmp [GameVideoAlreadyInitalized],1
 	jne short @f
-	; Restore previous video mode.
+	;; Restore previous video mode.
 	mov al,[GamePrevVideoMode]
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
