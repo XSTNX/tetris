@@ -17,6 +17,7 @@ test4Init proc
 test4Init endp
 
 test4InitRender proc
+    ; Text.
     mov ax,000ah
     call consolePrintWordHex
 	mov al,"-"
@@ -27,6 +28,26 @@ test4InitRender proc
 	call consolePrintChar
     mov ax,00cf0h
     call consolePrintWordHex
+
+    ; Pixel.
+    ; LowX.
+    mov cx,319
+    ; PosY, Color.
+    mov dx,(1 * 256) + 198
+    call renderPixel320x200x4
+
+    ; Line.
+    ; LowX.
+    mov cx,0
+    ; HighX + 1.
+    mov di,320
+    ; PosY, Color.
+    mov dx,(2 * 256) + 199
+    call renderHorizLine320x200x4
+
+    ; Box.
+    ;call renderBox320x200x4
+
     ret
 test4InitRender endp
 
@@ -35,13 +56,6 @@ test4Update proc
 test4Update endp
 
 test4Render proc
-    ; LowX.
-    mov cx,0
-    ; HighX + 1.
-    mov di,320
-    ; PosY, Color.
-    mov dx,(2 * 256) + 199
-    call renderHorizLine320x200x4
     ret
 test4Render endp
 
