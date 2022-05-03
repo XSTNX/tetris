@@ -12,16 +12,15 @@ extern assert:proc
 endif
 endif
 
-ASSERT macro
+ASSERT macro errorCode
 if ASSERT_ENABLED
-	ASSERT_WITH_ERROR_ARG ERROR_CODE_ASSERT
-endif
-endm
-
-; Validate if errorCode is already in al??????
-ASSERT_WITH_ERROR_ARG macro errorCode:req
-if ASSERT_ENABLED
+ifnb <errorCode>
+ifdifi <errorCode>,<al>
 	mov al,errorCode
+endif
+else
+	mov al,ERROR_CODE_ASSERT
+endif
 	call assert
 endif
 endm
