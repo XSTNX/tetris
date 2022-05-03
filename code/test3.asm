@@ -17,28 +17,26 @@ test3Init proc
 test3Init endp
 
 test3InitRender proc
-    ; ax (line count)
-    ; cx (unsigned left limit).
-    ; bx (unsigned right limit + 1).
+    ; ax (line count).
+    ; cx (unsigned lowX).
+    ; di (unsigned highX + 1).
     ; dl (unsigned posY).
-    ; dh (color).
+    ; dh (2bit color).
     mov ax,200
-    xor cx,cx
-    mov bx,320
-    xor dx,dx
-lineLoop:
+    mov di,320
+    xor dx,dx   
+@@:
     push ax
-    push bx
-    push cx
+    xor cx,cx
+    push dx
     call renderHorizLine320x200x4
     ; Increment posY and color.
+    pop dx
     add dx,101h
     and dh,11b
-    pop cx
-    pop bx
     pop ax
     dec ax
-    jne short lineLoop
+    jne short @b
     ; Text.
 	mov si,offset allSegments:tmpText
 	call consolePrintString
