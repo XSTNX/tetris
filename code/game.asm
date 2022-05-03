@@ -68,7 +68,7 @@ local skip, skipNotValid
 	;; Check if video mode is valid.
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
 	jne short skipNotValid
-	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_VIDEO
+	GAME_QUIT ERROR_CODE_VIDEO
 skipNotValid:
 	; Save and set current video mode.
 	mov [GamePrevVideoMode],al
@@ -86,10 +86,6 @@ VIDEO_STOP macro
 	int BIOS_VIDEO_INT
 	dec [GameVideoAlreadyInitalized]
 @@:
-endm
-
-GAME_QUIT macro
-	GAME_QUIT_WITH_ERROR_ARG ERROR_CODE_NONE
 endm
 
 allSegments group code, constData, data
@@ -141,12 +137,12 @@ else
 endif
 	jnz short gameLoop
 	
-	GAME_QUIT
+	GAME_QUIT ERROR_CODE_NONE
 gameMain endp
 
 ; Input: al (error code).
 ; Output: does not return.
-gameQuitWithErrorArg proc
+gameQuit proc
 if CONSOLE_ENABLED
 	; Save error code.
 	push ax
@@ -168,7 +164,7 @@ if CONSOLE_ENABLED
 @@:
 endif
 	DOS_QUIT_COM
-gameQuitWithErrorArg endp
+gameQuit endp
 
 if CONSOLE_ENABLED
 readCurrentCursorPosAndSetConsoleCursorPos proc private
@@ -244,7 +240,7 @@ nextKey:
 	call consoleNextLine
 	jmp short nextKey
 quit:
-	GAME_QUIT
+	GAME_QUIT ERROR_CODE_NONE
 
 strStart:
 	db "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
@@ -271,7 +267,7 @@ printFlags:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_KEY
 	int BIOS_KEYBOARD_INT
 
-	GAME_QUIT
+	GAME_QUIT ERROR_CODE_NONE
 testKeyboardFlags endp
 
 testDOSVersion proc private
@@ -304,7 +300,7 @@ testDOSVersion proc private
 	mov dl,dh
 	call consolePrintByteHex
 
-	GAME_QUIT
+	GAME_QUIT ERROR_CODE_NONE
 strVer:
 	db "Ver: ", 0
 strDOSType:

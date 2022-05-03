@@ -1,9 +1,10 @@
 ifndef GAME_NO_EXTERNS
-extern gameQuitWithErrorArg:proc
+extern gameQuit:proc
 endif
 
-; Validate if errorCode is already in al??????
-GAME_QUIT_WITH_ERROR_ARG macro errorCode:req
+GAME_QUIT macro errorCode:req
+ifdifi <errorCode>,<al>
 	mov al,errorCode
-	call gameQuitWithErrorArg
+endif
+	call gameQuit
 endm

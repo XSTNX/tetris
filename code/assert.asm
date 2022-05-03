@@ -13,8 +13,9 @@ code segment readonly public
 ; Code public ;
 ; ------------;
 
+; Input: al (error code).
 assert proc
-    GAME_QUIT_WITH_ERROR_ARG al
+    GAME_QUIT al
 assert endp
 
 ; -------------;
