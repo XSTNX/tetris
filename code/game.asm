@@ -163,7 +163,7 @@ if CONSOLE_ENABLED
 	push ax
 	mov si,offset allSegments:ErrorStr
 	call consolePrintString
-	pop dx
+	pop ax
 	call consolePrintByteHex
 @@:
 endif
