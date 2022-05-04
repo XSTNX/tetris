@@ -58,12 +58,12 @@ renderInitMultiplyRowBy80Table endp
 ; Clobber: ax, bx, cx, dx, si.
 renderPixel320x200x4 proc
 if ASSERT_ENABLED
-    cmp cx,320
+    cmp cx,BIOS_VIDEO_MODE_320_200_4_WIDTH
     jae short error
-    cmp dl,200
+    cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
     jae short error
-	cmp dh,4
-	jb skipError
+	cmp dh,BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
+	jb short skipError
 error:
     ASSERT
 skipError:
@@ -107,11 +107,11 @@ renderPixel320x200x4 endp
 ; ds (data).
 ; es (video ram).
 ;
-; Clobber: ax, bx, cx, dx, si, bp.
+; Clobber: ax, bx, cx, si, bp.
 renderHorizLine320x200x4 proc
 if ASSERT_ENABLED	
 	cmp cx,di
-	jb @f
+	jb short @f
 	ASSERT
 @@:
 endif
@@ -127,36 +127,32 @@ endif
 renderHorizLine320x200x4 endp
 
 ; Input:
-;	cx (unsigned left limit).
-;	bx (unsigned right limit + 1).
-;	dl (unsigned top limit).
-;	dh (unsigned bottom limit + 1).
-;	al (2bit color).
-; Note:
-; 	Will render garbage if cx or bx is outside the limits of the video mode.
-; 	Can only handle either dl or dh being outside the limits of the video mode, if both are it will render garbage.
+; cx (unsigned lowX).
+; di (unsigned highX + 1).
+; dl (unsigned posY).
+; bl (unsigned posY + 1).
+; dh (2bit color).
+; ds (data).
+; es (video ram).
+;
+; Clobber: ax, si, bp.
 renderBox320x200x4 proc
-	cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-	jb skipLimitTop
-	xor dl,dl
-skipLimitTop:
-	cmp dh,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-	jb skipLimitBottom
-	mov dh,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-skipLimitBottom:
-
-nextLine:
-	push ax
+if ASSERT_ENABLED	
+	cmp dl,bl
+	jb short @f
+	ASSERT
+@@:
+endif
+	push bx
 	push cx
 	push dx
-	mov dh,al
 	call renderHorizLine320x200x4
 	pop dx
 	pop cx
-	pop ax
+	pop bx
 	inc dl
-	cmp dl,dh
-	jne short nextLine
+	cmp dl,bl
+	jb short @b
 	ret
 renderBox320x200x4 endp
 

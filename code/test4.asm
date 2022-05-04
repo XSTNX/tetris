@@ -30,23 +30,37 @@ test4InitRender proc
     call consolePrintWordHex
 
     ; Pixel.
-    ; LowX.
-    mov cx,319
+    ; PosX.
+    xor cx,cx
     ; PosY, Color.
-    mov dx,(1 * 256) + 198
+    mov dx,(3 * 256) + 198
+    push dx
+    call renderPixel320x200x4
+    ; PosX.
+    mov cx,BIOS_VIDEO_MODE_320_200_4_WIDTH - 1
+    ; PosY, Color.
+    pop dx
     call renderPixel320x200x4
 
     ; Line.
     ; LowX.
-    mov cx,0
+    xor cx,cx
     ; HighX + 1.
-    mov di,320
+    mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
     ; PosY, Color.
     mov dx,(2 * 256) + 199
     call renderHorizLine320x200x4
 
     ; Box.
-    ;call renderBox320x200x4
+    ; LowX.
+    xor cx,cx
+    ; HighX + 1.
+    mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
+    ; PosY, Color.
+    mov dx,(1 * 256) + 8
+    ; PosY + 1.
+    mov bl,16
+    call renderBox320x200x4
 
     ret
 test4InitRender endp
