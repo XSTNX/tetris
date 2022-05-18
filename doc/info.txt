@@ -64,6 +64,8 @@ GAME
 - testKeyboardScancode had branches commented because the console macros are too long, revert change when they are changed to procedures.
 - PrintChar doesn't scroll text anymore when reaching the bottom, since we don't use DOS now.
 - SetCursorPos doesn't take int account that in text mode the are twice as many columns.
+- It would be better for the drawing functions like line and rect that the low coordinate is stored in a register that can be used with lea, so it's faster to compute the high.
+- Modify CONSOLE_SET_CURSOR_POS so it does xor dx,dx when col and row are zero.
 
 VISUAL STUDIO CODE
 ------------------

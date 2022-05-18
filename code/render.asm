@@ -129,14 +129,14 @@ renderHorizLine320x200x4 endp
 ; Input:
 ; cx (unsigned lowX).
 ; di (unsigned highX + 1).
-; dl (unsigned posY).
-; bl (unsigned posY + 1).
+; dl (unsigned lowY).
+; bl (unsigned highY + 1).
 ; dh (2bit color).
 ; ds (data).
 ; es (video ram).
 ;
 ; Clobber: ax, si, bp.
-renderBox320x200x4 proc
+renderRect320x200x4 proc
 if ASSERT_ENABLED	
 	cmp dl,bl
 	jb short @f
@@ -154,7 +154,7 @@ endif
 	cmp dl,bl
 	jb short @b
 	ret
-renderBox320x200x4 endp
+renderRect320x200x4 endp
 
 ; Input.
 ;	cx: posXLow (unsigned word).

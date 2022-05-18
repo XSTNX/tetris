@@ -33,7 +33,7 @@ test4InitRender proc
     ; PosX.
     xor cx,cx
     ; PosY, Color.
-    mov dx,(3 * 256) + 198
+    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - 2) + (3 * 256)
     push dx
     call renderPixel320x200x4
     ; PosX.
@@ -48,7 +48,7 @@ test4InitRender proc
     ; HighX + 1.
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
     ; PosY, Color.
-    mov dx,(2 * 256) + 199
+    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - 1) + (2 * 256)
     call renderHorizLine320x200x4
 
     ; Box.
@@ -56,11 +56,11 @@ test4InitRender proc
     xor cx,cx
     ; HighX + 1.
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    ; PosY, Color.
-    mov dx,(1 * 256) + 8
-    ; PosY + 1.
+    ; LowY, Color.
+    mov dx,8 + (1 * 256)
+    ; HighY + 1.
     mov bl,16
-    call renderBox320x200x4
+    call renderRect320x200x4
 
     ret
 test4InitRender endp

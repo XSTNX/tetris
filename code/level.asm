@@ -24,12 +24,11 @@ levelUpdate proc
 levelUpdate endp
 
 levelInitRender proc
-	mov cx,0
-	mov bx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-	mov dl,196
-	mov dh,2
+	xor cx,cx
+	mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
+	mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - 4) + (2 * 256)
 	call renderHorizLine320x200x4
-	call playerInitRender
+	call playerRender
 	ret
 levelInitRender endp
 

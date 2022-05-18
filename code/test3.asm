@@ -22,8 +22,8 @@ test3InitRender proc
     ; di (unsigned highX + 1).
     ; dl (unsigned posY).
     ; dh (2bit color).
-    mov ax,200
-    mov di,320
+    mov ax,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+    mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
     xor dx,dx   
 @@:
     push ax

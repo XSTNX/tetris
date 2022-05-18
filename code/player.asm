@@ -70,6 +70,7 @@ playerInit proc
 if PLAYER_AUTO_MOVE
 	mov [PlayerAutoMoveDir],1
 endif
+	ret
 playerInit endp
 
 playerUpdate proc
@@ -211,10 +212,6 @@ skipShot:
 	ret
 playerUpdate endp
 
-playerInitRender proc
-	call playerRender
-playerInitRender endp
-
 playerRender proc
 	; Clear deleted sprites.
 	mov cx,[PlayerRenderDeleteCount]
@@ -230,7 +227,7 @@ loopDelete:
 	mov dh,dl
 	add dh,byte ptr [PlayerRenderDeleteHeight + di]
 	mov al,0
-	call renderBox320x200x4
+	call renderRect320x200x4
 
 	inc di
 	inc di
@@ -278,7 +275,7 @@ else
 	mov dh,dl
 	add dh,PLAYER_SHOT_HEIGHT
 	mov al,0
-	call renderBox320x200x4
+	call renderRect320x200x4
 	
 	; Draw current shot.
 	mov cx,[PlayerShotPosX + di]
@@ -290,7 +287,7 @@ else
 	mov dh,dl
 	add dh,PLAYER_SHOT_HEIGHT
 	mov al,1
-	call renderBox320x200x4
+	call renderRect320x200x4
 endif
 
 	inc di

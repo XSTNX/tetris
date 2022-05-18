@@ -108,8 +108,8 @@ endif
 
 	; Start the game directly on the level for now.
 	;GAME_SET_LEVEL_GAME_STATE
-	;GAME_SET_TEST_GAME_STATE
-	GAME_SET_TEST2_GAME_STATE
+	GAME_SET_TEST_GAME_STATE
+	;GAME_SET_TEST2_GAME_STATE
 	;GAME_SET_TEST3_GAME_STATE
 	;GAME_SET_TEST4_GAME_STATE
 
@@ -119,6 +119,7 @@ endif
 	mov es,ax
 	WAIT_VSYNC
 	call [GameStateInitRenderProc]
+	call [GameStateRenderProc]
 gameLoop:
 	call [GameStateUpdateProc]
 	call testPaletteChange
