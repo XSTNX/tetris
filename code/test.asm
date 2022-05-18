@@ -60,7 +60,7 @@ testUpdate proc
     mov [TestPrevPosY],ah
     add ax,TEST_BOX_SPEEDY_PACKED
     cmp ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-    jb @f
+    jb short @f
     sub ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 @@:
     mov [TestPosYPacked],ax
