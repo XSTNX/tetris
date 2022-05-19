@@ -84,7 +84,7 @@ http://qzx.com/pc-gpe/ or http://bespin.org/~qz/pc-gpe/
 https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
 http://www.verycomputer.com/viewlist_12_873.htm (msdos programming forum)
 https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
-https://www.osforensics.com/tools/mount-disk-images.html (OSFMount, program to create DOS floppy disk images)
+https://www.osforensics.com/tools/mount-disk-images.html (OSFMount, program to open the DOS floppy disk images that you can save in www.pcjs.org)
 
 GAMES
 -----
