@@ -359,20 +359,20 @@ playerDebugPrintKeyboard endp
 
 playerDebugPrintPlayer proc private
 	CONSOLE_SET_CURSOR_POS 0, 1
-	mov dx,[PlayerPosX]
+	mov ax,[PlayerPosX]
 	call consolePrintWord
 	CONSOLE_SET_CURSOR_POS 6, 1
-	mov dl,[PlayerPosXByteFraction]
+	mov al,[PlayerPosXByteFraction]
 	call consolePrintByteHex
 	ret
 playerDebugPrintPlayer endp
 
 playerDebugPrintShot proc private
 	CONSOLE_SET_CURSOR_POS 0, 2
-	mov dl,byte ptr [PlayerShotCount]
+	mov al,byte ptr [PlayerShotCount]
 	call consolePrintByte
 	CONSOLE_SET_CURSOR_POS 4, 2
-	mov dl,[PlayerShotCooldown]
+	mov al,[PlayerShotCooldown]
 	call consolePrintByte
 	ret
 playerDebugPrintShot endp
