@@ -80,6 +80,15 @@ testRender proc
 	mov bl,dl
     add bl,TEST_BOX_SIDE
     mov dh,1
+    ; Keep lowY and highY within screen bounds.
+    cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+    jb short @f
+    xor dl,dl
+@@:
+    cmp bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT + 1
+    jb short @f
+    mov bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+@@:
 	call renderRect320x200x4
 
     ; Draw current box.
@@ -89,12 +98,21 @@ testRender proc
 	sub dl,TEST_BOX_HALF_SIDE
 	mov bl,dl
     add bl,TEST_BOX_SIDE
+    mov dh,3
+    ; Keep lowY and highY within screen bounds.
+    cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+    jb short @f
+    xor dl,dl
+@@:
+    cmp bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT + 1
+    jb short @f
+    mov bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+@@:
 ifdef DEBUG
     ; Save highY and lowY, in that order, to print them later.
     push bx
     push dx
 endif
-    mov dh,3
     call renderRect320x200x4
 
 if CONSOLE_ENABLED
