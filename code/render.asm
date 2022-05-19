@@ -137,7 +137,7 @@ renderHorizLine320x200x4 endp
 ;
 ; Clobber: ax, si, bp.
 renderRect320x200x4 proc
-if ASSERT_ENABLED	
+if ASSERT_ENABLED
 	cmp dl,bl
 	jb short @f
 	ASSERT
