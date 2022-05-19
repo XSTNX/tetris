@@ -38,11 +38,15 @@ test3InitRender proc
     dec ax
     jne short @b
     ; Text.
+if CONSOLE_ENABLED
 	mov si,offset allSegments:tmpText
 	call consolePrintString
+endif
     ret
+if CONSOLE_ENABLED    
 tmpText:
 	db "Es la guitarra de Lolo!", 0
+endif    
 test3InitRender endp
 
 test3Update proc
@@ -50,8 +54,10 @@ test3Update proc
 test3Update endp
 
 test3Render proc
+if CONSOLE_ENABLED
 	mov al,"X"
 	call consolePrintChar
+endif    
     ret
 test3Render endp
 

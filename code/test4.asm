@@ -18,6 +18,7 @@ test4Init endp
 
 test4InitRender proc
     ; Text.
+if CONSOLE_ENABLED    
     mov ax,000ah
     call consolePrintWordHex
 	mov al,"-"
@@ -28,6 +29,7 @@ test4InitRender proc
 	call consolePrintChar
     mov ax,00cf0h
     call consolePrintWordHex
+endif    
 
     ; Pixel.
     ; PosX.

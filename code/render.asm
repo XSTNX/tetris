@@ -141,8 +141,8 @@ if ASSERT_ENABLED
 	cmp dl,bl
 	jb short @f
 	ASSERT
-@@:
 endif
+@@:
 	push bx
 	push cx
 	push dx
