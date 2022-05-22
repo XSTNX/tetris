@@ -159,7 +159,7 @@ renderRect320x200x4 endp
 ; Input.
 ;	cx: posXLow (unsigned word).
 ;	dl: posYLow (unsigned byte).
-renderEraseSprite8x8 proc
+renderEmptyTile8x8 proc
 	; Compute addr in video memory to erase.
 	computeVideoAddr320x200x4
 
@@ -180,13 +180,13 @@ renderLineOdd:
 	loop renderLineOdd
 
 	ret
-renderEraseSprite8x8 endp
+renderEmptyTile8x8 endp
 
 ; Input.
 ;	cx: posXLow (unsigned word).
 ;	dl: posYLow (unsigned byte).
 ;	si: bitmap (near ptr).
-renderSprite8x8 proc
+renderTile8x8 proc
 	; Compute addr in video memory to copy the bitmap to.
 	computeVideoAddr320x200x4
 
@@ -212,7 +212,7 @@ renderLineOdd:
 	loop renderLineOdd
 
 	ret
-renderSprite8x8 endp
+renderTile8x8 endp
 
 ; -------------;
 ; Code private ;

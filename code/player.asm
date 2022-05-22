@@ -10,7 +10,7 @@ PLAYER_AUTO_MOVE                equ 0
 else
 PLAYER_AUTO_MOVE                equ 1
 endif
-PLAYER_USE_SPRITES              equ 1
+PLAYER_USE_TILES				equ 1
 
 ; Constants.
 PLAYER_WIDTH                    equ 8
@@ -241,57 +241,62 @@ loopDeleteDone:
 	; Render shots.
 	mov cx,[PlayerShotCount]
 	jcxz short loopShotDone
-	xor di,di
+	xor bx,bx
 loopShot:
 	push cx
 
-;if PLAYER_USE_SPRITES
-if 0
+if 0;PLAYER_USE_TILES
 	mov bp,di
 	; Erase previous shot.
-	mov cx,[PlayerShotPosX + di]
+	mov cx,[PlayerShotPosX + bx]
 	sub cx,4
-	mov dl,byte ptr [PlayerShotPrevPosY + di]
+	mov dl,byte ptr [PlayerShotPrevPosY + bx]
 	sub dl,4
-	call renderEraseSprite8x8
+	call renderEmptyTile8x8
 
 	mov di,bp
 	; Draw current shot.
-	mov cx,[PlayerShotPosX + di]
+	mov cx,[PlayerShotPosX + bx]
 	sub cx,4
-	mov dl,byte ptr [(PlayerShotPosYPacked + 1) + di]
+	mov dl,byte ptr [(PlayerShotPosYPacked + 1) + bx]
 	sub dl,4
 	mov si,offset PlayerShotGfx0
-	call renderSprite8x8
+	call renderTile8x8
 	mov di,bp
 else
+	push bx
+
 	; Erase previous shot.
-	mov cx,[PlayerShotPosX + di]
+	mov cx,[PlayerShotPosX + bx]
 	sub cx,PLAYER_SHOT_HALF_WIDTH
-	mov bx,cx
-	add bx,PLAYER_SHOT_WIDTH
-	mov dl,byte ptr [PlayerShotPrevPosY + di]
+	mov di,cx
+	add di,PLAYER_SHOT_WIDTH
+	mov dl,byte ptr [PlayerShotPrevPosY + bx]
 	sub dl,PLAYER_SHOT_HALF_HEIGHT
-	mov dh,dl
-	add dh,PLAYER_SHOT_HEIGHT
-	mov al,0
+	mov bl,dl
+	add bl,PLAYER_SHOT_HEIGHT
+	xor dh,dh
 	call renderRect320x200x4
 	
+	pop bx
+	push bx
 	; Draw current shot.
-	mov cx,[PlayerShotPosX + di]
+	mov cx,[PlayerShotPosX + bx]
 	sub cx,PLAYER_SHOT_HALF_WIDTH
-	mov bx,cx
-	add bx,PLAYER_SHOT_WIDTH
-	mov dl,byte ptr [(PlayerShotPosYPacked + 1) + di]
+	mov di,cx
+	add di,PLAYER_SHOT_WIDTH
+	mov dl,byte ptr [(PlayerShotPosYPacked + 1) + bx]
 	sub dl,PLAYER_SHOT_HALF_HEIGHT
-	mov dh,dl
-	add dh,PLAYER_SHOT_HEIGHT
-	mov al,1
+	mov bl,dl
+	add bl,PLAYER_SHOT_HEIGHT
+	mov dh,1
 	call renderRect320x200x4
+
+	pop bx
 endif
 
-	inc di
-	inc di
+	inc bx
+	inc bx
 	pop cx
 	loop loopShot
 loopShotDone:
@@ -300,7 +305,7 @@ loopShotDone:
 	mov cx,[PlayerPrevPosX]
 	sub cx,PLAYER_HALF_WIDTH
 	mov dl,PLAYER_POSY_LOW
-	call renderEraseSprite8x8
+	call renderEmptyTile8x8
 
 	; Draw current player.
 	mov cx,[PlayerPosX]
@@ -311,7 +316,7 @@ loopShotDone:
 	and si,11b
 	shl si,1
 	mov si,[si+offset allSegments:PlayerGfx]
-	call renderSprite8x8
+	call renderTile8x8
 
 if CONSOLE_ENABLED
 	call playerDebugPrintKeyboard
