@@ -276,6 +276,11 @@ else
 	mov bl,dl
 	add bl,PLAYER_SHOT_HEIGHT
 	xor dh,dh
+    ; Keep lowY within screen bounds.
+    cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+    jb short @f
+    xor dl,dl
+@@:
 	call renderRect320x200x4
 	
 	pop bx
@@ -290,6 +295,11 @@ else
 	mov bl,dl
 	add bl,PLAYER_SHOT_HEIGHT
 	mov dh,1
+    ; Keep lowY within screen bounds.
+    cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
+    jb short @f
+    xor dl,dl
+@@:	
 	call renderRect320x200x4
 
 	pop bx
