@@ -180,6 +180,7 @@ done:
 consolePrintString endp
 
 ; Input: dl (unsigned col), dh (unsigned row).
+; Clobber: ah, bh.
 consoleSetCursorColRow proc
 if ASSERT_ENABLED
     cmp dl,CONSOLE_COLS

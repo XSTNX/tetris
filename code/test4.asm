@@ -17,20 +17,6 @@ test4Init proc
 test4Init endp
 
 test4InitRender proc
-    ; Text.
-if CONSOLE_ENABLED
-    mov ax,000ah
-    call consolePrintWordHex
-	mov al,"-"
-	call consolePrintChar
-    mov ax,00e9h
-    call consolePrintWordHex
-	mov al,"-"
-	call consolePrintChar
-    mov ax,00cf0h
-    call consolePrintWordHex
-endif    
-
     ; Pixel.
     ; PosX.
     xor cx,cx
@@ -72,6 +58,18 @@ test4Update proc
 test4Update endp
 
 test4Render proc
+if CONSOLE_ENABLED
+    CONSOLE_SET_CURSOR_COL_ROW 0, 0
+    xor ah,ah
+    int 1ah
+    mov bx,dx
+    mov ax,cx
+    call consolePrintWordHex
+    mov al,":"
+    call consolePrintChar
+    mov ax,bx
+    call consolePrintWordHex
+endif
     ret
 test4Render endp
 
