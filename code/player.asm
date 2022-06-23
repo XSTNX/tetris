@@ -345,7 +345,7 @@ if CONSOLE_ENABLED
 
 playerDebugPrintKeyboard proc private
 	; Left.
-	CONSOLE_SET_CURSOR_POS 0, 0
+	CONSOLE_SET_CURSOR_COL_ROW 0, 0
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
 	mov al,"0"
 	jnz short @f
@@ -373,20 +373,20 @@ playerDebugPrintKeyboard proc private
 playerDebugPrintKeyboard endp
 
 playerDebugPrintPlayer proc private
-	CONSOLE_SET_CURSOR_POS 0, 1
+	CONSOLE_SET_CURSOR_COL_ROW 0, 1
 	mov ax,[PlayerPosX]
 	call consolePrintWord
-	CONSOLE_SET_CURSOR_POS 6, 1
+	CONSOLE_SET_CURSOR_COL_ROW 6, 1
 	mov al,[PlayerPosXByteFraction]
 	call consolePrintByteHex
 	ret
 playerDebugPrintPlayer endp
 
 playerDebugPrintShot proc private
-	CONSOLE_SET_CURSOR_POS 0, 2
+	CONSOLE_SET_CURSOR_COL_ROW 0, 2
 	mov al,byte ptr [PlayerShotCount]
 	call consolePrintByte
-	CONSOLE_SET_CURSOR_POS 4, 2
+	CONSOLE_SET_CURSOR_COL_ROW 4, 2
 	mov al,[PlayerShotCooldown]
 	call consolePrintByte
 	ret

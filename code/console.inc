@@ -10,16 +10,15 @@ include code\ascii.inc
 
 ifndef CONSOLE_NO_EXTERNS
 extern consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
-extern consolePrintChar:proc, consolePrintString:proc, consoleSetCursorPos:proc, consoleNextLine:proc
-extern ConsoleCursorColRow:word
+extern consolePrintChar:proc, consolePrintString:proc, consoleSetCursorColRow:proc, consoleNextLine:proc
 endif
 
 endif
 
-; Input: aCol (X coord - unsigned byte), aRow (Y coord - unsigned byte).
-CONSOLE_SET_CURSOR_POS macro aCol:req, aRow:req
+; Input: aCol (unsigned byte), aRow (unsigned byte).
+CONSOLE_SET_CURSOR_COL_ROW macro aCol:req, aRow:req
 if CONSOLE_ENABLED
     mov dx,aCol + (aRow * 256)
-    call consoleSetCursorPos
+    call consoleSetCursorColRow
 endif
 endm

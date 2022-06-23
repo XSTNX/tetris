@@ -12,38 +12,43 @@ include code\test3.inc
 include code\test4.inc
 
 GAME_SET_LEVEL_GAME_STATE macro
-	mov [GameStateInitProc],offset allSegments:levelInit
-	mov [GameStateInitRenderProc],offset allSegments:levelInitRender
-	mov [GameStateUpdateProc],offset allSegments:levelUpdate
-	mov [GameStateRenderProc],offset allSegments:levelRender
+	mov ax,offset allSegments:levelInit
+	mov bx,offset allSegments:levelInitRender
+	mov cx,offset allSegments:levelUpdate
+	mov dx,offset allSegments:levelRender
+	call gameSetState
 endm
 
 GAME_SET_TEST_GAME_STATE macro
-	mov [GameStateInitProc],offset allSegments:testInit
-	mov [GameStateInitRenderProc],offset allSegments:testInitRender
-	mov [GameStateUpdateProc],offset allSegments:testUpdate
-	mov [GameStateRenderProc],offset allSegments:testRender
+	mov ax,offset allSegments:testInit
+	mov bx,offset allSegments:testInitRender
+	mov cx,offset allSegments:testUpdate
+	mov dx,offset allSegments:testRender
+	call gameSetState
 endm
 
 GAME_SET_TEST2_GAME_STATE macro
-	mov [GameStateInitProc],offset allSegments:test2Init
-	mov [GameStateInitRenderProc],offset allSegments:test2InitRender
-	mov [GameStateUpdateProc],offset allSegments:test2Update
-	mov [GameStateRenderProc],offset allSegments:test2Render
+	mov ax,offset allSegments:test2Init
+	mov bx,offset allSegments:test2InitRender
+	mov cx,offset allSegments:test2Update
+	mov dx,offset allSegments:test2Render
+	call gameSetState
 endm
 
 GAME_SET_TEST3_GAME_STATE macro
-	mov [GameStateInitProc],offset allSegments:test3Init
-	mov [GameStateInitRenderProc],offset allSegments:test3InitRender
-	mov [GameStateUpdateProc],offset allSegments:test3Update
-	mov [GameStateRenderProc],offset allSegments:test3Render
+	mov ax,offset allSegments:test3Init
+	mov bx,offset allSegments:test3InitRender
+	mov cx,offset allSegments:test3Update
+	mov dx,offset allSegments:test3Render
+	call gameSetState
 endm
 
 GAME_SET_TEST4_GAME_STATE macro
-	mov [GameStateInitProc],offset allSegments:test4Init
-	mov [GameStateInitRenderProc],offset allSegments:test4InitRender
-	mov [GameStateUpdateProc],offset allSegments:test4Update
-	mov [GameStateRenderProc],offset allSegments:test4Render
+	mov ax,offset allSegments:test4Init
+	mov bx,offset allSegments:test4InitRender
+	mov cx,offset allSegments:test4Update
+	mov dx,offset allSegments:test4Render
+	call gameSetState
 endm
 
 VIDEO_SET_VIDEO_MODE macro
@@ -54,7 +59,7 @@ VIDEO_SET_VIDEO_MODE macro
 	RENDER_SET_PALETTE_320x200x4 0
 if CONSOLE_ENABLED
 	; Set console cursor pos.
-	call readCurrentCursorPosAndSetConsoleCursorPos
+	call readCurrentCursorPosAndSetConsoleCursorColRow
 endif
 endm
 
@@ -99,7 +104,7 @@ gameMain proc private
 	cld
 if CONSOLE_ENABLED
 	; Make sure console can print on the right place even before setting the video mode.
-	call readCurrentCursorPosAndSetConsoleCursorPos
+	call readCurrentCursorPosAndSetConsoleCursorColRow
 endif
 	; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
 	call renderInitMultiplyRowBy80Table
@@ -167,13 +172,22 @@ endif
 	DOS_QUIT_COM
 gameQuit endp
 
+gameSetState proc private
+	mov [GameStateInitProc],ax
+	mov [GameStateInitRenderProc],bx
+	mov [GameStateUpdateProc],cx
+	mov [GameStateRenderProc],dx
+	CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	ret
+gameSetState endp
+
 if CONSOLE_ENABLED
-readCurrentCursorPosAndSetConsoleCursorPos proc private
+readCurrentCursorPosAndSetConsoleCursorColRow proc private
 	mov ah,BIOS_VIDEO_FUNC_GET_CURSOR_POS_SIZE
 	int BIOS_VIDEO_INT
-	call consoleSetCursorPos
+	call consoleSetCursorColRow
 	ret
-readCurrentCursorPosAndSetConsoleCursorPos endp
+readCurrentCursorPosAndSetConsoleCursorColRow endp
 endif
 
 ife KEYBOARD_ENABLED

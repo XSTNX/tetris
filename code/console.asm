@@ -126,7 +126,7 @@ consolePrintChar proc
     mov dx,[ConsoleCursorColRow]
     ; Reset col.
     xor dl,dl
-    jmp short updateCursorPos
+    jmp short updateCursorColRow
 @@:
     cmp al,ASCII_LF
     jne short @f
@@ -146,18 +146,18 @@ consolePrintChar proc
     ; Increment col.
     inc dl
     cmp dl,CONSOLE_COLS
-    jb updateCursorPos
+    jb updateCursorColRow
     ; Reset col.
     xor dl,dl
 incrementCursorRow:    
     ; Increment row.
     inc dh
     cmp dh,CONSOLE_ROWS
-    jb updateCursorPos
+    jb updateCursorColRow
     ; Reset row.
     xor dh,dh
-updateCursorPos:
-    call consoleSetCursorPos
+updateCursorColRow:
+    call consoleSetCursorColRow
     pop dx
     pop cx
     pop bx
@@ -179,7 +179,8 @@ done:
 	ret
 consolePrintString endp
 
-consoleSetCursorPos proc
+; Input: dl (unsigned col), dh (unsigned row).
+consoleSetCursorColRow proc
 if ASSERT_ENABLED
     cmp dl,CONSOLE_COLS
     jb @f
@@ -190,13 +191,14 @@ if ASSERT_ENABLED
     ASSERT
 @@:
 endif
+	; Maybe there is a faster way of setting the cursor position than calling an int?
     mov [ConsoleCursorColRow],dx
-    ;; Use page number 0.
+    ; Use page number 0.
     xor bh,bh
     mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     int BIOS_VIDEO_INT
 	ret
-consoleSetCursorPos endp
+consoleSetCursorColRow endp
 
 consoleNextLine proc
     ; Read current cursor pos.
@@ -210,7 +212,7 @@ consoleNextLine proc
     ; Reset row.
     xor dh,dh
 @@:
-	call consoleSetCursorPos
+	call consoleSetCursorColRow
 	ret
 consoleNextLine endp
 
@@ -221,7 +223,6 @@ consoleNextLine endp
 code ends
 
 data segment public
-	public ConsoleCursorColRow
 	ConsoleCursorColRow		label word
 	ConsoleCursorCol		byte ?
 	ConsoleCursorRow		byte ?

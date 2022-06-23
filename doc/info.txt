@@ -51,6 +51,7 @@ IBM PC
 - If the game is run on a computer with an hercules video card would it be detected as an error or not?
 - Is the direction flag reset when a DOS program starts? What would happen when the game is booteable?
 - Do I need to create a stack segment for a com file? Will DOS put the SP at a lower address if there is not enough memory? How does DOS make sure in general there is enough memory to run the game?
+- Maybe there is a faster way of setting the cursor position in consoleSetCursorColRow than calling an int?
 
 GAME
 ----

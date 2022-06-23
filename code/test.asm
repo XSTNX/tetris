@@ -117,7 +117,7 @@ endif
 
 if CONSOLE_ENABLED
     ; Print debug info.
-	CONSOLE_SET_CURSOR_POS 0, 0
+	CONSOLE_SET_CURSOR_COL_ROW 0, 0
     pop ax
 	call consolePrintByte
     mov al,"-"

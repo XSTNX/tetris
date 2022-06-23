@@ -18,7 +18,7 @@ test4Init endp
 
 test4InitRender proc
     ; Text.
-if CONSOLE_ENABLED    
+if CONSOLE_ENABLED
     mov ax,000ah
     call consolePrintWordHex
 	mov al,"-"
