@@ -80,3 +80,9 @@ BIOS_KEYBOARD_FLAGS_RIGHT_SHIFT         equ 001h
 BIOS_KEYBOARD_FLAGS_LEFT_SHIFT          equ 002h
 BIOS_KEYBOARD_FLAGS_CTRL                equ 004h
 BIOS_KEYBOARD_FLAGS_ALT                 equ 008h
+
+; Timer.
+BIOS_TIMER_INT                          equ 01ah
+BIOS_TIMER_INT_ADDR_OFFSET              equ (BIOS_TIMER_INT * 4)
+
+BIOS_TIMER_FUNC_GET_SYSTEM_TIME         equ 000h

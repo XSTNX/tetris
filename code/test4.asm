@@ -5,6 +5,7 @@ include code\assumSeg.inc
 include code\console.inc
 include code\keyboard.inc
 include code\render.inc
+include code\timer.inc
 
 code segment readonly public
 
@@ -60,8 +61,7 @@ test4Update endp
 test4Render proc
 if CONSOLE_ENABLED
     CONSOLE_SET_CURSOR_COL_ROW 0, 0
-    xor ah,ah
-    int 1ah
+    call timerGetTime
     mov bx,dx
     mov ax,cx
     call consolePrintWordHex
