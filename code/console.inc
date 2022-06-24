@@ -16,6 +16,7 @@ endif
 endif
 
 ; Input: aCol (unsigned byte), aRow (unsigned byte).
+; Clobber: ah, bh.
 CONSOLE_SET_CURSOR_COL_ROW macro aCol:req, aRow:req
 if CONSOLE_ENABLED
     mov dx,aCol + (aRow * 256)

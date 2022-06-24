@@ -9,6 +9,10 @@ code segment readonly public
 ; Code public ;
 ; ------------;
 
+; Output:
+; cx:dx (clock ticks since midnight).
+; al (nonzero if midnight passed since time last read).
+; Clobber: ah.
 timerGetTime proc
     mov ah,BIOS_TIMER_FUNC_GET_SYSTEM_TIME
     int BIOS_TIMER_INT
