@@ -51,8 +51,9 @@ test4InitRender proc
     mov bl,16
     call renderRect320x200x4
 
+if CONSOLE_ENABLED
     call timerResetTicks
-
+endif
     ret
 test4InitRender endp
 
