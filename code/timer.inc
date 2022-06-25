@@ -1,3 +1,3 @@
 ifndef TIMER_NO_EXTERNS
-extern timerGetTime:proc
+extern timerGetTicks:proc, timerResetTicks:proc
 endif

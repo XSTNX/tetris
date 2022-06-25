@@ -14,10 +14,6 @@ code segment readonly public
 ; ------------;
 
 test4Init proc
-    call timerGetTime
-    mov [TimerPrevTimeLo],dx
-    mov [TimerPrevTimeHi],cx
-    mov [TimerTicksElapsed],0
     ret
 test4Init endp
 
@@ -55,6 +51,8 @@ test4InitRender proc
     mov bl,16
     call renderRect320x200x4
 
+    call timerResetTicks
+
     ret
 test4InitRender endp
 
@@ -65,16 +63,7 @@ test4Update endp
 test4Render proc
 if CONSOLE_ENABLED
     CONSOLE_SET_CURSOR_COL_ROW 0, 0
-    call timerGetTime
-    mov bx,[TimerPrevTimeLo]
-    mov ax,[TimerPrevTimeHi]
-    mov [TimerPrevTimeLo],dx
-    mov [TimerPrevTimeHi],cx
-    sub dx,bx
-    sbb cx,ax
-    mov ax,[TimerTicksElapsed]
-    add ax,dx
-    mov [TimerTicksElapsed],ax
+    call timerGetTicks
     call consolePrintWordHex
 endif
     ret
@@ -90,10 +79,6 @@ constData segment readonly public
 constData ends
 
 data segment public
-    TimerPrevTime               label dword
-    TimerPrevTimeLo             word ?    
-    TimerPrevTimeHi             word ?
-    TimerTicksElapsed           word ?
 data ends
 
 end
