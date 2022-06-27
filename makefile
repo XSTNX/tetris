@@ -43,7 +43,7 @@ obj\render.obj : code\render.asm code\render.inc code\assert.inc code\bios.inc
 obj\test.obj : code\test.asm code\test.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
 	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
 
-obj\test2.obj : code\test2.asm code\test2.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
+obj\test2.obj : code\test2.asm code\test2.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm
 
 obj\test3.obj : code\test3.asm code\test3.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc

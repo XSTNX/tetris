@@ -22,7 +22,7 @@ timerGetTicks proc
     sbb cx,ax
     mov ax,[TimerTicksElapsed]
     add ax,dx
-    mov [TimerTicksElapsed],ax    
+    mov [TimerTicksElapsed],ax
     ret
 timerGetTicks endp
 
