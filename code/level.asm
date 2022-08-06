@@ -26,7 +26,7 @@ levelUpdate endp
 levelInitRender proc
 	xor cx,cx
 	mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
-	mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - 4) + (2 * 256)
+	mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - 4) or (2 shl 8)
 	call renderHorizLine320x200x4
 	call playerRender
 	ret

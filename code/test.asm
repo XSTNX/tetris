@@ -21,7 +21,7 @@ code segment readonly public
 ; ------------;
 
 testInit proc
-    mov [TestPosYPacked],TEST_BOX_POSY_START * 256
+    mov [TestPosYPacked],TEST_BOX_POSY_START shl 8
 	mov [TestPrevPosY],TEST_BOX_POSY_START
 
     ret
@@ -31,25 +31,25 @@ testInitRender proc
     ; Top rect.
     xor cx,cx
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    mov dx,0 + (2 * 256)
+    mov dx,0 or (2 shl 8)
     mov bl,TEST_BOX_SIDE
 	call renderRect320x200x4
     ; Bottom rect.
     xor cx,cx
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST_BOX_SIDE) + (2 * 256)
+    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST_BOX_SIDE) or (2 shl 8)
     mov bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 	call renderRect320x200x4
-    ; Center rect.
+    ; Vert rect.
     mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST_BOX_HALF_SIDE
     mov di,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST_BOX_HALF_SIDE
-    mov dx,0 + (1 * 256)
+    mov dx,0 or (1 shl 8)
     mov bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 	call renderRect320x200x4
-    ; Center horiz line.
+    ; Horiz line.
 	xor cx,cx
 	mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    mov dx,BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT + (1 * 256)
+    mov dx,BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT or (1 shl 8)
 	call renderHorizLine320x200x4
 
     ret
