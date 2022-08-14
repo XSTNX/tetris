@@ -5,7 +5,7 @@ EXECUTABLE_NAME = invdrs
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
 LINK_OPTIONS = /NOLOGO /TINY
 # Keep game.obj first, since a com file is created.
-OBJ_FILES = obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\timer.obj
+OBJ_FILES = obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\tetris.obj obj\timer.obj
 
 all : bin\$(EXECUTABLE_NAME).com
 
@@ -51,6 +51,9 @@ obj\test3.obj : code\test3.asm code\test3.inc code\assert.inc code\assumSeg.inc 
 
 obj\test4.obj : code\test4.asm code\test4.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
 	ml $(ML_OPTIONS) /Fo"obj\test4.obj" /Fl"obj\test4.lst" code\test4.asm
+
+obj\tetris.obj : code\tetris.asm code\tetris.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
+	ml $(ML_OPTIONS) /Fo"obj\tetris.obj" /Fl"obj\tetris.lst" code\tetris.asm
 
 obj\timer.obj : code\timer.asm code\timer.inc code\assumSeg.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\timer.obj" /Fl"obj\timer.lst" code\timer.asm

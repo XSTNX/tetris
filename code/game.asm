@@ -10,6 +10,7 @@ include code\test.inc
 include code\test2.inc
 include code\test3.inc
 include code\test4.inc
+include code\tetris.inc
 
 GAME_SET_LEVEL_GAME_STATE macro
 	mov ax,offset allSegments:levelInit
@@ -48,6 +49,14 @@ GAME_SET_TEST4_GAME_STATE macro
 	mov bx,offset allSegments:test4InitRender
 	mov cx,offset allSegments:test4Update
 	mov dx,offset allSegments:test4Render
+	call gameSetState
+endm
+
+GAME_SET_TETRIS_GAME_STATE macro
+	mov ax,offset allSegments:tetrisInit
+	mov bx,offset allSegments:tetrisInitRender
+	mov cx,offset allSegments:tetrisUpdate
+	mov dx,offset allSegments:tetrisRender
 	call gameSetState
 endm
 
@@ -113,10 +122,11 @@ endif
 
 	; Start the game directly on the level for now.
 	;GAME_SET_LEVEL_GAME_STATE
-	GAME_SET_TEST_GAME_STATE
+	;GAME_SET_TEST_GAME_STATE
 	;GAME_SET_TEST2_GAME_STATE
 	;GAME_SET_TEST3_GAME_STATE
 	;GAME_SET_TEST4_GAME_STATE
+	GAME_SET_TETRIS_GAME_STATE
 
 	call [GameStateInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
