@@ -127,6 +127,35 @@ endif
 renderHorizLine320x200x4 endp
 
 ; Input:
+; cx (unsigned posX).
+; dl (unsigned lowY).
+; bl (unsigned highY + 1).
+; dh (2bit color).
+; ds (data).
+; es (video ram).
+;
+; Clobber: ax, si.
+renderVertLine320x200x4 proc
+if ASSERT_ENABLED
+	cmp dl,bl
+	jb short @f
+	ASSERT
+endif
+@@:
+	push bx
+	push cx
+	push dx
+	call renderPixel320x200x4
+	pop dx
+	pop cx
+	pop bx
+	inc dl
+	cmp dl,bl
+	jb short @b
+	ret
+renderVertLine320x200x4 endp
+
+; Input:
 ; cx (unsigned lowX).
 ; di (unsigned highX + 1).
 ; dl (unsigned lowY).
