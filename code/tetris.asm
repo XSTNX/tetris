@@ -12,7 +12,7 @@ TETRIS_BOARD_COLS                   equ 10
 TETRIS_BOARD_ROWS                   equ 20
 TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_ROWS / 2) * TETRIS_BLOCK_SIZE)
-TETRIS_BOARD_LIMIT_COLOR            equ 3
+TETRIS_BOARD_LIMIT_COLOR            equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
 
 code segment readonly public
@@ -41,12 +41,14 @@ tetrisInitRender proc
     ; Left limit.
     mov cx,TETRIS_BOARD_START_POS_X - 1
     mov dx,TETRIS_BOARD_START_POS_Y or (TETRIS_BOARD_LIMIT_COLOR shl 8)
+    push dx
     mov bl,(TETRIS_BOARD_START_POS_Y + (TETRIS_BOARD_ROWS * TETRIS_BLOCK_SIZE))
+    push bx
     call renderVertLine320x200x4
     ; Right limit.
     mov cx,TETRIS_BOARD_START_POS_X + (TETRIS_BOARD_COLS * TETRIS_BLOCK_SIZE)
-    mov dx,TETRIS_BOARD_START_POS_Y or (TETRIS_BOARD_LIMIT_COLOR shl 8)
-    mov bl,(TETRIS_BOARD_START_POS_Y + (TETRIS_BOARD_ROWS * TETRIS_BLOCK_SIZE))
+    pop bx
+    pop dx
     call renderVertLine320x200x4
     ret
 tetrisInitRender endp
