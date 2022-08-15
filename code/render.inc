@@ -5,6 +5,7 @@ ifndef RENDER_NO_EXTERNS
 extern renderInitMultiplyRowBy80Table:proc
 extern renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderVertLine320x200x4:proc, renderRect320x200x4:proc
 extern renderTile8x8:proc, renderEmptyTile8x8:proc
+extern RenderMultiplyRowBy80Table:word
 endif
 
 ; Input: aPaletteNum, has to be a literal (unsigned byte).

@@ -254,6 +254,7 @@ constData segment readonly public
 constData ends
 
 data segment public
+	public RenderMultiplyRowBy80Table
 	; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
 	RenderMultiplyRowBy80Table		word 100 dup(?)
 data ends

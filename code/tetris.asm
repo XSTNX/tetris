@@ -58,8 +58,21 @@ tetrisUpdate proc
 tetrisUpdate endp
 
 tetrisRender proc
+    xor ax,ax
+    mov cx,0
+    mov dx,0
+    call tetrisRenderBlock
+    mov ax,05555h
+    mov cx,1
+    mov dx,0
+    call tetrisRenderBlock
     mov ax,0aaaah
-    xor dx,dx
+    mov cx,2
+    mov dx,0
+    call tetrisRenderBlock
+    mov ax,0ffffh
+    mov cx,3
+    mov dx,0
     call tetrisRenderBlock
     ret
 tetrisRender endp
@@ -68,21 +81,23 @@ tetrisRender endp
 ; Code private ;
 ; -------------;
 
-; Input: ax (color for the whole block, 8 pixels corresponding to 16bits), dl (unsigned col), dh (unsigned row).
-; Clobber: di.
+; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), cx (unsigned col), dx (unsigned row).
+; Clobber: bx,di.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
-    cmp dl,TETRIS_BOARD_COLS
+    cmp cx,TETRIS_BOARD_COLS
     jb @f
     ASSERT
 @@:
-    cmp dh,TETRIS_BOARD_ROWS
+    cmp dx,TETRIS_BOARD_ROWS
     jb @f
     ASSERT
 @@:
 endif
-
-    xor di,di
+    mov bx,cx
+    shl bx,1
+    mov di,bx
+    ;mov di,[RenderMultiplyRowBy80Table + bx]
 repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
@@ -90,6 +105,8 @@ endm
     stosw
 
     mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET
+    add di,bx
+    ;add di,[RenderMultiplyRowBy80Table + bx]
 repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
