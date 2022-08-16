@@ -162,15 +162,15 @@ gameQuit proc
 if CONSOLE_ENABLED
 	; Save error code.
 	push ax
-endif	
+endif
 	; Stop video and keyboard.
 	VIDEO_STOP
 	call keyboardStop
-if CONSOLE_ENABLED	
+if CONSOLE_ENABLED
 	; Check for error.
 	pop ax
 	cmp al,ERROR_CODE_NONE
-	je @f
+	je short @f
 	; Print error.
 	push ax
 	mov si,offset allSegments:ErrorStr
@@ -206,7 +206,7 @@ testCheckKeyboardBufferForESCKey proc private
 checkBuffer:
 	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
 	int BIOS_KEYBOARD_INT
-	jnz getKey
+	jnz short getKey
 	; Clear zero flag and return, since the buffer is empty.
 	or ah,0ffh
 	ret
@@ -216,20 +216,20 @@ getKey:
 	int BIOS_KEYBOARD_INT
 	cmp ah,BIOS_KEYBOARD_SCANCODE_ESC
 	; If key is not ESC, look in the buffer again.
-	jne checkBuffer
+	jne short checkBuffer
 	ret
 testCheckKeyboardBufferForESCKey endp
 endif
 
 testPaletteChange proc private
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_1
-	jnz skipChangePaletteNum0
+	jnz short skipChangePaletteNum0
 	RENDER_SET_PALETTE_320x200x4 0
 	; Returns here just in case, so the palette can't be changed two times in the same frame.
 	ret
 skipChangePaletteNum0:
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_2
-	jnz skipChangePaletteNum1
+	jnz short skipChangePaletteNum1
 	RENDER_SET_PALETTE_320x200x4 1
 skipChangePaletteNum1:
 	ret
@@ -337,7 +337,7 @@ endif
 code ends
 
 constData segment readonly public
-	ErrorStr				byte "Error code: 0x", 0
+	ErrorStr						byte "Error code: 0x", 0
 constData ends
 
 data segment public
