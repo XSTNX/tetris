@@ -19,7 +19,7 @@ endif
 ; Clobber: ah, bh.
 CONSOLE_SET_CURSOR_COL_ROW macro aCol:req, aRow:req
 if CONSOLE_ENABLED
-    mov dx,aCol + (aRow * 256)
+    mov dx,aCol or (aRow shl 8)
     call consoleSetCursorColRow
 endif
 endm
