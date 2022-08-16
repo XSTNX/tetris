@@ -5,8 +5,9 @@ if CONSOLE_ENABLED
 include code\assert.inc
 include code\bios.inc
 
-CONSOLE_COLS        equ 40
-CONSOLE_ROWS        equ 25
+CONSOLE_COLS        	equ 40
+CONSOLE_ROWS        	equ 25
+CONSOLE_TEXT_COLOR		equ 3
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -18,8 +19,15 @@ code segment readonly public
 ; ------------;
 
 ; Input: al (just the low nibble, the high nibble is cleared).
-; Clobber: ax.
+; Clobber: nothing.
 consolePrintNibbleHex proc
+if ASSERT_ENABLED
+    cmp al,16
+    jb short @f
+    ASSERT
+@@:
+endif
+	push ax
 	and al,0fh
 	cmp al,10
 	jb short @f
@@ -27,12 +35,16 @@ consolePrintNibbleHex proc
 @@:
 	add al,"0"
 	call consolePrintChar
+	pop ax
 	ret
 consolePrintNibbleHex endp
 
 ; Input: al.
-; Clobber: ax, cx, dx.
+; Clobber: nothing.
 consolePrintByte proc
+	push ax
+	push cx
+	push dx
 	mov cl,10
 	xor dx,dx
 @@:
@@ -41,14 +53,14 @@ consolePrintByte proc
 	push ax
 	inc dx
 	test al,al
-	jne @b
+	jnz short @b
 	mov cx,3
 	; Operating on bytes is enough here since the result of the subtraction is in [0,2].
 	; Not sure if operating on bytes makes the subtraction any faster???
 	sub cl,dl
-	jz leadingZeroesDone
+	jz short leadingZeroesDone
+	xor al,al	
 leadingZeroes:
-	xor al,al
 	call consolePrintNibbleHex
 	loop leadingZeroes
 leadingZeroesDone:
@@ -58,24 +70,36 @@ digits:
 	mov al,ah
 	call consolePrintNibbleHex
 	loop digits
+	pop dx
+	pop cx
+	pop ax
 	ret
 consolePrintByte endp
 
 ; Input: al.
-; Clobber: ax, cx.
+; Clobber: nothing.
 consolePrintByteHex proc
+	push ax
+	push cx
 	mov ch,al
 	mov cl,4
 	shr al,cl
 	call consolePrintNibbleHex
 	mov al,ch
+	and al,0fh
 	call consolePrintNibbleHex
+	pop cx
+	pop ax
 	ret
 consolePrintByteHex endp
 
 ; Input: ax.
-; Clobber: ax, bx, cx, dx.
+; Clobber: nothing.
 consolePrintWord proc
+	push ax
+	push bx
+	push cx
+	push dx
 	mov cx,10
 	xor bx,bx
 @@:
@@ -84,14 +108,14 @@ consolePrintWord proc
 	push dx
 	inc bx
 	test ax,ax
-	jne @b
+	jnz short @b
 	; Operating on bytes is enough here since ch is zero already and the result of the subtraction is in [0,4].
 	; Not sure if operating on bytes makes the subtraction any faster???
 	mov cl,5
 	sub cl,bl
-	jz leadingZeroesDone
+	jz short leadingZeroesDone
+	xor al,al	
 leadingZeroes:
-	xor al,al
 	call consolePrintNibbleHex
 	loop leadingZeroes
 leadingZeroesDone:
@@ -100,23 +124,29 @@ digits:
 	pop ax
 	call consolePrintNibbleHex
 	loop digits
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	ret
 consolePrintWord endp
 
 ; Input: ax.
-; Clobber: ax, cx, dh.
+; Clobber: nothing.
 consolePrintWordHex proc
-	mov dh,al
+	push ax
+	xchg al,ah
+	call consolePrintByteHex
 	mov al,ah
 	call consolePrintByteHex
-	mov al,dh
-	call consolePrintByteHex
+	pop ax
 	ret
 consolePrintWordHex endp
 
 ; Input: al.
-; Clobber: ax.
+; Clobber: nothing.
 consolePrintChar proc
+	push ax
     push bx
     push cx
     push dx
@@ -134,8 +164,8 @@ consolePrintChar proc
     mov dx,[ConsoleCursorColRow]
     jmp short incrementCursorRow
 @@:
-    ; LSB: color 3, MSB: page number 0.
-    mov bx,0003h
+    ; LSB: color, MSB: page number 0.
+    mov bx,CONSOLE_TEXT_COLOR
     ; Numbers of times the char should be printed.
     mov cx,1
     mov ah,BIOS_VIDEO_FUNC_SET_CHAR_AT_CURSOR_POS
@@ -146,14 +176,14 @@ consolePrintChar proc
     ; Increment col.
     inc dl
     cmp dl,CONSOLE_COLS
-    jb updateCursorColRow
+    jb short updateCursorColRow
     ; Reset col.
     xor dl,dl
 incrementCursorRow:    
     ; Increment row.
     inc dh
     cmp dh,CONSOLE_ROWS
-    jb updateCursorColRow
+    jb short updateCursorColRow
     ; Reset row.
     xor dh,dh
 updateCursorColRow:
@@ -161,12 +191,16 @@ updateCursorColRow:
     pop dx
     pop cx
     pop bx
+	pop ax
 	ret
 consolePrintChar endp
 
 ; Input: ds:si (null-terminated string).
+; Clobber: nothing.
 consolePrintString proc
 	pushf
+	push ax
+	push si
 	cld
 @@:
 	lodsb
@@ -175,33 +209,42 @@ consolePrintString proc
 	call consolePrintChar
 	jmp short @b
 done:
+	pop si
+	pop ax
 	popf
 	ret
 consolePrintString endp
 
 ; Input: dl (unsigned col), dh (unsigned row).
-; Clobber: ah, bh.
+; Clobber: nothing.
 consoleSetCursorColRow proc
 if ASSERT_ENABLED
     cmp dl,CONSOLE_COLS
-    jb @f
+    jb short @f
     ASSERT
 @@:
     cmp dh,CONSOLE_ROWS
-    jb @f
+    jb short @f
     ASSERT
 @@:
 endif
-	; Maybe there is a faster way of setting the cursor position than calling an int?
+	push ax
+	push bx
     mov [ConsoleCursorColRow],dx
+	; Maybe there is a faster way of setting the cursor position than using an int???
+    mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     ; Use page number 0.
     xor bh,bh
-    mov ah,BIOS_VIDEO_FUNC_SET_CURSOR_POS
     int BIOS_VIDEO_INT
+	pop bx
+	pop ax
 	ret
 consoleSetCursorColRow endp
 
+; Input: nothing.
+; Clobber: nothing.
 consoleNextLine proc
+	push dx
     ; Read current cursor pos.
     mov dx,[ConsoleCursorColRow]
     ; Reset col.
@@ -209,11 +252,12 @@ consoleNextLine proc
     ; Increment row.
     inc dh
     cmp dh,CONSOLE_ROWS
-    jb @f
+    jb short @f
     ; Reset row.
     xor dh,dh
 @@:
 	call consoleSetCursorColRow
+	pop dx
 	ret
 consoleNextLine endp
 

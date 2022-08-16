@@ -16,10 +16,13 @@ endif
 endif
 
 ; Input: aCol (unsigned byte), aRow (unsigned byte).
-; Clobber: ah, bh.
+; Clobber: nothing.
 CONSOLE_SET_CURSOR_COL_ROW macro aCol:req, aRow:req
 if CONSOLE_ENABLED
+    ; Validate arguments, at the very least that they fit in one byte???
+    push dx
     mov dx,aCol or (aRow shl 8)
     call consoleSetCursorColRow
+    pop dx
 endif
 endm
