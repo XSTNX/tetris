@@ -245,21 +245,17 @@ nextKey:
 	int BIOS_KEYBOARD_INT
 	cmp al,ASCII_EOT
 	je short quit
-	; Save returned data.
-	push ax
 
 	; Print scancode.
 	mov si,offset allSegments:strScancode
 	call consolePrintString
-	pop ax
-	push ax
-	mov dl,ah
+	xchg al,ah
 	call consolePrintByteHex
 
 	; Print ascii.
 	mov si,offset allSegments:strASCII
 	call consolePrintString
-	pop ax
+	mov al,ah
 	call consolePrintChar
 
 	call consoleNextLine
@@ -279,7 +275,6 @@ testKeyboardFlags proc private
 printFlags:
 	mov ah,BIOS_KEYBOARD_FUNC_GET_FLAGS
 	int BIOS_KEYBOARD_INT
-	mov dl,al
 	call consolePrintByteHex
 	call consoleNextLine
 
@@ -298,31 +293,21 @@ testKeyboardFlags endp
 testDOSVersion proc private
 	mov ah,DOS_REQUEST_FUNC_GET_VERSION_NUM
 	int DOS_REQUEST_INT
-	push bx
-	push ax
 
 	mov si,offset allSegments:strVer
 	call consolePrintString
-
 	; Major version.
-	pop dx
-	push dx
 	call consolePrintByte
-
 	mov al,"."
 	call consolePrintChar
-	
 	; Minor version.
-	pop dx
-	mov dl,dh
+	mov al,ah
 	call consolePrintByte
 
 	mov si,offset allSegments:strDOSType
 	call consolePrintString
-
 	; Dos type.
-	pop dx
-	mov dl,dh
+	mov al,bh
 	call consolePrintByteHex
 
 	GAME_QUIT ERROR_CODE_NONE
