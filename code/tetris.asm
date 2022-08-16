@@ -60,54 +60,54 @@ tetrisUpdate endp
 tetrisRender proc
     ; First row.
     mov ax,0
-    mov cx,0
-    mov dx,0
+    mov bx,0
+    mov si,0
     call tetrisRenderBlock
     mov ax,05555h
-    mov cx,1
-    mov dx,0
+    mov bx,1
+    mov si,0
     call tetrisRenderBlock
     mov ax,0aaaah
-    mov cx,2
-    mov dx,0
+    mov bx,2
+    mov si,0
     call tetrisRenderBlock
     mov ax,0ffffh
-    mov cx,3
-    mov dx,0
+    mov bx,3
+    mov si,0
     call tetrisRenderBlock
     ; Second row.
     mov ax,05555h
-    mov cx,0
-    mov dx,1
+    mov bx,0
+    mov si,1
     call tetrisRenderBlock
     mov ax,0aaaah
-    mov cx,1
-    mov dx,1
+    mov bx,1
+    mov si,1
     call tetrisRenderBlock
     mov ax,0ffffh
-    mov cx,2
-    mov dx,1
+    mov bx,2
+    mov si,1
     call tetrisRenderBlock
     mov ax,0
-    mov cx,3
-    mov dx,1
+    mov bx,3
+    mov si,1
     call tetrisRenderBlock
     ; Third row.
     mov ax,0aaaah
-    mov cx,0
-    mov dx,2
+    mov bx,0
+    mov si,2
     call tetrisRenderBlock
     mov ax,0ffffh
-    mov cx,1
-    mov dx,2
+    mov bx,1
+    mov si,2
     call tetrisRenderBlock
     mov ax,0
-    mov cx,2
-    mov dx,2
+    mov bx,2
+    mov si,2
     call tetrisRenderBlock
     mov ax,05555h
-    mov cx,3
-    mov dx,2
+    mov bx,3
+    mov si,2
     call tetrisRenderBlock
     ret
 tetrisRender endp
@@ -116,27 +116,26 @@ tetrisRender endp
 ; Code private ;
 ; -------------;
 
-; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), cx (unsigned col), dx (unsigned row).
-; Clobber: bx, cx, di.
+; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), bx (unsigned col), si (unsigned row).
+; Clobber: bx, si, di.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
-    cmp cx,TETRIS_BOARD_COLS
+    cmp bx,TETRIS_BOARD_COLS
     jb short @f
     ASSERT
 @@:
-    cmp dx,TETRIS_BOARD_ROWS
+    cmp si,TETRIS_BOARD_ROWS
     jb short @f
     ASSERT
 @@:
 endif
-    mov bx,dx
+    shl si,1
+    shl si,1
+    shl si,1
+    mov si,[RenderMultiplyRowBy80Table + si]
     shl bx,1
-    shl bx,1
-    shl bx,1
-    mov bx,[RenderMultiplyRowBy80Table + bx]
-    shl cx,1
-    add bx,cx
-    mov di,bx
+    add si,bx
+    mov di,si
 repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
@@ -144,7 +143,7 @@ endm
     stosw
 
     mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET
-    add di,bx
+    add di,si
 repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
