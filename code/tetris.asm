@@ -121,11 +121,11 @@ tetrisRender endp
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
     cmp cx,TETRIS_BOARD_COLS
-    jb @f
+    jb short @f
     ASSERT
 @@:
     cmp dx,TETRIS_BOARD_ROWS
-    jb @f
+    jb short @f
     ASSERT
 @@:
 endif
