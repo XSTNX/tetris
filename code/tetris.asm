@@ -12,6 +12,7 @@ TETRIS_BOARD_COLS                   equ 10
 TETRIS_BOARD_ROWS                   equ 20
 TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_ROWS / 2) * TETRIS_BLOCK_SIZE)
+TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + ((TETRIS_BOARD_START_POS_X / TETRIS_BLOCK_SIZE) * 2)
 TETRIS_BOARD_LIMIT_COLOR            equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
 
@@ -139,7 +140,7 @@ endif
     ; Each col takes a word.
     shl bx,1
     ; Add row and column offsets to obtain the word in memory where the block starts.
-    add si,bx
+    lea si,[TETRIS_BOARD_BANK_START_OFFSET + si + bx]
     mov di,si
 repeat 3
     stosw
