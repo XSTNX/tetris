@@ -112,13 +112,15 @@ endif
     shl bx,1
     ; Add row and column offsets to obtain the word in memory where the block starts.
     lea si,[TETRIS_BOARD_BANK_START_OFFSET + si + bx]
+
+    ; Render the four even lines.
     mov di,si
 repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
 endm
     stosw
-
+    ; Render the four odd lines.
     lea di,[BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + si]
 repeat 3
     stosw
