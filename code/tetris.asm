@@ -129,11 +129,16 @@ if ASSERT_ENABLED
     ASSERT
 @@:
 endif
+    ; Each row contains four lines per bank.
     shl si,1
     shl si,1
+    ; Multiply lines by two to use as an index into a table of words.
     shl si,1
+    ; Load the offset into the bank for the start of the line.
     mov si,[RenderMultiplyRowBy80Table + si]
+    ; Each col takes a word.
     shl bx,1
+    ; Add row and column offsets to obtain the word in memory where the block starts.
     add si,bx
     mov di,si
 repeat 3
