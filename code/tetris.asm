@@ -16,6 +16,10 @@ TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_V
 TETRIS_BOARD_LIMIT_COLOR            equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
 
+COLOR_EXTEND_WORD_IMM macro aImm:req
+    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
+endm
+
 code segment readonly public
 
 ; ------------;
@@ -59,57 +63,24 @@ tetrisUpdate proc
 tetrisUpdate endp
 
 tetrisRender proc
-    ; First row.
-    mov ax,0
-    mov bx,0
-    mov si,0
-    call tetrisRenderBlock
-    mov ax,05555h
-    mov bx,1
-    mov si,0
-    call tetrisRenderBlock
-    mov ax,0aaaah
-    mov bx,2
-    mov si,0
-    call tetrisRenderBlock
-    mov ax,0ffffh
-    mov bx,3
-    mov si,0
-    call tetrisRenderBlock
-    ; Second row.
-    mov ax,05555h
-    mov bx,0
-    mov si,1
-    call tetrisRenderBlock
-    mov ax,0aaaah
-    mov bx,1
-    mov si,1
-    call tetrisRenderBlock
-    mov ax,0ffffh
-    mov bx,2
-    mov si,1
-    call tetrisRenderBlock
-    mov ax,0
-    mov bx,3
-    mov si,1
-    call tetrisRenderBlock
-    ; Third row.
-    mov ax,0aaaah
-    mov bx,0
-    mov si,2
-    call tetrisRenderBlock
-    mov ax,0ffffh
-    mov bx,1
-    mov si,2
-    call tetrisRenderBlock
-    mov ax,0
-    mov bx,2
-    mov si,2
-    call tetrisRenderBlock
-    mov ax,05555h
-    mov bx,3
-    mov si,2
-    call tetrisRenderBlock
+    mov ax,1
+    mov si,TETRIS_BOARD_ROWS - 1
+    call tetrisRenderBlockRow
+
+    mov ax,2
+    mov si,TETRIS_BOARD_ROWS - 2
+    call tetrisRenderBlockRow
+
+    mov ax,3
+    mov si,TETRIS_BOARD_ROWS - 3
+    call tetrisRenderBlockRow
+
+    mov ax,1
+    mov si,TETRIS_BOARD_ROWS - 4
+    call tetrisRenderBlockRow
+
+    call tetrisRenderPiece
+
     ret
 tetrisRender endp
 
@@ -158,12 +129,60 @@ endm
     ret
 tetrisRenderBlock endp
 
+tetrisRenderPiece proc
+    COLOR_EXTEND_WORD_IMM(2)
+    mov bx,4
+    mov si,1
+    call tetrisRenderBlock
+    mov bx,3
+    mov si,2
+    call tetrisRenderBlock
+    mov bx,4
+    mov si,2
+    call tetrisRenderBlock
+    mov bx,5
+    mov si,2
+    call tetrisRenderBlock
+    ret
+tetrisRenderPiece endp
+
+; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), si (unsigned row).
+; Clobber: nothing.
+tetrisRenderBlockRow proc private
+    push ax
+    mov di,ax
+    and di,3
+    shl di,1
+    xor bx,bx
+colLoop:
+    push bx
+    push si
+    push di
+    mov ax,[TetrisBlockColorWord + di]
+    call tetrisRenderBlock
+    pop di
+    pop si
+    pop bx
+    inc di
+    inc di
+    cmp di,8
+    jb short skipResetColor
+    mov di,2
+skipResetColor:
+    inc bx
+    cmp bx,TETRIS_BOARD_COLS
+    jb short colLoop
+    pop ax
+    ret
+tetrisRenderBlockRow endp
+
 code ends
 
 constData segment readonly public
 constData ends
 
 data segment public
+    TetrisBlockColorWord        word 0,5555h,0aaaah,0ffffh
 data ends
 
 end
