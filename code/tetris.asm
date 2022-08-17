@@ -147,8 +147,7 @@ repeat 3
 endm
     stosw
 
-    mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET
-    add di,si
+    lea di,[BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + si]
 repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
