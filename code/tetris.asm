@@ -27,6 +27,10 @@ code segment readonly public
 ; ------------;
 
 tetrisInit proc
+    mov [TetrisFallingPieceCol],4
+    xor ax,ax
+    mov [TetrisFallingPieceRow],ax
+    mov [TetrisFallingPiecePrevRow],ax
     ret
 tetrisInit endp
 
@@ -55,30 +59,58 @@ tetrisInitRender proc
     pop bx
     pop dx
     call renderVertLine320x200x4
+    ; Test rows.
+    mov ax,1
+    mov si,TETRIS_BOARD_ROWS - 1
+    call tetrisRenderBlockRowTest
+    mov ax,2
+    mov si,TETRIS_BOARD_ROWS - 2
+    call tetrisRenderBlockRowTest
+    mov ax,3
+    mov si,TETRIS_BOARD_ROWS - 3
+    call tetrisRenderBlockRowTest
+    mov ax,1
+    mov si,TETRIS_BOARD_ROWS - 4
+    call tetrisRenderBlockRowTest
     ret
 tetrisInitRender endp
 
 tetrisUpdate proc
+	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_E
+	jnz short skipKeyLeftPressed
+    ; Reset piece and return.
+    mov [TetrisFallingPieceCol],4
+    mov [TetrisFallingPieceRow],0
+    ret
+skipKeyLeftPressed:
+
+    ; Update piece row.
+    mov ax,[TetrisFallingPieceRow]
+    mov [TetrisFallingPiecePrevRow],ax
+    add ax,16
+    cmp ax,(14 shl 8)
+    jbe short skipSnap
+    mov ax,(14 shl 8)
+skipSnap:
+    mov [TetrisFallingPieceRow],ax
     ret
 tetrisUpdate endp
 
 tetrisRender proc
-    mov ax,1
-    mov si,TETRIS_BOARD_ROWS - 1
-    call tetrisRenderBlockRowTest
+    ; Erase previous position.
+    xor ax,ax
+    mov cl,8
+    mov dx,[TetrisFallingPiecePrevRow]
+    shr dx,cl
+    mov cx,[TetrisFallingPieceCol]
+    call tetrisRenderPiece
 
-    mov ax,2
-    mov si,TETRIS_BOARD_ROWS - 2
-    call tetrisRenderBlockRowTest
-
-    mov ax,3
-    mov si,TETRIS_BOARD_ROWS - 3
-    call tetrisRenderBlockRowTest
-
-    mov ax,1
-    mov si,TETRIS_BOARD_ROWS - 4
-    call tetrisRenderBlockRowTest
-
+    ; Draw new position.
+    COLOR_EXTEND_WORD_IMM(2)
+    mov cl,8
+    mov dx,[TetrisFallingPieceRow]
+    shr dx,cl
+    mov cx,[TetrisFallingPieceCol]
     call tetrisRenderPiece
 
     ret
@@ -131,19 +163,26 @@ endm
     ret
 tetrisRenderBlock endp
 
+; Input: ax (color for each block of the piece, 16bits that correspond to 8 pixels), cx (unsigned col), dx (unsigned row).
+; Clobber: bx, si, di.
 tetrisRenderPiece proc
-    COLOR_EXTEND_WORD_IMM(2)
-    mov bx,4
-    mov si,1
+    ; May need to validate col,row.
+    mov bx,cx
+    mov si,dx
     call tetrisRenderBlock
-    mov bx,3
-    mov si,2
+    mov bx,cx
+    mov si,dx
+    dec bx
+    inc si
     call tetrisRenderBlock
-    mov bx,4
-    mov si,2
+    mov bx,cx
+    mov si,dx
+    inc si
     call tetrisRenderBlock
-    mov bx,5
-    mov si,2
+    mov bx,cx
+    mov si,dx
+    inc bx
+    inc si
     call tetrisRenderBlock
     ret
 tetrisRenderPiece endp
@@ -185,6 +224,9 @@ constData segment readonly public
 constData ends
 
 data segment public
+    TetrisFallingPieceCol           word ?
+    TetrisFallingPieceRow           word ?
+    TetrisFallingPiecePrevRow       word ?
 data ends
 
 end
