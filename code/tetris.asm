@@ -65,19 +65,19 @@ tetrisUpdate endp
 tetrisRender proc
     mov ax,1
     mov si,TETRIS_BOARD_ROWS - 1
-    call tetrisRenderBlockRow
+    call tetrisRenderBlockRowTest
 
     mov ax,2
     mov si,TETRIS_BOARD_ROWS - 2
-    call tetrisRenderBlockRow
+    call tetrisRenderBlockRowTest
 
     mov ax,3
     mov si,TETRIS_BOARD_ROWS - 3
-    call tetrisRenderBlockRow
+    call tetrisRenderBlockRowTest
 
     mov ax,1
     mov si,TETRIS_BOARD_ROWS - 4
-    call tetrisRenderBlockRow
+    call tetrisRenderBlockRowTest
 
     call tetrisRenderPiece
 
@@ -150,7 +150,7 @@ tetrisRenderPiece endp
 
 ; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), si (unsigned row).
 ; Clobber: nothing.
-tetrisRenderBlockRow proc private
+tetrisRenderBlockRowTest proc private
     push ax
     mov di,ax
     and di,3
@@ -176,15 +176,15 @@ skipResetColor:
     jb short colLoop
     pop ax
     ret
-tetrisRenderBlockRow endp
+tetrisRenderBlockRowTest endp
 
 code ends
 
 constData segment readonly public
+    TetrisBlockColorWord        word 0,5555h,0aaaah,0ffffh
 constData ends
 
 data segment public
-    TetrisBlockColorWord        word 0,5555h,0aaaah,0ffffh
 data ends
 
 end
