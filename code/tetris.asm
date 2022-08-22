@@ -60,16 +60,16 @@ tetrisInitRender proc
     pop dx
     call renderVertLine320x200x4
     ; Test rows.
-    mov ax,1
+    mov al,1
     mov si,TETRIS_BOARD_ROWS - 1
     call tetrisRenderBlockRowTest
-    mov ax,2
+    mov al,2
     mov si,TETRIS_BOARD_ROWS - 2
     call tetrisRenderBlockRowTest
-    mov ax,3
+    mov al,3
     mov si,TETRIS_BOARD_ROWS - 3
     call tetrisRenderBlockRowTest
-    mov ax,1
+    mov al,1
     mov si,TETRIS_BOARD_ROWS - 4
     call tetrisRenderBlockRowTest
     ret
@@ -98,7 +98,7 @@ tetrisUpdate endp
 
 tetrisRender proc
     ; Erase previous position.
-    xor ax,ax
+    xor al,al
     mov cl,8
     mov dx,[TetrisFallingPiecePrevRow]
     shr dx,cl
@@ -106,7 +106,7 @@ tetrisRender proc
     call tetrisRenderPiece
 
     ; Draw new position.
-    COLOR_EXTEND_WORD_IMM(2)
+    mov al,3
     mov cl,8
     mov dx,[TetrisFallingPieceRow]
     shr dx,cl
@@ -120,10 +120,14 @@ tetrisRender endp
 ; Code private ;
 ; -------------;
 
-; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), bx (unsigned col), si (unsigned row).
-; Clobber: bx, si, di.
+; Input: al (blockId), bx (unsigned col), si (unsigned row).
+; Clobber: ax, bx, si, di.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
+    cmp al,4
+    jb short @f
+    ASSERT
+@@:
     cmp bx,TETRIS_BOARD_COLS
     jb short @f
     ASSERT
@@ -145,9 +149,17 @@ endif
     ; Add row and column offsets to obtain the word in memory where the block starts.
     lea si,[TETRIS_BOARD_BANK_START_OFFSET + si + bx]
 
+    mov bx,ax
+    xor bh,bh
+    shl bx,1
+    shl bx,1
     ; Render the four even lines.
+    mov ax,[TetrisBlockColor + bx]
     mov di,si
-repeat 3
+    stosw
+    add di,TETRIS_RENDER_NEXT_LINE_OFFSET
+    mov ax,[TetrisBlockColor + 2 + bx]
+repeat 2
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
 endm
@@ -158,61 +170,60 @@ repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
 endm
+    mov ax,[TetrisBlockColor + bx]
     stosw
 
     ret
 tetrisRenderBlock endp
 
-; Input: ax (color for each block of the piece, 16bits that correspond to 8 pixels), cx (unsigned col), dx (unsigned row).
+; Input: al (blockId), cx (unsigned col), dx (unsigned row).
 ; Clobber: bx, si, di.
 tetrisRenderPiece proc
     ; May need to validate col,row.
+    mov bp,ax
     mov bx,cx
     mov si,dx
     call tetrisRenderBlock
+    mov ax,bp
     mov bx,cx
     mov si,dx
     dec bx
     inc si
     call tetrisRenderBlock
+    mov ax,bp
     mov bx,cx
     mov si,dx
     inc si
+    mov ax,bp
     call tetrisRenderBlock
     mov bx,cx
     mov si,dx
     inc bx
     inc si
+    mov ax,bp
     call tetrisRenderBlock
     ret
 tetrisRenderPiece endp
 
-; Input: ax (color for the whole block, 16bits that correspond to 8 pixels), si (unsigned row).
+; Input: al (blockId), si (unsigned row).
 ; Clobber: nothing.
 tetrisRenderBlockRowTest proc private
     push ax
-    mov di,ax
-    and di,3
-    shl di,1
-    xor bx,bx
+    and al,3
+    mov cx,TETRIS_BOARD_COLS
 colLoop:
-    push bx
+    mov bx,cx
+    dec bx
+    push ax
     push si
-    push di
-    mov ax,[TetrisBlockColorWord + di]
     call tetrisRenderBlock
-    pop di
     pop si
-    pop bx
-    inc di
-    inc di
-    cmp di,8
-    jb short skipResetColor
-    mov di,2
+    pop ax
+    dec al
+    jnz short skipResetColor
+    mov al,3
 skipResetColor:
-    inc bx
-    cmp bx,TETRIS_BOARD_COLS
-    jb short colLoop
+    loop colLoop
     pop ax
     ret
 tetrisRenderBlockRowTest endp
@@ -220,7 +231,11 @@ tetrisRenderBlockRowTest endp
 code ends
 
 constData segment readonly public
-    TetrisBlockColorWord        word 0,5555h,0aaaah,0ffffh
+                                        ;    Limit, Center
+    TetrisBlockColor                word    00000h, 00000h,
+                                            05555h, 0fd7fh,
+                                            0aaaah, 05695h,
+                                            0ffffh, 0abeah
 constData ends
 
 data segment public
