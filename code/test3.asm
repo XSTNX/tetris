@@ -57,7 +57,7 @@ test3Render proc
 if CONSOLE_ENABLED
 	mov al,"X"
 	call consolePrintChar
-endif    
+endif
     ret
 test3Render endp
 
