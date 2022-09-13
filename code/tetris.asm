@@ -76,17 +76,17 @@ tetrisInitRender proc
 tetrisInitRender endp
 
 tetrisUpdate proc
+    mov ax,[TetrisFallingPieceRow]
+    mov [TetrisFallingPiecePrevRow],ax
+
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_E
-	jnz short skipKeyLeftPressed
+	jnz short @f
     ; Reset piece and return.
     mov [TetrisFallingPieceCol],4
     mov [TetrisFallingPieceRow],0
     ret
-skipKeyLeftPressed:
-
+@@:
     ; Update piece row.
-    mov ax,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRow],ax
     add ax,16
     cmp ax,(14 shl 8)
     jbe short skipSnap

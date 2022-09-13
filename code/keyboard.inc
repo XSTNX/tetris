@@ -10,6 +10,7 @@ endif
 
 ; Input: scancode (unsigned byte, from 0 to KEYBOARD_KEY_PRESSED_COUNT - 1).
 ; Output: zf (zero flag set if the key is pressed).
+; Clobber: nothing.
 KEYBOARD_IS_KEY_PRESSED macro scancode:req
 if ASSERT_ENABLED
     ; How to avoid moving the scancode to a register if the argument is a register already????????
