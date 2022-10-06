@@ -1,11 +1,14 @@
+ifndef keyboard_inc
+keyboard_inc = 1
+
 include code\assert.inc
 
 KEYBOARD_ENABLED                equ 1
 KEYBOARD_KEY_PRESSED_COUNT      equ 128
 
+externdef keyboardStart:proc, keyboardStop:proc
 ifndef KEYBOARD_NO_EXTERNS
-extern keyboardStart:proc, keyboardStop:proc
-extern KeyboardKeyPressed:byte
+externdef KeyboardKeyPressed:byte
 endif
 
 ; Input: scancode (unsigned byte, from 0 to KEYBOARD_KEY_PRESSED_COUNT - 1).
@@ -24,3 +27,5 @@ if ASSERT_ENABLED
 endif
     test cs:[KeyboardKeyPressed + scancode],080h
 endm
+
+endif

@@ -1,4 +1,3 @@
-LEVEL_NO_EXTERNS equ 1
 include code\level.inc
 include code\bios.inc
 include code\player.inc

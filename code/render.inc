@@ -1,11 +1,14 @@
+ifndef render_inc
+render_inc = 1
+
 include code\bios.inc
 
-ifndef RENDER_NO_EXTERNS
 ; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
-extern renderInitMultiplyRowBy80Table:proc
-extern renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderVertLine320x200x4:proc, renderRect320x200x4:proc
-extern renderTile8x8:proc, renderEmptyTile8x8:proc
-extern RenderMultiplyRowBy80Table:word
+externdef renderInitMultiplyRowBy80Table:proc
+externdef renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderVertLine320x200x4:proc, renderRect320x200x4:proc
+externdef renderTile8x8:proc, renderEmptyTile8x8:proc
+ifndef RENDER_NO_EXTERNS
+externdef RenderMultiplyRowBy80Table:word
 endif
 
 ; Input: aPaletteNum, has to be a literal (unsigned byte).
@@ -27,3 +30,5 @@ vsyncWait1:
 	test al,8
 	jz short vsyncWait1
 endm
+
+endif

@@ -1,3 +1,6 @@
+ifndef assert_inc
+assert_inc = 1
+
 ifdef DEBUG
 ASSERT_ENABLED		equ 1
 else
@@ -6,10 +9,8 @@ endif
 
 include code\errcode.inc
 
-ifndef ASSERT_NO_EXTERNS
 if ASSERT_ENABLED
-extern assert:proc
-endif
+externdef assert:proc
 endif
 
 ASSERT macro errorCode
@@ -24,3 +25,5 @@ endif
 	call assert
 endif
 endm
+
+endif

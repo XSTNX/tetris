@@ -1,6 +1,7 @@
-ifndef GAME_NO_EXTERNS
-extern gameQuit:proc
-endif
+ifndef game_inc
+game_inc = 1
+
+externdef gameQuit:proc
 
 GAME_QUIT macro errorCode:req
 ifdifi <errorCode>,<al>
@@ -8,3 +9,5 @@ ifdifi <errorCode>,<al>
 endif
 	call gameQuit
 endm
+
+endif

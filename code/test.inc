@@ -1,3 +1,6 @@
-ifndef TEST_NO_EXTERNS
-extern testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
+ifndef test_inc
+test_inc = 1
+
+externdef testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
+
 endif

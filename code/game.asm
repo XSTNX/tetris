@@ -1,4 +1,3 @@
-GAME_NO_EXTERNS equ 1
 include code\game.inc
 include code\console.inc
 include code\dos.inc

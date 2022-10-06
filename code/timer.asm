@@ -1,4 +1,3 @@
-TIMER_NO_EXTERNS equ 1
 include code\timer.inc
 include code\assumSeg.inc
 include code\bios.inc

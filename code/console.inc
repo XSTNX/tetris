@@ -1,3 +1,6 @@
+ifndef console_inc
+console_inc = 1
+
 ifdef DEBUG
 CONSOLE_ENABLED		equ 1
 else
@@ -8,10 +11,8 @@ if CONSOLE_ENABLED
 
 include code\ascii.inc
 
-ifndef CONSOLE_NO_EXTERNS
-extern consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
-extern consolePrintChar:proc, consolePrintString:proc, consoleSetCursorColRow:proc, consoleNextLine:proc
-endif
+externdef consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
+externdef consolePrintChar:proc, consolePrintString:proc, consoleSetCursorColRow:proc, consoleNextLine:proc
 
 endif
 
@@ -26,3 +27,5 @@ if CONSOLE_ENABLED
     pop dx
 endif
 endm
+
+endif

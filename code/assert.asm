@@ -1,4 +1,3 @@
-ASSERT_NO_EXTERNS equ 1
 include code\assert.inc
 if ASSERT_ENABLED
 

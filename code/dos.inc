@@ -1,3 +1,6 @@
+ifndef dos_inc
+dos_inc = 1
+
 DOS_COM_TERMINATION_INT             equ 020h
 
 DOS_REQUEST_INT                     equ 021h
@@ -11,3 +14,5 @@ DOS_REQUEST_FUNC_GET_INT_VECTOR     equ 035h
 DOS_QUIT_COM macro
     int DOS_COM_TERMINATION_INT
 endm
+
+endif

@@ -1,3 +1,6 @@
-ifndef LEVEL_NO_EXTERNS
-extern levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
+ifndef level_inc
+level_inc = 1
+
+externdef levelInit:proc, levelInitRender:proc, levelUpdate:proc, levelRender:proc
+
 endif

@@ -1,4 +1,3 @@
-CONSOLE_NO_EXTERNS equ 1
 include code\console.inc
 if CONSOLE_ENABLED
 

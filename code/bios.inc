@@ -1,3 +1,6 @@
+ifndef bios_inc
+bios_inc = 1
+
 ; Keyboard required.
 BIOS_KEYBOARD_REQUIRED_INT              equ 009h
 BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET  equ (BIOS_KEYBOARD_REQUIRED_INT * 4)
@@ -89,3 +92,5 @@ BIOS_TIMER_INT                          equ 01ah
 BIOS_TIMER_INT_ADDR_OFFSET              equ (BIOS_TIMER_INT * 4)
 
 BIOS_TIMER_FUNC_GET_SYSTEM_TIME         equ 000h
+
+endif

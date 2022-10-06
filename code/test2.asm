@@ -1,4 +1,3 @@
-TEST2_NO_EXTERNS equ 1
 include code\test2.inc
 include code\assert.inc
 include code\assumSeg.inc

@@ -1,3 +1,4 @@
+; I still need to use RENDER_NO_EXTERNS or there will be some sort of error in RenderMultiplyRowBy80Table, figure out!!!????
 RENDER_NO_EXTERNS equ 1
 include code\render.inc
 include code\assert.inc

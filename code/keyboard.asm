@@ -1,3 +1,4 @@
+; I still need to use KEYBOARD_NO_EXTERNS or there will be some sort of error in KeyboardKeyPressed, figure out!!!????
 KEYBOARD_NO_EXTERNS equ 1
 include code\keyboard.inc
 include code\bios.inc

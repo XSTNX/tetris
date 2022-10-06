@@ -1,3 +1,6 @@
-ifndef TIMER_NO_EXTERNS
-extern timerGetTicks:proc, timerResetTicks:proc
+ifndef timer_inc
+timer_inc = 1
+
+externdef timerGetTicks:proc, timerResetTicks:proc
+
 endif
