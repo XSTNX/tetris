@@ -1,6 +1,6 @@
 Software
 --------
-MASM 6.11d (???)
+MASM 6.11d (https://sourceforge.net/projects/masm611/)
 DebugX (https://pcdosretro.github.io/enhdebug.htm)
 Visual Studio Code (https://code.visualstudio.com/)
 Visual Studio Code Extension MASM (https://marketplace.visualstudio.com/items?itemName=blindtiger.masm)
