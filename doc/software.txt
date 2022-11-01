@@ -1,7 +1,8 @@
 Software
 --------
-MASM 6.11d (https://sourceforge.net/projects/masm611/)
-Visual Studio Code (https://code.visualstudio.com/)
-Visual Studio Code Extension MASM (https://marketplace.visualstudio.com/items?itemName=blindtiger.masm)
-DebugX (https://pcdosretro.github.io/enhdebug.htm)
-DOSBox (https://www.dosbox.com/)
+- MASM 6.11d (https://sourceforge.net/projects/masm611/)
+- Visual Studio Code (https://code.visualstudio.com/)
+- Visual Studio Code Extension MASM (https://marketplace.visualstudio.com/items?itemName=blindtiger.masm)
+- DebugX (https://pcdosretro.github.io/enhdebug.htm)
+- DOSBox (https://www.dosbox.com/)
+- OSFMount (https://www.osforensics.com/tools/mount-disk-images.html)

@@ -68,29 +68,24 @@ GAME
 - It would be better for the drawing functions like line and rect that the low coordinate is stored in a register that can be used with lea, so it's faster to compute the high.
 - Modify CONSOLE_SET_CURSOR_POS so it does xor dx,dx when col and row are zero.
 
-VISUAL STUDIO CODE
-------------------
-Using "MASM" extension to highlight masm syntax: https://marketplace.visualstudio.com/items?itemName=blindtiger.masm
-
 LINKS
 -----
-https://www.pcjs.org/machines/pcx86/ibm/5160/cga/
-https://www.pcjs.org/machines/pcx86/ibm/5170/cga/
-https://stanislavs.org/helppc/int_table.html (interrupts)
-http://www.delorie.com/djgpp/doc/rbinter/ (interrupts)
-http://www.ctyme.com/intr/int.htm (interrupts)
-https://www.phatcode.net/articles.php
-http://www.phatcode.net/res/224/files/html/index.html (Michael Abrash's Graphics Programming Black Book Special Edition)
-http://qzx.com/pc-gpe/ or http://bespin.org/~qz/pc-gpe/
-https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
-http://www.verycomputer.com/viewlist_12_873.htm (msdos programming forum)
-https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
-https://www.osforensics.com/tools/mount-disk-images.html (OSFMount, program to open the DOS floppy disk images that you can save in www.pcjs.org)
+- https://www.pcjs.org/machines/pcx86/ibm/5160/cga/
+- https://www.pcjs.org/machines/pcx86/ibm/5170/cga/
+- https://stanislavs.org/helppc/int_table.html (interrupts)
+- http://www.delorie.com/djgpp/doc/rbinter/ (interrupts)
+- http://www.ctyme.com/intr/int.htm (interrupts)
+- https://www.phatcode.net/articles.php
+- http://www.phatcode.net/res/224/files/html/index.html (Michael Abrash's Graphics Programming Black Book Special Edition)
+- http://qzx.com/pc-gpe/ or http://bespin.org/~qz/pc-gpe/
+- https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
+- http://www.verycomputer.com/viewlist_12_873.htm (msdos programming forum)
+- https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
 
 GAMES
 -----
-https://archive.org/details/msdos_Snack_Attack_II_1982 (by Michael Abrash)
-https://www.youtube.com/watch?v=lMJzf5iOqwg (Cosmic Crusader, by Michael Abrash)
-https://www.youtube.com/watch?v=wIJasD3FjPU (Space Strike, by Michael Abrash)
-https://www.youtube.com/watch?v=HiGDcmbUT_I (Space Commanders, a Space Invaders clone)
-https://www.youtube.com/watch?v=KVjw7jGZgdU (Tetris)
+- https://archive.org/details/msdos_Snack_Attack_II_1982 (by Michael Abrash)
+- https://www.youtube.com/watch?v=lMJzf5iOqwg (Cosmic Crusader, by Michael Abrash)
+- https://www.youtube.com/watch?v=wIJasD3FjPU (Space Strike, by Michael Abrash)
+- https://www.youtube.com/watch?v=HiGDcmbUT_I (Space Commanders, a Space Invaders clone)
+- https://www.youtube.com/watch?v=KVjw7jGZgdU (Tetris)
