@@ -11,7 +11,7 @@ include code\test3.inc
 include code\test4.inc
 include code\tetris.inc
 
-GAME_SET_LEVEL_GAME_STATE macro
+GAME_SET_GAME_STATE_LEVEL macro
 	mov ax,offset allSegments:levelInit
 	mov bx,offset allSegments:levelInitRender
 	mov cx,offset allSegments:levelUpdate
@@ -19,7 +19,7 @@ GAME_SET_LEVEL_GAME_STATE macro
 	call gameSetState
 endm
 
-GAME_SET_TEST_GAME_STATE macro
+GAME_SET_GAME_STATE_TEST macro
 	mov ax,offset allSegments:testInit
 	mov bx,offset allSegments:testInitRender
 	mov cx,offset allSegments:testUpdate
@@ -27,7 +27,7 @@ GAME_SET_TEST_GAME_STATE macro
 	call gameSetState
 endm
 
-GAME_SET_TEST2_GAME_STATE macro
+GAME_SET_GAME_STATE_TEST2 macro
 	mov ax,offset allSegments:test2Init
 	mov bx,offset allSegments:test2InitRender
 	mov cx,offset allSegments:test2Update
@@ -35,7 +35,7 @@ GAME_SET_TEST2_GAME_STATE macro
 	call gameSetState
 endm
 
-GAME_SET_TEST3_GAME_STATE macro
+GAME_SET_GAME_STATE_TEST3 macro
 	mov ax,offset allSegments:test3Init
 	mov bx,offset allSegments:test3InitRender
 	mov cx,offset allSegments:test3Update
@@ -43,7 +43,7 @@ GAME_SET_TEST3_GAME_STATE macro
 	call gameSetState
 endm
 
-GAME_SET_TEST4_GAME_STATE macro
+GAME_SET_GAME_STATE_TEST4 macro
 	mov ax,offset allSegments:test4Init
 	mov bx,offset allSegments:test4InitRender
 	mov cx,offset allSegments:test4Update
@@ -51,7 +51,7 @@ GAME_SET_TEST4_GAME_STATE macro
 	call gameSetState
 endm
 
-GAME_SET_TETRIS_GAME_STATE macro
+GAME_SET_GAME_STATE_TETRIS macro
 	mov ax,offset allSegments:tetrisInit
 	mov bx,offset allSegments:tetrisInitRender
 	mov cx,offset allSegments:tetrisUpdate
@@ -120,12 +120,12 @@ endif
 	VIDEO_START
 
 	; Start the game directly on the level for now.
-	;GAME_SET_LEVEL_GAME_STATE
-	;GAME_SET_TEST_GAME_STATE
-	;GAME_SET_TEST2_GAME_STATE
-	;GAME_SET_TEST3_GAME_STATE
-	;GAME_SET_TEST4_GAME_STATE
-	GAME_SET_TETRIS_GAME_STATE
+	;GAME_SET_GAME_STATE_LEVEL
+	;GAME_SET_GAME_STATE_TEST
+	;GAME_SET_GAME_STATE_TEST2
+	;GAME_SET_GAME_STATE_TEST3
+	;GAME_SET_GAME_STATE_TEST4
+	GAME_SET_GAME_STATE_TETRIS
 
 	call [GameStateInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
