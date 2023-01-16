@@ -67,6 +67,7 @@ GAME
 - SetCursorPos doesn't take int account that in text mode the are twice as many columns.
 - It would be better for the drawing functions like line and rect that the low coordinate is stored in a register that can be used with lea, so it's faster to compute the high.
 - Modify CONSOLE_SET_CURSOR_POS so it does xor dx,dx when col and row are zero.
+- Added one .gitignore file per folder inside obj and bin, this is needed because git doesn't backup folders unless there are files in them, and neither ml nor link will create the folder by itself. Maybe the creation of these folders could be done in the makefile?
 
 LINKS
 -----
