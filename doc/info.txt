@@ -9,6 +9,7 @@ ASM
 
 MASM
 ----
+- The masm611 installation creates the files NEW-VARS.BAT and NEW-CONF.SYS in the BIN folder. The content of these files should be added to AUTOEXEC.BAT and CONFIG.SYS before running masm. Do I really need to do this? The game seems to build fine without them.
 - Near and Far in procedures how are they used exactly?
 - Is masm only accepting 8086 instructions? Maybe I can send a flag during assembly just in case?
 - Is there an assert directive I can use?
