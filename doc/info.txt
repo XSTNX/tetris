@@ -69,6 +69,14 @@ GAME
 - Modify CONSOLE_SET_CURSOR_POS so it does xor dx,dx when col and row are zero.
 - Added one .gitignore file per folder inside obj and bin, this is needed because git doesn't backup folders unless there are files in them, and neither ml nor link will create the folder by itself. Maybe the creation of these folders could be done in the makefile?
 
+DOSBox
+------
+- Add the following to the options in [autoexec]:
+    @echo off
+    MOUNT C C:\Users\USERNAME\projects\ibmPC
+    c:
+    cd invdrs\bin
+
 LINKS
 -----
 - https://www.pcjs.org/machines/pcx86/ibm/5160/cga/
