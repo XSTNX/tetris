@@ -44,9 +44,9 @@ allSegments group code, constData, data
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 playerInit proc
 	mov ax,ds
@@ -336,9 +336,9 @@ endif
 	ret
 playerRender endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 if CONSOLE_ENABLED
 

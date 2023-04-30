@@ -10,9 +10,9 @@ TEST2_PIXELS_PER_FRAME      equ 1024
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 test2Init proc
     ;mov al,[testData]
@@ -94,9 +94,9 @@ endif
     ret
 test2Render endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

@@ -8,9 +8,9 @@ allSegments group code
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 levelInit proc
 	call playerInit
@@ -36,9 +36,9 @@ levelRender proc
 	ret
 levelRender endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

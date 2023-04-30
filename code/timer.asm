@@ -4,9 +4,9 @@ include code\bios.inc
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 ; Output: ax (ticks elapsed since last call to timerReset)
 ; Clobber: bx, cx, dx.
@@ -35,9 +35,9 @@ timerResetTicks proc
     ret
 timerResetTicks endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

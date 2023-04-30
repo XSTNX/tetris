@@ -7,9 +7,9 @@ include code\render.inc
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 test3Init proc
     ret
@@ -60,9 +60,9 @@ endif
     ret
 test3Render endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

@@ -8,18 +8,18 @@ allSegments group code
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 ; Input: al (error code).
 assert proc
     GAME_QUIT al
 assert endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

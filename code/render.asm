@@ -27,9 +27,9 @@ allSegments group code, constData, data
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 ; Input: none.
 ; Clobber: ax, bx, cx, dx.
@@ -244,9 +244,9 @@ renderLineOdd:
 	ret
 renderTile8x8 endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

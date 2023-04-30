@@ -22,9 +22,9 @@ endm
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 tetrisInit proc
     mov ax,400h
@@ -144,12 +144,12 @@ endif
     ret
 tetrisRender endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 if CONSOLE_ENABLED
-tetrisRenderDebug proc
+tetrisRenderDebug proc private
     CONSOLE_SET_CURSOR_COL_ROW 0, 0
     mov al,[TetrisFallingPieceColHI]
     call consolePrintByte
@@ -219,7 +219,7 @@ tetrisRenderBlock endp
 
 ; Input: al (blockId), cx (unsigned col), dx (unsigned row).
 ; Clobber: bx, si, di.
-tetrisRenderPiece proc
+tetrisRenderPiece proc private
     ; May need to validate col,row.
     mov bp,ax
     mov bx,cx

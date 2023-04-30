@@ -11,9 +11,9 @@ allSegments group code, data
 ; The code segment is not readonly because the data is stored there as well and it will be modified by the interrupt handler.
 code segment public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 keyboardStart proc
 if KEYBOARD_ENABLED
@@ -51,9 +51,9 @@ endif
     ret
 keyboardStop endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 if KEYBOARD_ENABLED
 ; Input: stack arg0 (Interrupt handler address, far ptr).

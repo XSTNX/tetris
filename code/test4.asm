@@ -8,9 +8,9 @@ include code\timer.inc
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 test4Init proc
     ret
@@ -69,9 +69,9 @@ endif
     ret
 test4Render endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

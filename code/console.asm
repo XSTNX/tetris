@@ -13,9 +13,9 @@ allSegments group code, data
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 ; Input: al (just the low nibble, the high nibble is cleared).
 ; Clobber: nothing.
@@ -260,9 +260,9 @@ consoleNextLine proc
 	ret
 consoleNextLine endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 

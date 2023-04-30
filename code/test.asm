@@ -15,9 +15,9 @@ TEST_BOX_SPEEDY_PACKED 			equ 100h
 
 code segment readonly public
 
-; ------------;
+;-------------;
 ; Code public ;
-; ------------;
+;-------------;
 
 testInit proc
     mov [TestPosYPacked],TEST_BOX_POSY_START shl 8
@@ -138,9 +138,9 @@ endif
     ret
 testRender endp
 
-; -------------;
+;--------------;
 ; Code private ;
-; -------------;
+;--------------;
 
 code ends
 
