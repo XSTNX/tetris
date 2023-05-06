@@ -88,7 +88,7 @@ keyboardIntHandler proc private
 
     ; Read scancode.
     push ax
-    in al,060h
+    in al,60h
     ; Store key state.
     push bx
     mov bx,ax
