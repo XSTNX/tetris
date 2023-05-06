@@ -1,17 +1,13 @@
 DEFINE_TEXT = DEBUG
 #DEFINE_TEXT = RELEASE
 INCLUDE_FOLDER = .
-EXECUTABLE_NAME = invdrs
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
-LINK_OPTIONS = /NOLOGO /TINY
-# Keep game.obj first, since a com file is created.
-OBJ_FILES = obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\tetris.obj obj\timer.obj
 
 all : bin\$(EXECUTABLE_NAME).com
 
-bin\$(EXECUTABLE_NAME).com : $(OBJ_FILES)
-	link $(LINK_OPTIONS) @<<inout.lnk
-$(OBJ_FILES), bin\$(EXECUTABLE_NAME).com;
+bin\$(EXECUTABLE_NAME).com : obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\tetris.obj obj\timer.obj
+	link /NOLOGO /TINY @<<inout.lnk
+$**, bin\invdrs.com;
 <<
 
 code\assert.inc : code\errcode.inc
