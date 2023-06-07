@@ -19,16 +19,16 @@ RENDER_SET_PALETTE_320x200x4 macro aPaletteNum:req
 endm
 
 WAIT_VSYNC macro
-local vsyncWait0, vsyncWait1
+local wait0, wait1
 	mov dx,3dah
-vsyncWait0:
+wait0:
 	in al,dx
 	test al,8
-	jnz short vsyncWait0
-vsyncWait1:
+	jnz short wait0
+wait1:
 	in al,dx
 	test al,8
-	jz short vsyncWait1
+	jz short wait1
 endm
 
 endif

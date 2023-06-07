@@ -102,7 +102,7 @@ VIDEO_STOP macro
 endm
 
 allSegments group code, constData, data
-    assume cs:allSegments, ds:allSegments, es:allSegments
+	assume cs:allSegments, ds:allSegments, es:nothing, ss:allSegments
 
 code segment readonly public
 
