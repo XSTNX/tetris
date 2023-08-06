@@ -3,7 +3,7 @@ include code\assert.inc
 include code\assumSeg.inc
 include code\console.inc
 
-PRIME_COUNT     equ 2 + 64 ; Force count to be at least two, zero and one are not primes by definition.
+PRIME_COUNT     equ 2 + 98 ; Force count to be at least two, zero and one are not primes by definition.
 
 code segment readonly public
 
@@ -41,22 +41,17 @@ test5Init endp
 test5InitRender proc
 if CONSOLE_ENABLED
     mov si,offset PrimeArray
-    xor bx,bx
-    mov cx,PRIME_COUNT
+    mov bx,2
+    mov cx,PRIME_COUNT - 2
 @@:
+    cmp byte ptr [si + bx],1
+    jne short next
     mov al,bl
     call consolePrintByte
-    mov al,':'
+    mov al,','
     call consolePrintChar
-    mov al,byte ptr [si + bx]
-	call consolePrintNibbleHex
-    mov al,','    
+next:
     inc bx
-    cmp bx,PRIME_COUNT
-    jne short skip
-    mov al,'.'
-skip:
-    call consolePrintChar
     loop short @b
 endif
     ret
