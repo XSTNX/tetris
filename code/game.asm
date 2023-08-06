@@ -9,6 +9,7 @@ include code\test.inc
 include code\test2.inc
 include code\test3.inc
 include code\test4.inc
+include code\test5.inc
 include code\tetris.inc
 
 GAME_SET_GAME_STATE_LEVEL macro
@@ -48,6 +49,22 @@ GAME_SET_GAME_STATE_TEST4 macro
 	mov bx,offset allSegments:test4InitRender
 	mov cx,offset allSegments:test4Update
 	mov dx,offset allSegments:test4Render
+	call gameSetState
+endm
+
+GAME_SET_GAME_STATE_TEST5 macro
+	mov ax,offset allSegments:test5Init
+	mov bx,offset allSegments:test5InitRender
+	mov cx,offset allSegments:test5Update
+	mov dx,offset allSegments:test5Render
+	call gameSetState
+endm
+
+GAME_SET_GAME_STATE_TETRIS macro
+	mov ax,offset allSegments:tetrisInit
+	mov bx,offset allSegments:tetrisInitRender
+	mov cx,offset allSegments:tetrisUpdate
+	mov dx,offset allSegments:tetrisRender
 	call gameSetState
 endm
 
@@ -125,6 +142,7 @@ endif
 	;GAME_SET_GAME_STATE_TEST2
 	;GAME_SET_GAME_STATE_TEST3
 	;GAME_SET_GAME_STATE_TEST4
+	;GAME_SET_GAME_STATE_TEST5
 	GAME_SET_GAME_STATE_TETRIS
 
 	call [GameStateInitProc]

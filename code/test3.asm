@@ -42,10 +42,10 @@ if CONSOLE_ENABLED
 	call consolePrintString
 endif
     ret
-if CONSOLE_ENABLED    
+if CONSOLE_ENABLED
 tmpText:
 	db "Es la guitarra de Lolo!", 0
-endif    
+endif
 test3InitRender endp
 
 test3Update proc

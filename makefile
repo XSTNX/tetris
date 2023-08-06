@@ -3,7 +3,7 @@ DEFINE_TEXT = DEBUG
 INCLUDE_FOLDER = .
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
 
-bin\invdrs.com : obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\tetris.obj obj\timer.obj
+bin\invdrs.com : obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\test5.obj obj\tetris.obj obj\timer.obj
 	link /NOLOGO /TINY @<<inout.lnk
 $**, $@;
 <<
@@ -46,6 +46,9 @@ obj\test3.obj : code\test3.asm code\test3.inc code\assert.inc code\assumSeg.inc 
 obj\test4.obj : code\test4.asm code\test4.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
 	ml $(ML_OPTIONS) /Fo"obj\test4.obj" /Fl"obj\test4.lst" code\test4.asm
 
+obj\test5.obj : code\test5.asm code\test5.inc code\assert.inc code\assumSeg.inc code\console.inc
+	ml $(ML_OPTIONS) /Fo"obj\test5.obj" /Fl"obj\test5.lst" code\test5.asm
+
 obj\tetris.obj : code\tetris.asm code\tetris.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
 	ml $(ML_OPTIONS) /Fo"obj\tetris.obj" /Fl"obj\tetris.lst" code\tetris.asm
 
@@ -56,3 +59,6 @@ clean :
 	-del bin\*.com
 	-del obj\*.lst
 	-del obj\*.obj
+
+run :
+	bin\invdrs.com
