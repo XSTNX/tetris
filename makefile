@@ -3,7 +3,7 @@ DEFINE_TEXT = DEBUG
 INCLUDE_FOLDER = .
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
 
-bin\invdrs.com : obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\test5.obj obj\tetris.obj obj\timer.obj
+bin\invdrs.com : obj\game.obj obj\assert.obj obj\console.obj obj\keyboard.obj obj\level.obj obj\player.obj obj\render.obj obj\test1.obj obj\test2.obj obj\test3.obj obj\test4.obj obj\test5.obj obj\tetris.obj obj\timer.obj
 	link /NOLOGO /TINY @<<inout.lnk
 $**, $@;
 <<
@@ -19,7 +19,7 @@ obj\assert.obj : code\assert.asm code\assert.inc code\game.inc
 obj\console.obj : code\console.asm code\console.inc code\assert.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\console.obj" /Fl"obj\console.lst" code\console.asm
 
-obj\game.obj : code\game.asm code\game.inc code\console.inc code\dos.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test.inc code\test2.inc code\test3.inc code\test4.inc
+obj\game.obj : code\game.asm code\game.inc code\console.inc code\dos.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test1.inc code\test2.inc code\test3.inc code\test4.inc
 	ml $(ML_OPTIONS) /Fo"obj\game.obj" /Fl"obj\game.lst" code\game.asm
 
 obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc
@@ -34,8 +34,8 @@ obj\player.obj : code\player.asm code\player.inc code\console.inc code\keyboard.
 obj\render.obj : code\render.asm code\render.inc code\assert.inc code\bios.inc
 	ml $(ML_OPTIONS) /Fo"obj\render.obj" /Fl"obj\render.lst" code\render.asm
 
-obj\test.obj : code\test.asm code\test.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
-	ml $(ML_OPTIONS) /Fo"obj\test.obj" /Fl"obj\test.lst" code\test.asm
+obj\test1.obj : code\test1.asm code\test1.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
+	ml $(ML_OPTIONS) /Fo"obj\test1.obj" /Fl"obj\test1.lst" code\test1.asm
 
 obj\test2.obj : code\test2.asm code\test2.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
 	ml $(ML_OPTIONS) /Fo"obj\test2.obj" /Fl"obj\test2.lst" code\test2.asm

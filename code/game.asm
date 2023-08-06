@@ -5,7 +5,7 @@ include code\errcode.inc
 include code\keyboard.inc
 include code\level.inc
 include code\render.inc
-include code\test.inc
+include code\test1.inc
 include code\test2.inc
 include code\test3.inc
 include code\test4.inc
@@ -20,11 +20,11 @@ GAME_SET_GAME_STATE_LEVEL macro
 	call gameSetState
 endm
 
-GAME_SET_GAME_STATE_TEST macro
-	mov ax,offset allSegments:testInit
-	mov bx,offset allSegments:testInitRender
-	mov cx,offset allSegments:testUpdate
-	mov dx,offset allSegments:testRender
+GAME_SET_GAME_STATE_TEST1 macro
+	mov ax,offset allSegments:test1Init
+	mov bx,offset allSegments:test1InitRender
+	mov cx,offset allSegments:test1Update
+	mov dx,offset allSegments:test1Render
 	call gameSetState
 endm
 
@@ -138,7 +138,7 @@ endif
 
 	; Start the game directly on the level for now.
 	;GAME_SET_GAME_STATE_LEVEL
-	;GAME_SET_GAME_STATE_TEST
+	;GAME_SET_GAME_STATE_TEST1
 	;GAME_SET_GAME_STATE_TEST2
 	;GAME_SET_GAME_STATE_TEST3
 	;GAME_SET_GAME_STATE_TEST4

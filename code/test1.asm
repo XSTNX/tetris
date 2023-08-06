@@ -1,4 +1,4 @@
-include code\test.inc
+include code\test1.inc
 include code\assert.inc
 include code\assumSeg.inc
 include code\console.inc
@@ -19,14 +19,14 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
-testInit proc
-    mov [TestPosYPacked],TEST_BOX_POSY_START shl 8
-	mov [TestPrevPosY],TEST_BOX_POSY_START
+test1Init proc
+    mov [Test1PosYPacked],TEST_BOX_POSY_START shl 8
+	mov [Test1PrevPosY],TEST_BOX_POSY_START
 
     ret
-testInit endp
+test1Init endp
 
-testInitRender proc
+test1InitRender proc
     ; Top rect.
     xor cx,cx
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
@@ -52,29 +52,29 @@ testInitRender proc
 	call renderHorizLine320x200x4
 
     ret
-testInitRender endp
+test1InitRender endp
 
-testUpdate proc
-    mov ax,[TestPosYPacked]
-    mov [TestPrevPosY],ah
+test1Update proc
+    mov ax,[Test1PosYPacked]
+    mov [Test1PrevPosY],ah
     add ax,TEST_BOX_SPEEDY_PACKED
     cmp ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
     jb short @f
     sub ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 @@:
-    mov [TestPosYPacked],ax
+    mov [Test1PosYPacked],ax
 
     ret
-testUpdate endp
+test1Update endp
 
-testRender proc
+test1Render proc
     ; Erase previous box.
 	mov cx,TEST_BOX_LOWX
     mov di,TEST_BOX_HIGHX
     ; Save lowX and highX to reuse them when drawing the current box.
     push cx
     push di
-    mov dl,[TestPrevPosY]
+    mov dl,[Test1PrevPosY]
 	sub dl,TEST_BOX_HALF_SIDE
 	mov bl,dl
     add bl,TEST_BOX_SIDE
@@ -93,7 +93,7 @@ testRender proc
     ; Draw current box.
     pop di
     pop cx
-    mov dl,byte ptr [TestPosYPacked + 1]
+    mov dl,byte ptr [Test1PosYPacked + 1]
 	sub dl,TEST_BOX_HALF_SIDE
 	mov bl,dl
     add bl,TEST_BOX_SIDE
@@ -124,7 +124,7 @@ if CONSOLE_ENABLED
     pop ax
 	call consolePrintByte
     call consoleNextLine
-    mov al,byte ptr [TestPosYPacked + 1]
+    mov al,byte ptr [Test1PosYPacked + 1]
     call consolePrintByte
     call consoleNextLine
     mov al,"N"
@@ -136,7 +136,7 @@ if CONSOLE_ENABLED
 endif
 
     ret
-testRender endp
+test1Render endp
 
 ;--------------;
 ; Code private ;
@@ -148,8 +148,8 @@ constData segment readonly public
 constData ends
 
 data segment public
-    TestPosYPacked          dw ?
-    TestPrevPosY            db ?
+    Test1PosYPacked         dw ?
+    Test1PrevPosY           db ?
 data ends
 
 end
