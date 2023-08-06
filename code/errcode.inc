@@ -1,5 +1,5 @@
-ifndef errcode_inc
-errcode_inc = 1
+ifndef ERRCODE_INC
+ERRCODE_INC = 1
 
 ; Error codes are one byte long, high nibble indicates the system that failed, and low nibble is the specific error within that system.
 ERROR_CODE_NONE             equ 000h

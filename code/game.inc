@@ -1,5 +1,5 @@
-ifndef game_inc
-game_inc = 1
+ifndef GAME_INC
+GAME_INC = 1
 
 externdef gameQuit:proc
 

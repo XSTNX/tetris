@@ -1,5 +1,5 @@
-ifndef tetris_inc
-tetris_inc = 1
+ifndef TETRIS_INC
+TETRIS_INC = 1
 
 externdef tetrisInit:proc, tetrisInitRender:proc, tetrisUpdate:proc, tetrisRender:proc
 

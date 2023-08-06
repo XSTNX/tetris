@@ -1,5 +1,5 @@
-ifndef bios_inc
-bios_inc = 1
+ifndef BIOS_INC
+BIOS_INC = 1
 
 ; Keyboard required.
 BIOS_KEYBOARD_REQUIRED_INT              equ 009h

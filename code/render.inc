@@ -1,5 +1,5 @@
-ifndef render_inc
-render_inc = 1
+ifndef RENDER_INC
+RENDER_INC = 1
 
 include code\bios.inc
 

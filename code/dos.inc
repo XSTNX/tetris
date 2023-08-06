@@ -1,5 +1,5 @@
-ifndef dos_inc
-dos_inc = 1
+ifndef DOS_INC
+DOS_INC = 1
 
 DOS_COM_TERMINATION_INT             equ 020h
 

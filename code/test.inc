@@ -1,5 +1,5 @@
-ifndef test_inc
-test_inc = 1
+ifndef TEST_INC
+TEST_INC = 1
 
 externdef testInit:proc, testInitRender:proc, testUpdate:proc, testRender:proc
 

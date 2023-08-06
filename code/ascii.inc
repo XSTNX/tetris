@@ -1,5 +1,5 @@
-ifndef ascii_inc
-ascii_inc = 1
+ifndef ASCII_INC
+ASCII_INC = 1
 
 ; ASCII codes.
 ASCII_EOT    equ 003h ; End of text (CTRL-C).

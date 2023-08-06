@@ -1,5 +1,5 @@
-ifndef keyboard_inc
-keyboard_inc = 1
+ifndef KEYBOARD_INC
+KEYBOARD_INC = 1
 
 include code\assert.inc
 

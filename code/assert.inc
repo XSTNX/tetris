@@ -1,5 +1,5 @@
-ifndef assert_inc
-assert_inc = 1
+ifndef ASSERT_INC
+ASSERT_INC = 1
 
 ifdef DEBUG
 ASSERT_ENABLED		equ 1

@@ -1,5 +1,5 @@
-ifndef console_inc
-console_inc = 1
+ifndef CONSOLE_INC
+CONSOLE_INC = 1
 
 ifdef DEBUG
 CONSOLE_ENABLED		equ 1

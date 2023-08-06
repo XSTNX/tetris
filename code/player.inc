@@ -1,5 +1,5 @@
-ifndef player_inc
-player_inc = 1
+ifndef PLAYER_INC
+PLAYER_INC = 1
 
 externdef playerInit:proc, playerUpdate:proc, playerRender:proc
 
