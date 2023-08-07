@@ -13,13 +13,13 @@ code segment readonly public
 
 test5Init proc
     ; Init array.
-    mov al,1
+    mov ax,1
     mov si,offset PrimeArray
     mov cx,PRIME_COUNT
     mov di,si
     rep stosb
     ; Compute prime numbers.
-    mov ax,2
+    inc ax
     xor dl,dl
 primeLoop0:
     mov bx,ax
