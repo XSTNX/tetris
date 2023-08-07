@@ -40,24 +40,25 @@ test5Init endp
 
 test5InitRender proc
 if CONSOLE_ENABLED
-    mov bx,2
-    mov al,bl
+    mov al,2
     call consolePrintByte
     mov cx,PRIME_COUNT - 3
     jcxz short done
-    mov si,offset PrimeArray
-    inc bx
+    mov bx,(offset PrimeArray) + 3
 @@:
-    cmp byte ptr [si + bx],1
+    cmp byte ptr [bx],1
     jne short next
     mov al,','
     call consolePrintChar
-    mov al,bl
+    mov ax,bx
+    sub ax,offset PrimeArray
     call consolePrintByte
 next:
     inc bx
     loop short @b
 done:
+    mov al,'.'
+    call consolePrintChar
 endif
     ret
 test5InitRender endp
