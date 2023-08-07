@@ -18,7 +18,7 @@ test5Init proc
     mov cx,PRIME_COUNT
     mov di,si
     rep stosb
-    ; Compute prime numbers.
+    ; Compute prime numbers starting from 2.
     inc ax
     xor dl,dl
 primeLoop0:
@@ -43,8 +43,9 @@ if CONSOLE_ENABLED
     mov cx,PRIME_COUNT - 3
     jcxz short done
     mov bx,(offset PrimeArray) + 3
+    mov dl,1
 @@:
-    cmp byte ptr [bx],1
+    cmp [bx],dl
     jne short next
     mov al,','
     call consolePrintChar
