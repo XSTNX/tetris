@@ -49,9 +49,6 @@ code segment readonly public
 ;-------------;
 
 playerInit proc
-	mov ax,ds
-	mov es,ax
-
 	xor ax,ax
 	mov [PlayerShotCount],ax
 	mov [PlayerRenderDeleteCount],ax
