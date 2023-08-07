@@ -13,8 +13,6 @@ code segment readonly public
 
 test5Init proc
     ; Init array.
-    mov ax,ds
-    mov es,ax
     mov al,1
     mov si,offset PrimeArray
     mov cx,PRIME_COUNT

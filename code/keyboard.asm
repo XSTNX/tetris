@@ -19,6 +19,7 @@ keyboardStart proc
 if KEYBOARD_ENABLED
     cmp [KeyboardAlreadyInitialized],0
     jne short @f
+    push es
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
     mov es,ax
@@ -32,6 +33,7 @@ if KEYBOARD_ENABLED
     push ax
     call keyboardSetIntHandler
     inc [KeyboardAlreadyInitialized]
+    pop es
 @@:
 endif
     ret

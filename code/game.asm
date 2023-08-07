@@ -151,7 +151,11 @@ endif
 	mov es,ax
 	WAIT_VSYNC
 	call [GameStateInitRenderProc]
+	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
+	mov es,ax
 	call [GameStateRenderProc]
+	mov ax,ds
+	mov es,ax
 gameLoop:
 	call [GameStateUpdateProc]
 	call testPaletteChange
@@ -160,6 +164,8 @@ gameLoop:
 	mov es,ax
 	WAIT_VSYNC
 	call [GameStateRenderProc]
+	mov ax,ds
+	mov es,ax
 
 	; Continue gameloop until ESC is pressed.
 if KEYBOARD_ENABLED
