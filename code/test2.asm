@@ -6,7 +6,7 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
-TEST2_PIXELS_PER_FRAME      equ 1024
+TEST2_PIXELS_PER_FRAME      equ (4 * BIOS_VIDEO_MODE_320_200_4_WIDTH)
 
 code segment readonly public
 
@@ -44,7 +44,7 @@ test2Render proc
     mov dx,[Test2PosYColor]
     mov di,TEST2_PIXELS_PER_FRAME    
 
-nextPixel:
+pixelSet:
     push cx
     push dx
     call renderPixel320x200x4
@@ -53,21 +53,21 @@ nextPixel:
     ; Increment posX.
     inc cx
     cmp cx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    jne short skipUpdate
+    jne short pixelNext
     ; Reset posX.
     xor cx,cx
     ; Increment posY.
     inc dl
     cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-    jne short skipUpdate
+    jne short pixelNext
     ; Reset posY.
     xor dl,dl
     ; Increment color keeping it in range.
     inc dh
     and dh,11b
-skipUpdate:
+pixelNext:
     dec di
-    jnz nextPixel
+    jnz short pixelSet
 
     ; Save updated values.
     mov [Test2PosX],cx
@@ -106,13 +106,13 @@ constData segment readonly public
 constData ends
 
 data segment public
-    Test2PosX           word ?
-    Test2PosYColor      label word
-    Test2PosY           byte ?
-    Test2Color          byte ?
+    Test2PosX               word ?
+    Test2PosYColor          label word
+    Test2PosY               byte ?
+    Test2Color              byte ?
 if CONSOLE_ENABLED
-    Test2Ticks          word ?
-    Test2FrameCounter   byte ?
+    Test2Ticks              word ?
+    Test2FrameCounter       byte ?
     Test2PrevFrameCounter   byte ?
 endif    
 ;testData label byte
