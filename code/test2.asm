@@ -83,7 +83,7 @@ if CONSOLE_ENABLED
     mov [Test2FrameCounter],al
     sub cx,[Test2Ticks]
     cmp cx,18
-    jb @f
+    jb short @f
     mov [Test2Ticks],bx
     mov [Test2PrevFrameCounter],al
     mov [Test2FrameCounter],0
