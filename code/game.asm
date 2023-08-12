@@ -149,11 +149,12 @@ endif
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
-	WAIT_VSYNC
+	RENDER_WAIT_FOR_VSYNC
 	call [GameStateInitRenderProc]
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
 	call [GameStateRenderProc]
+	; Point the extra segment back to start.
 	mov ax,ds
 	mov es,ax
 gameLoop:
@@ -162,8 +163,9 @@ gameLoop:
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
 	mov es,ax
-	WAIT_VSYNC
+	RENDER_WAIT_FOR_VSYNC
 	call [GameStateRenderProc]
+	; Point the extra segment back to start.
 	mov ax,ds
 	mov es,ax
 

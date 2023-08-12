@@ -3,6 +3,11 @@ RENDER_INC = 1
 
 include code\bios.inc
 
+RENDER_CGA_STATUS_PORT				equ 3dah
+; The books MASM Bible and Turbo Assembler Bible both say vsync is in bit0, not bit3, but this is not the behavior I'm seeing in DOSBox.
+; This should be confirmed on real hardware.
+RENDER_CGA_STATUS_MASK_VSYNC		equ 8
+
 ; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
 externdef renderInitMultiplyRowBy80Table:proc
 externdef renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderVertLine320x200x4:proc, renderRect320x200x4:proc
@@ -18,16 +23,19 @@ RENDER_SET_PALETTE_320x200x4 macro aPaletteNum:req
 	int BIOS_VIDEO_INT
 endm
 
-WAIT_VSYNC macro
+; Clobber: ax, dx.
+RENDER_WAIT_FOR_VSYNC macro
 local wait0, wait1
-	mov dx,3dah
+	mov dx,RENDER_CGA_STATUS_PORT
+	; Wait until vsync is over if it has already started.
 wait0:
 	in al,dx
-	test al,8
+	test al,RENDER_CGA_STATUS_MASK_VSYNC
 	jnz short wait0
+	; Wait until vsync begins.
 wait1:
 	in al,dx
-	test al,8
+	test al,RENDER_CGA_STATUS_MASK_VSYNC
 	jz short wait1
 endm
 
