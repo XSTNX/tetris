@@ -2,6 +2,7 @@ DEFINE_TEXT = DEBUG
 #DEFINE_TEXT = RELEASE
 INCLUDE_FOLDER = .
 ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX /X
+SRC_FOLDER = code
 TMP_FOLDER = obj
 OUTPUT_FOLDER = bin
 EXECUTABLE_NAME = invdrs
@@ -12,52 +13,52 @@ $(OUTPUT_FOLDER)\$(EXECUTABLE_NAME).$(EXECUTABLE_EXT) : $(TMP_FOLDER)\game.obj $
 $**, $@;
 <<
 
-code\assert.inc : code\errcode.inc
-code\console.inc : code\ascii.inc
-code\keyboard.inc : code\assert.inc
-code\render.inc : code\bios.inc
+$(SRC_FOLDER)\assert.inc : $(SRC_FOLDER)\errcode.inc
+$(SRC_FOLDER)\console.inc : $(SRC_FOLDER)\ascii.inc
+$(SRC_FOLDER)\keyboard.inc : $(SRC_FOLDER)\assert.inc
+$(SRC_FOLDER)\render.inc : $(SRC_FOLDER)\bios.inc
 
-obj\assert.obj : code\assert.asm code\assert.inc code\game.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\assert.obj" /Fl"$(TMP_FOLDER)\assert.lst" code\assert.asm
+$(TMP_FOLDER)\assert.obj : $(SRC_FOLDER)\assert.asm $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\game.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\console.obj : code\console.asm code\console.inc code\assert.inc code\bios.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\console.obj" /Fl"$(TMP_FOLDER)\console.lst" code\console.asm
+$(TMP_FOLDER)\console.obj : $(SRC_FOLDER)\console.asm $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\bios.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\game.obj : code\game.asm code\game.inc code\console.inc code\dos.inc code\errcode.inc code\keyboard.inc code\level.inc code\render.inc code\test1.inc code\test2.inc code\test3.inc code\test4.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\game.obj" /Fl"$(TMP_FOLDER)\game.lst" code\game.asm
+$(TMP_FOLDER)\game.obj : $(SRC_FOLDER)\game.asm $(SRC_FOLDER)\game.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\dos.inc $(SRC_FOLDER)\errcode.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\level.inc $(SRC_FOLDER)\render.inc $(SRC_FOLDER)\test1.inc $(SRC_FOLDER)\test2.inc $(SRC_FOLDER)\test3.inc $(SRC_FOLDER)\test4.inc $(SRC_FOLDER)\test5.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\keyboard.obj : code\keyboard.asm code\keyboard.inc code\bios.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\keyboard.obj" /Fl"$(TMP_FOLDER)\keyboard.lst" code\keyboard.asm
+$(TMP_FOLDER)\keyboard.obj : $(SRC_FOLDER)\keyboard.asm $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\bios.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\level.obj : code\level.asm code\level.inc code\bios.inc code\player.inc code\render.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\level.obj" /Fl"$(TMP_FOLDER)\level.lst" code\level.asm
+$(TMP_FOLDER)\level.obj : $(SRC_FOLDER)\level.asm $(SRC_FOLDER)\level.inc $(SRC_FOLDER)\bios.inc $(SRC_FOLDER)\player.inc $(SRC_FOLDER)\render.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\player.obj : code\player.asm code\player.inc code\console.inc code\keyboard.inc code\render.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\player.obj" /Fl"$(TMP_FOLDER)\player.lst" code\player.asm
+$(TMP_FOLDER)\player.obj : $(SRC_FOLDER)\player.asm $(SRC_FOLDER)\player.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\render.obj : code\render.asm code\render.inc code\assert.inc code\bios.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\render.obj" /Fl"$(TMP_FOLDER)\render.lst" code\render.asm
+$(TMP_FOLDER)\render.obj : $(SRC_FOLDER)\render.asm $(SRC_FOLDER)\render.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\bios.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\test1.obj : code\test1.asm code\test1.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\test1.obj" /Fl"$(TMP_FOLDER)\test1.lst" code\test1.asm
+$(TMP_FOLDER)\test1.obj : $(SRC_FOLDER)\test1.asm $(SRC_FOLDER)\test1.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\test2.obj : code\test2.asm code\test2.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\test2.obj" /Fl"$(TMP_FOLDER)\test2.lst" code\test2.asm
+$(TMP_FOLDER)\test2.obj : $(SRC_FOLDER)\test2.asm $(SRC_FOLDER)\test2.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc $(SRC_FOLDER)\timer.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\test3.obj : code\test3.asm code\test3.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\test3.obj" /Fl"$(TMP_FOLDER)\test3.lst" code\test3.asm
+$(TMP_FOLDER)\test3.obj : $(SRC_FOLDER)\test3.asm $(SRC_FOLDER)\test3.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\test4.obj : code\test4.asm code\test4.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\test4.obj" /Fl"$(TMP_FOLDER)\test4.lst" code\test4.asm
+$(TMP_FOLDER)\test4.obj : $(SRC_FOLDER)\test4.asm $(SRC_FOLDER)\test4.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc $(SRC_FOLDER)\timer.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\test5.obj : code\test5.asm code\test5.inc code\assert.inc code\assumSeg.inc code\console.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\test5.obj" /Fl"$(TMP_FOLDER)\test5.lst" code\test5.asm
+$(TMP_FOLDER)\test5.obj : $(SRC_FOLDER)\test5.asm $(SRC_FOLDER)\test5.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\tetris.obj : code\tetris.asm code\tetris.inc code\assert.inc code\assumSeg.inc code\console.inc code\keyboard.inc code\render.inc code\timer.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\tetris.obj" /Fl"$(TMP_FOLDER)\tetris.lst" code\tetris.asm
+$(TMP_FOLDER)\tetris.obj : $(SRC_FOLDER)\tetris.asm $(SRC_FOLDER)\tetris.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc $(SRC_FOLDER)\timer.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-obj\timer.obj : code\timer.asm code\timer.inc code\assumSeg.inc code\bios.inc
-	ml $(ML_OPTIONS) /Fo"$(TMP_FOLDER)\timer.obj" /Fl"$(TMP_FOLDER)\timer.lst" code\timer.asm
+$(TMP_FOLDER)\timer.obj : $(SRC_FOLDER)\timer.asm $(SRC_FOLDER)\timer.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\bios.inc
+	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
 clean :
 	-del $(OUTPUT_FOLDER)\$(EXECUTABLE_NAME).$(EXECUTABLE_EXT)
