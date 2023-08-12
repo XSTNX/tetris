@@ -23,11 +23,13 @@ test5Init proc
     xor dl,dl
 primeLoop0:
     mov bx,ax
+    cmp byte ptr [si + bx],dl
+    je short primeNext
 primeLoop1:
     add bx,ax
     cmp bx,PRIME_COUNT
     jae short primeNext
-    mov [si + bx],dl
+    mov byte ptr [si + bx],dl
     jmp short primeLoop1
 primeNext:
     inc ax
@@ -45,7 +47,7 @@ if CONSOLE_ENABLED
     mov bx,(offset PrimeArray) + 3
     mov dl,1
 @@:
-    cmp [bx],dl
+    cmp byte ptr [bx],dl
     jne short next
     mov al,','
     call consolePrintChar
