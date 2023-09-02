@@ -14,11 +14,15 @@ TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - 
 TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + ((TETRIS_BOARD_START_POS_X / TETRIS_BLOCK_SIZE) * 2)
 TETRIS_BOARD_LIMIT_COLOR            equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
-TETRIS_PIECE_HORIZ_SPEED            equ 64
+TETRIS_PIECE_SPEED_X                equ 64
+TETRIS_PIECE_SPEED_Y                equ 16
+TETRIS_KEY_LEFT					    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
+TETRIS_KEY_RIGHT				    equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
+TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
 
-COLOR_EXTEND_WORD_IMM macro aImm:req
-    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
-endm
+;COLOR_EXTEND_WORD_IMM macro aImm:req
+;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
+;endm
 
 code segment readonly public
 
@@ -81,16 +85,16 @@ tetrisUpdate proc
     ; Horizontal movement.
     mov ax,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevCol],ax
-	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
-	jnz short @f    
-    sub ax,TETRIS_PIECE_HORIZ_SPEED
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
+	jnz short @f
+    sub ax,TETRIS_PIECE_SPEED_X
     cmp ax,(1 shl 8)
 	jae short @f
     mov ax,(1 shl 8)
 @@:
-	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
-    jnz short @f    
-    add ax,TETRIS_PIECE_HORIZ_SPEED
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
+    jnz short @f
+    add ax,TETRIS_PIECE_SPEED_X
     cmp ax,((TETRIS_BOARD_COLS - 2) shl 8)
 	jbe short @f
     mov ax,((TETRIS_BOARD_COLS - 2) shl 8)
@@ -100,7 +104,7 @@ tetrisUpdate proc
     ; Vertical movement.
     mov ax,[TetrisFallingPieceRow]
     mov [TetrisFallingPiecePrevRow],ax
-	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
     ; Reset piece and return.
     mov [TetrisFallingPieceCol],400h
@@ -108,11 +112,11 @@ tetrisUpdate proc
     ret
 @@:
     ; Update piece row.
-    add ax,16
+    add ax,TETRIS_PIECE_SPEED_Y
     cmp ax,(14 shl 8)
-    jbe short skipSnap
+    jbe short @f
     mov ax,(14 shl 8)
-skipSnap:
+@@:
     mov [TetrisFallingPieceRow],ax
     ret
 tetrisUpdate endp
