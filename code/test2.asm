@@ -14,6 +14,7 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 test2Init proc
     ;mov al,[testData]
 
@@ -28,6 +29,7 @@ endif
     ret
 test2Init endp
 
+; Clobber: everything.
 test2InitRender proc
 if CONSOLE_ENABLED
     call timerResetTicks
@@ -35,10 +37,12 @@ endif
     ret
 test2InitRender endp
 
+; Clobber: everything.
 test2Update proc
     ret
 test2Update endp
 
+; Clobber: everything.
 test2Render proc
     mov cx,[Test2PosX]
     mov dx,[Test2PosYColor]

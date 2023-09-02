@@ -12,16 +12,13 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 levelInit proc
 	call playerInit
 	ret
 levelInit endp
 
-levelUpdate proc
-	call playerUpdate
-	ret
-levelUpdate endp
-
+; Clobber: everything.
 levelInitRender proc
 	xor cx,cx
 	mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
@@ -31,6 +28,13 @@ levelInitRender proc
 	ret
 levelInitRender endp
 
+; Clobber: everything.
+levelUpdate proc
+	call playerUpdate
+	ret
+levelUpdate endp
+
+; Clobber: everything.
 levelRender proc
 	call playerRender
 	ret

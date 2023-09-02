@@ -12,10 +12,12 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 test4Init proc
     ret
 test4Init endp
 
+; Clobber: everything.
 test4InitRender proc
     ; Pixel.
     ; PosX.
@@ -56,10 +58,12 @@ endif
     ret
 test4InitRender endp
 
+; Clobber: everything.
 test4Update proc
     ret
 test4Update endp
 
+; Clobber: everything.
 test4Render proc
 if CONSOLE_ENABLED
     CONSOLE_SET_CURSOR_COL_ROW 0, 0

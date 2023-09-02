@@ -48,6 +48,7 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 playerInit proc
 	xor ax,ax
 	mov [PlayerShotCount],ax
@@ -69,6 +70,7 @@ endif
 	ret
 playerInit endp
 
+; Clobber: everything.
 playerUpdate proc
 	mov ax,ds
 	mov es,ax
@@ -208,6 +210,7 @@ skipShot:
 	ret
 playerUpdate endp
 
+; Clobber: everything.
 playerRender proc
 	; Clear deleted sprites.
 	mov cx,[PlayerRenderDeleteCount]
@@ -340,8 +343,9 @@ playerRender endp
 if CONSOLE_ENABLED
 
 playerDebugPrintKeyboard proc private
-	; Left.
 	CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	
+	; Left.
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
 	mov al,"0"
 	jnz short @f

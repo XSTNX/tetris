@@ -11,6 +11,7 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 test5Init proc
     ; Init array.
     mov ax,1
@@ -38,6 +39,7 @@ primeNext:
     ret
 test5Init endp
 
+; Clobber: everything.
 test5InitRender proc
 if CONSOLE_ENABLED
     mov al,2
@@ -49,7 +51,7 @@ if CONSOLE_ENABLED
 @@:
     cmp byte ptr [bx],dl
     jne short next
-    mov al,','
+    mov al,","
     call consolePrintChar
     mov ax,bx
     sub ax,offset PrimeArray
@@ -58,16 +60,18 @@ next:
     inc bx
     loop short @b
 done:
-    mov al,'.'
+    mov al,"."
     call consolePrintChar
 endif
     ret
 test5InitRender endp
 
+; Clobber: everything.
 test5Update proc
     ret
 test5Update endp
 
+; Clobber: everything.
 test5Render proc
     ret
 test5Render endp

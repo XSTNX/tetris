@@ -11,10 +11,12 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 test3Init proc
     ret
 test3Init endp
 
+; Clobber: everything.
 test3InitRender proc
     ; ax (line count).
     ; cx (unsigned lowX).
@@ -48,10 +50,12 @@ tmpText:
 endif
 test3InitRender endp
 
+; Clobber: everything.
 test3Update proc
     ret
 test3Update endp
 
+; Clobber: everything.
 test3Render proc
 if CONSOLE_ENABLED
 	mov al,"X"

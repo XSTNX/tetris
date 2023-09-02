@@ -19,6 +19,7 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 test1Init proc
     mov [Test1PosYPacked],TEST_BOX_POSY_START shl 8
 	mov [Test1PrevPosY],TEST_BOX_POSY_START
@@ -26,6 +27,7 @@ test1Init proc
     ret
 test1Init endp
 
+; Clobber: everything.
 test1InitRender proc
     ; Top rect.
     xor cx,cx
@@ -54,6 +56,7 @@ test1InitRender proc
     ret
 test1InitRender endp
 
+; Clobber: everything.
 test1Update proc
     mov ax,[Test1PosYPacked]
     mov [Test1PrevPosY],ah
@@ -67,6 +70,7 @@ test1Update proc
     ret
 test1Update endp
 
+; Clobber: everything.
 test1Render proc
     ; Erase previous box.
 	mov cx,TEST_BOX_LOWX
