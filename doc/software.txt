@@ -1,8 +1,35 @@
 Software
 --------
-- MASM 6.11d (https://sourceforge.net/projects/masm611/)
 - Visual Studio Code (https://code.visualstudio.com/)
 - Visual Studio Code Extension MASM (https://marketplace.visualstudio.com/items?itemName=blindtiger.masm)
+- Git BASH (https://gitforwindows.org/)
+- MASM 6.11d (https://sourceforge.net/projects/masm611/)
 - DebugX (https://pcdosretro.github.io/enhdebug.htm)
 - DOSBox (https://www.dosbox.com/)
 - OSFMount (https://www.osforensics.com/tools/mount-disk-images.html)
+
+MASM
+----
+- Apply 6.11d patch by copying ML611D.exe to C:\MASM611\BIN and executing it, the file can be deleted after the patch is applied.
+
+Setup DOSBox
+------------
+- Add the following to the options in [autoexec]:
+@echo off
+MOUNT C C:\Users\USERNAME\project\ibmPC
+SET PATH=Z:\;C:\MASM611\BIN;C:\debugx
+SET TMP=C:\MASM611\TMP
+c:
+cd invdrs
+
+NMake
+-----
+- Build project with:   b.bat
+- Clean project with:   c.bat
+- Run binary with:      r.bat
+
+Git BASH
+--------
+- Add user name and email so you can submit to repository:
+    git config --global user.name "USERNAME"
+    git config --global user.email "EMAIL"

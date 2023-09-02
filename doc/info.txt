@@ -1,6 +1,6 @@
 8088
 ----
-Not sure if operating on bytes makes subtractions any faster. Example of where I try to optimize doing this are consolePrintByte and consolePrintWord.
+- Not sure if operating on bytes makes subtractions any faster. Example of where I try to optimize doing this are consolePrintByte and consolePrintWord.
 
 ASM
 ---
@@ -70,23 +70,6 @@ GAME
 - It would be better for the drawing functions like line and rect that the low coordinate is stored in a register that can be used with lea, so it's faster to compute the high.
 - Modify CONSOLE_SET_CURSOR_POS so it does xor dx,dx when col and row are zero.
 - Added one .gitignore file per folder inside obj and bin, this is needed because git doesn't backup folders unless there are files in them, and neither ml nor link will create the folder by itself. Maybe the creation of these folders could be done in the makefile?
-
-DOSBox
-------
-- Add the following to the options in [autoexec]:
-    @echo off
-    MOUNT C C:\Users\USERNAME\projects\ibmPC
-    PATH=Z:\;C:\MASM611\BIN;C:\debugx
-    c:
-    cd invdrs\bin
-- Build project with: nmake
-- Clean project with: nmake clean
-
-Git Bash
---------
-- Add user name and email so you can submit to repository:
-    git config --global user.name "USERNAME"
-    git config --global user.email "EMAIL"
 
 LINKS
 -----
