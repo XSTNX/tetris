@@ -6,7 +6,7 @@ include code\bios.inc
 RENDER_CGA_STATUS_PORT				equ 3dah
 ; The books MASM Bible and Turbo Assembler Bible both say vsync is in bit0, not bit3, but this is not the behavior I'm seeing in DOSBox.
 ; This should be confirmed on real hardware.
-RENDER_CGA_STATUS_MASK_VSYNC		equ 8
+RENDER_CGA_STATUS_MASK_VSYNC		equ (1 shl 3)
 
 ; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
 externdef renderInitMultiplyRowBy80Table:proc
