@@ -30,6 +30,7 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
+; Clobber: everything.
 tetrisInit proc
     mov ax,400h
     mov [TetrisFallingPieceCol],ax
@@ -40,6 +41,7 @@ tetrisInit proc
     ret
 tetrisInit endp
 
+; Clobber: everything.
 tetrisInitRender proc
     ; Top limit.
     mov cx,TETRIS_BOARD_START_POS_X
@@ -65,83 +67,60 @@ tetrisInitRender proc
     pop bx
     pop dx
     call renderVertLine320x200x4
-    ; Test rows.
-    mov al,1
-    mov si,TETRIS_BOARD_ROWS - 1
-    call tetrisRenderBlockRowTest
-    mov al,2
-    mov si,TETRIS_BOARD_ROWS - 2
-    call tetrisRenderBlockRowTest
-    mov al,3
-    mov si,TETRIS_BOARD_ROWS - 3
-    call tetrisRenderBlockRowTest
-    mov al,1
-    mov si,TETRIS_BOARD_ROWS - 4
-    call tetrisRenderBlockRowTest
     ret
 tetrisInitRender endp
 
+; Clobber: everything.
 tetrisUpdate proc
-    ; Horizontal movement.
     mov ax,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevCol],ax
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub ax,TETRIS_PIECE_SPEED_X
-    cmp ax,(1 shl 8)
-	jae short @f
-    mov ax,(1 shl 8)
+    cmp ax,((TETRIS_BOARD_COLS - 1) shl 8)
+	jbe short @f
+    xor ax,ax
 @@:
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
     add ax,TETRIS_PIECE_SPEED_X
-    cmp ax,((TETRIS_BOARD_COLS - 2) shl 8)
+    cmp ax,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
-    mov ax,((TETRIS_BOARD_COLS - 2) shl 8)
+    mov ax,((TETRIS_BOARD_COLS - 1) shl 8)
 @@:
     mov [TetrisFallingPieceCol],ax
 
-    ; Vertical movement.
     mov ax,[TetrisFallingPieceRow]
     mov [TetrisFallingPiecePrevRow],ax
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
-    ; Reset piece and return.
     mov [TetrisFallingPieceCol],400h
     mov [TetrisFallingPieceRow],0
     ret
 @@:
-    ; Update piece row.
     add ax,TETRIS_PIECE_SPEED_Y
-    cmp ax,(14 shl 8)
-    jbe short @f
-    mov ax,(14 shl 8)
+    cmp ax,((TETRIS_BOARD_ROWS - 1) shl 8)
+	jbe short @f
+    mov ax,((TETRIS_BOARD_ROWS - 1) shl 8)
 @@:
     mov [TetrisFallingPieceRow],ax
     ret
 tetrisUpdate endp
 
+; Clobber: everything.
 tetrisRender proc
     ; Erase previous position.
     xor al,al
-    mov cl,8
-    mov dx,[TetrisFallingPiecePrevRow]
-    shr dx,cl
-    mov cx,[TetrisFallingPiecePrevCol]
-    mov cl,ch
-    xor ch,ch
+    mov cl,[TetrisFallingPiecePrevColHI]
+    mov dl,[TetrisFallingPiecePrevRowHI]
     call tetrisRenderPiece
 
     ; Draw new position.
     mov al,3
-    mov cl,8
-    mov dx,[TetrisFallingPieceRow]
-    shr dx,cl
-    mov cx,[TetrisFallingPieceCol]
-    mov cl,ch
-    xor ch,ch
+    mov cl,[TetrisFallingPieceColHI]
+    mov dl,[TetrisFallingPieceRowHI]
     call tetrisRenderPiece
-
+    
 if CONSOLE_ENABLED
     call tetrisRenderDebug
 endif
@@ -154,13 +133,33 @@ tetrisRender endp
 
 if CONSOLE_ENABLED
 tetrisRenderDebug proc private
-    CONSOLE_SET_CURSOR_COL_ROW 0, 0
-    mov al,[TetrisFallingPieceColHI]
-    call consolePrintByte
+	CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
+
+    CONSOLE_SET_CURSOR_COL_ROW 0, 1
+    mov ax,[TetrisFallingPieceCol]
+    call consolePrintWordHex
     mov al,"-"
     call consolePrintChar
-    mov al,[TetrisFallingPieceRowHI]
-    call consolePrintByte
+    mov ax,[TetrisFallingPieceRow]
+    call consolePrintWordHex
     ret
 tetrisRenderDebug endp
 endif
@@ -221,57 +220,17 @@ endm
     ret
 tetrisRenderBlock endp
 
-; Input: al (blockId), cx (unsigned col), dx (unsigned row).
-; Clobber: bx, si, di.
+; Input: al (blockId), cl (unsigned col), dl (unsigned row).
+; Clobber: ax, bx, ch, dh, si, di.
 tetrisRenderPiece proc private
     ; May need to validate col,row.
-    mov bp,ax
+    xor ch,ch
     mov bx,cx
+    xor dh,dh
     mov si,dx
-    call tetrisRenderBlock
-    mov ax,bp
-    mov bx,cx
-    mov si,dx
-    dec bx
-    inc si
-    call tetrisRenderBlock
-    mov ax,bp
-    mov bx,cx
-    mov si,dx
-    inc si
-    mov ax,bp
-    call tetrisRenderBlock
-    mov bx,cx
-    mov si,dx
-    inc bx
-    inc si
-    mov ax,bp
     call tetrisRenderBlock
     ret
 tetrisRenderPiece endp
-
-; Input: al (blockId), si (unsigned row).
-; Clobber: nothing.
-tetrisRenderBlockRowTest proc private
-    push ax
-    and al,3
-    mov cx,TETRIS_BOARD_COLS
-colLoop:
-    mov bx,cx
-    dec bx
-    push ax
-    push si
-    call tetrisRenderBlock
-    pop si
-    pop ax
-    dec al
-    jnz short skipResetColor
-    mov al,3
-skipResetColor:
-    loop colLoop
-    pop ax
-    ret
-tetrisRenderBlockRowTest endp
 
 code ends
 
@@ -290,8 +249,12 @@ data segment public
     TetrisFallingPieceRow           label word
     TetrisFallingPieceRowLO         byte ?
     TetrisFallingPieceRowHI         byte ?
-    TetrisFallingPiecePrevCol       word ?
-    TetrisFallingPiecePrevRow       word ?
+    TetrisFallingPiecePrevCol       label word
+    TetrisFallingPiecePrevColLO     byte ?
+    TetrisFallingPiecePrevColHI     byte ?
+    TetrisFallingPiecePrevRow       label word
+    TetrisFallingPiecePrevRowLO     byte ?
+    TetrisFallingPiecePrevRowHI     byte ?
 data ends
 
 end
