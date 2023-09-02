@@ -32,12 +32,12 @@ code segment readonly public
 
 ; Clobber: everything.
 tetrisInit proc
-    mov ax,400h
+    mov ax,(((TETRIS_BOARD_COLS / 2) - 1) shl 8)
     mov [TetrisFallingPieceCol],ax
-    mov [TetrisFallingPiecePrevCol],ax
+    mov [TetrisFallingPiecePrevCol],ah
     xor ax,ax
     mov [TetrisFallingPieceRow],ax
-    mov [TetrisFallingPiecePrevRow],ax
+    mov [TetrisFallingPiecePrevRow],ah
     ret
 tetrisInit endp
 
@@ -73,7 +73,7 @@ tetrisInitRender endp
 ; Clobber: everything.
 tetrisUpdate proc
     mov ax,[TetrisFallingPieceCol]
-    mov [TetrisFallingPiecePrevCol],ax
+    mov [TetrisFallingPiecePrevCol],ah
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub ax,TETRIS_PIECE_SPEED_X
@@ -91,7 +91,7 @@ tetrisUpdate proc
     mov [TetrisFallingPieceCol],ax
 
     mov ax,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRow],ax
+    mov [TetrisFallingPiecePrevRow],ah
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
     mov [TetrisFallingPieceCol],400h
@@ -111,8 +111,8 @@ tetrisUpdate endp
 tetrisRender proc
     ; Erase previous position.
     xor al,al
-    mov cl,[TetrisFallingPiecePrevColHI]
-    mov dl,[TetrisFallingPiecePrevRowHI]
+    mov cl,[TetrisFallingPiecePrevCol]
+    mov dl,[TetrisFallingPiecePrevRow]
     call tetrisRenderPiece
 
     ; Draw new position.
@@ -223,7 +223,6 @@ tetrisRenderBlock endp
 ; Input: al (blockId), cl (unsigned col), dl (unsigned row).
 ; Clobber: ax, bx, ch, dh, si, di.
 tetrisRenderPiece proc private
-    ; May need to validate col,row.
     xor ch,ch
     mov bx,cx
     xor dh,dh
@@ -249,12 +248,8 @@ data segment public
     TetrisFallingPieceRow           label word
     TetrisFallingPieceRowLO         byte ?
     TetrisFallingPieceRowHI         byte ?
-    TetrisFallingPiecePrevCol       label word
-    TetrisFallingPiecePrevColLO     byte ?
-    TetrisFallingPiecePrevColHI     byte ?
-    TetrisFallingPiecePrevRow       label word
-    TetrisFallingPiecePrevRowLO     byte ?
-    TetrisFallingPiecePrevRowHI     byte ?
+    TetrisFallingPiecePrevCol       byte ?
+    TetrisFallingPiecePrevRow       byte ?
 data ends
 
 end
