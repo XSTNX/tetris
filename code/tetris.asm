@@ -25,6 +25,21 @@ TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
 ;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
 ;endm
 
+; Input: ax (col), bx (row).
+; Output: zf (zero flag set if true).
+; Clobber: bx, si.
+TETRIS_BOARD_CELL_IS_USED macro
+    ; Could use a table to multiply faster by 10.
+    ; static_assert(TETRIS_BOARD_COLS == 10)
+    shl bx
+    mov si,bx
+    shl bx
+    shl bx
+    add bx,si
+    add bx,ax
+    cmp byte ptr [TetrisBoardCellUsedArray + bx],1
+endm
+
 code segment readonly public
 
 ;-------------;
@@ -41,9 +56,9 @@ tetrisInit proc
     mov [TetrisFallingPieceRow],ax
     mov [TetrisFallingPiecePrevRow],ah
     ; Init board.
-    ; How to add a static assert that the board count is divisible by 2??????
-    mov cx,TETRIS_BOARD_COUNT/2
-    mov di,offset TetrisBoard
+    ; static_assert((TETRIS_BOARD_COUNT & 1) == 0)
+    mov cx,TETRIS_BOARD_COUNT / 2
+    mov di,offset TetrisBoardCellUsedArray
     rep stosw
     ret
 tetrisInit endp
@@ -95,22 +110,20 @@ tetrisUpdate proc
 	jbe short @f
     mov ax,((TETRIS_BOARD_COLS - 1) shl 8)
 @@:
-    mov [TetrisFallingPieceCol],ax
 
-    mov ax,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRow],ah
+    mov bx,[TetrisFallingPieceRow]
+    mov [TetrisFallingPiecePrevRow],bh
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
-    mov [TetrisFallingPieceCol],400h
-    mov [TetrisFallingPieceRow],0
-    ret
 @@:
-    add ax,TETRIS_PIECE_SPEED_Y
-    cmp ax,((TETRIS_BOARD_ROWS - 1) shl 8)
+    add bx,TETRIS_PIECE_SPEED_Y
+    cmp bx,((TETRIS_BOARD_ROWS - 1) shl 8)
 	jbe short @f
-    mov ax,((TETRIS_BOARD_ROWS - 1) shl 8)
+    mov bx,((TETRIS_BOARD_ROWS - 1) shl 8)
 @@:
-    mov [TetrisFallingPieceRow],ax
+
+    mov [TetrisFallingPieceCol],ax
+    mov [TetrisFallingPieceRow],bx
     ret
 tetrisUpdate endp
 
@@ -140,23 +153,11 @@ if CONSOLE_ENABLED
 tetrisRenderDebug proc private
 	CONSOLE_SET_CURSOR_COL_ROW 0, 0
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
-	mov al,"0"
-	jnz short @f
-	mov al,"1"
-@@:
-	call consolePrintChar
+	call consolePrintZeroFlag
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
-	mov al,"0"
-	jnz short @f
-	mov al,"1"
-@@:
-	call consolePrintChar
+    call consolePrintZeroFlag
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
-	mov al,"0"
-	jnz short @f
-	mov al,"1"
-@@:
-	call consolePrintChar
+    call consolePrintZeroFlag
 
     CONSOLE_SET_CURSOR_COL_ROW 0, 1
     mov ax,[TetrisFallingPieceCol]
@@ -255,9 +256,9 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevCol       byte ?
     TetrisFallingPiecePrevRow       byte ?
-    ; Align board to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
+    ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
-    TetrisBoard                     byte TETRIS_BOARD_COUNT dup(?)
+    TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
 data ends
 
 end

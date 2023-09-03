@@ -142,6 +142,19 @@ consolePrintWordHex proc
 	ret
 consolePrintWordHex endp
 
+; Input: zf.
+; Clobber: nothing.
+consolePrintZeroFlag proc
+	push ax
+	mov al,"0"
+	jnz short @f
+	mov al,"1"
+@@:
+	call consolePrintChar
+	pop ax
+	ret
+consolePrintZeroFlag endp
+
 ; Input: al.
 ; Clobber: nothing.
 consolePrintChar proc

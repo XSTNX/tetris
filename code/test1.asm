@@ -131,8 +131,8 @@ if CONSOLE_ENABLED
     mov al,byte ptr [Test1PosYPacked + 1]
     call consolePrintByte
     call consoleNextLine
+	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_UP    
     mov al,"N"
-	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ARROW_UP
 	jnz @f
 	mov al,"Y"
 @@:

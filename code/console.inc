@@ -12,7 +12,7 @@ if CONSOLE_ENABLED
 include code\ascii.inc
 
 externdef consolePrintNibbleHex:proc, consolePrintByte:proc, consolePrintByteHex:proc, consolePrintWord:proc, consolePrintWordHex:proc
-externdef consolePrintChar:proc, consolePrintString:proc, consoleSetCursorColRow:proc, consoleNextLine:proc
+externdef consolePrintZeroFlag:proc, consolePrintChar:proc, consolePrintString:proc, consoleSetCursorColRow:proc, consoleNextLine:proc
 
 endif
 

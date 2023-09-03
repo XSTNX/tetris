@@ -344,31 +344,12 @@ if CONSOLE_ENABLED
 
 playerDebugPrintKeyboard proc private
 	CONSOLE_SET_CURSOR_COL_ROW 0, 0
-	
-	; Left.
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
-	mov al,"0"
-	jnz short @f
-	mov al,"1"
-@@:
-	call consolePrintChar
-
-	; Right.
+	call consolePrintZeroFlag
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_RIGHT
-	mov al,"0"
-	jnz short @f
-	mov al,"1"
-@@:
-	call consolePrintChar
-
-	; SHOOT.
+	call consolePrintZeroFlag
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_SHOOT
-	mov al,"0"
-	jnz short @f
-	mov al,"1"
-@@:
-	call consolePrintChar
-	
+	call consolePrintZeroFlag	
 	ret
 playerDebugPrintKeyboard endp
 
