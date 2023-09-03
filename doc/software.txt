@@ -16,10 +16,11 @@ Setup DOSBox
 ------------
 - Add the following to the options in [autoexec]:
 @echo off
-MOUNT C C:\Users\USERNAME\project\ibmPC
-SET PATH=Z:\;C:\MASM611\BIN;C:\debugx
-SET TMP=C:\MASM611\TMP
-c:
+MOUNT C C:\j\msdos
+MOUNT D C:\Users\UserName\project\ibmpc
+SET PATH=Z:\;D:\MASM611\BIN;D:\debugx
+SET TMP=D:\MASM611\TMP
+d:
 cd invdrs
 
 NMake
