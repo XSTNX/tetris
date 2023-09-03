@@ -25,16 +25,26 @@ TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
 ;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
 ;endm
 
-; Input: ax (col), bx (row).
+; Input: ax (unsigned col), bx (unsigned row).
 ; Output: zf (zero flag set if true).
 ; Clobber: bx, si.
 TETRIS_BOARD_CELL_IS_USED macro
+if ASSERT_ENABLED
+    cmp ax,TETRIS_BOARD_COLS
+    jb short @f
+    ASSERT
+@@:
+    cmp bx,TETRIS_BOARD_ROWS
+    jb short @f
+    ASSERT
+@@:
+endif
     ; Could use a table to multiply faster by 10.
     ; static_assert(TETRIS_BOARD_COLS == 10)
-    shl bx
+    shl bx,1
     mov si,bx
-    shl bx
-    shl bx
+    shl bx,1
+    shl bx,1
     add bx,si
     add bx,ax
     cmp byte ptr [TetrisBoardCellUsedArray + bx],1
@@ -158,7 +168,7 @@ tetrisRenderDebug proc private
     call consolePrintZeroFlag
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
     call consolePrintZeroFlag
-
+    
     CONSOLE_SET_CURSOR_COL_ROW 0, 1
     mov ax,[TetrisFallingPieceCol]
     call consolePrintWordHex
