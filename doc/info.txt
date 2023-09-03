@@ -1,6 +1,7 @@
 8088
 ----
 - Not sure if operating on bytes makes subtractions any faster. Example of where I try to optimize doing this are consolePrintByte and consolePrintWord.
+- I think I read somewhere that the rep prefix will not resume when an interrupt is triggered on older versions of the 8088, meaning the loop will not get completed. Is this true?
 
 ASM
 ---
@@ -26,6 +27,7 @@ MASM
 - How does the "assume" keyword works exactly? I'm trying to use it in the keyboard code but doesn't seem to work the way I expect.
 - How to detect if a macro argument is a register? Should be used to optimize KEYBOARD_IS_KEY_PRESSED.
 - Might be a good idea to read on how to use the repeat macro to create RenderMultiplyRowBy80Table at assembly time.
+- Is there a way to have a static assert or any other way to force an assembly error on a condition?
 
 IBM PC
 ------
@@ -36,7 +38,6 @@ IBM PC
 - See if I can find proper documentation on how vsync works.
 - Seems like the keypress has to be read before quitting, otherwise it will show up in the DOS prompt.
 - Should I worry about alignment? The PC and XT will not care about it, because they use an 8088, but newer models do. Probably the code would run fast enough to not care about the penalty?
-- I think I read somewhere that the rep prefix will not resume when an interrupt is triggered, meaning the loop will not get completed. Is this true?
 - Is there any emulator that produces accurate results for the IBM PC? Otherwise it will be very difficult to measure optmizations.
 - What is the difference between BIOS_VIDEO_MODE_320_200_4_COLOR and BIOS_VIDEO_MODE_320_200_4_BW really?
 - Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.

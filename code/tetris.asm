@@ -9,6 +9,7 @@ include code\timer.inc
 TETRIS_BLOCK_SIZE                   equ 8
 TETRIS_BOARD_COLS                   equ 10
 TETRIS_BOARD_ROWS                   equ 20
+TETRIS_BOARD_COUNT                  equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_ROWS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + ((TETRIS_BOARD_START_POS_X / TETRIS_BLOCK_SIZE) * 2)
@@ -32,12 +33,18 @@ code segment readonly public
 
 ; Clobber: everything.
 tetrisInit proc
+    ; Init col and row.
     mov ax,(((TETRIS_BOARD_COLS / 2) - 1) shl 8)
     mov [TetrisFallingPieceCol],ax
     mov [TetrisFallingPiecePrevCol],ah
     xor ax,ax
     mov [TetrisFallingPieceRow],ax
     mov [TetrisFallingPiecePrevRow],ah
+    ; Init board.
+    ; How to add a static assert that the board count is divisible by 2??????
+    mov cx,TETRIS_BOARD_COUNT/2
+    mov di,offset TetrisBoard
+    rep stosw
     ret
 tetrisInit endp
 
@@ -114,13 +121,11 @@ tetrisRender proc
     mov cl,[TetrisFallingPiecePrevCol]
     mov dl,[TetrisFallingPiecePrevRow]
     call tetrisRenderPiece
-
     ; Draw new position.
     mov al,3
     mov cl,[TetrisFallingPieceColHI]
     mov dl,[TetrisFallingPieceRowHI]
     call tetrisRenderPiece
-    
 if CONSOLE_ENABLED
     call tetrisRenderDebug
 endif
@@ -250,6 +255,9 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevCol       byte ?
     TetrisFallingPiecePrevRow       byte ?
+    ; Align board to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
+    align word
+    TetrisBoard                     byte TETRIS_BOARD_COUNT dup(?)
 data ends
 
 end
