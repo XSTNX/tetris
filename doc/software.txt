@@ -12,14 +12,20 @@ MASM
 ----
 - Apply 6.11d patch by copying ML611D.exe to C:\MASM611\BIN and executing it, the file can be deleted after the patch is applied.
 
-Setup DOSBox
-------------
-- Add the following to the options in [autoexec]:
+DOSBox Conf
+-----------
+[dosbox]
+machine=cga
+[render]
+scaler=normal3x
+[cpu]
+cputype=386_slow
+[autoexec]
 @echo off
 MOUNT C C:\j\msdos
-MOUNT D C:\Users\UserName\project\ibmpc
+MOUNT D C:\Users\USERNAME\project\ibmpc
 SET PATH=Z:\;D:\MASM611\BIN;D:\debugx
-SET TMP=D:\MASM611\TMP
+SET TMP=D:\TMP
 d:
 cd invdrs
 
