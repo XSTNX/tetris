@@ -85,6 +85,7 @@ LINKS
 - https://stackoverflow.com/questions/37019711/detect-receive-multiple-key-presses-at-the-same-time-in-dos
 - http://www.verycomputer.com/viewlist_12_873.htm (msdos programming forum)
 - https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
+- https://www.vogons.org/viewtopic.php?f=9&t=94972 (PC Emulation, MartyPC)
 
 GAMES
 -----
