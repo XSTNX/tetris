@@ -36,10 +36,10 @@ tetrisInit proc
     ; Init col and row.
     mov ax,(((TETRIS_BOARD_COLS / 2) - 1) shl 8)
     mov [TetrisFallingPieceCol],ax
-    mov [TetrisFallingPiecePrevCol],ah
+    mov [TetrisFallingPiecePrevColHI],ah
     xor ax,ax
     mov [TetrisFallingPieceRow],ax
-    mov [TetrisFallingPiecePrevRow],ah
+    mov [TetrisFallingPiecePrevRowHI],ah
     ; Init board.
     ; static_assert((TETRIS_BOARD_COUNT & 1) == 0)
     mov cx,TETRIS_BOARD_COUNT / 2
@@ -80,7 +80,7 @@ tetrisInitRender endp
 ; Clobber: everything.
 tetrisUpdate proc
     mov bx,[TetrisFallingPieceCol]
-    mov [TetrisFallingPiecePrevCol],bh
+    mov [TetrisFallingPiecePrevColHI],bh
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub bx,TETRIS_PIECE_SPEED_X
@@ -97,7 +97,7 @@ tetrisUpdate proc
 @@:
 
     mov ax,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRow],ah
+    mov [TetrisFallingPiecePrevRowHI],ah
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
 @@:
@@ -116,8 +116,8 @@ tetrisUpdate endp
 tetrisRender proc
     ; Erase previous position.
     xor al,al
-    mov cl,[TetrisFallingPiecePrevCol]
-    mov dl,[TetrisFallingPiecePrevRow]
+    mov cl,[TetrisFallingPiecePrevColHI]
+    mov dl,[TetrisFallingPiecePrevRowHI]
     call tetrisRenderPiece
     ; Draw new position.
     mov al,3
@@ -274,8 +274,8 @@ data segment public
     TetrisFallingPieceRow           label word
     TetrisFallingPieceRowLO         byte ?
     TetrisFallingPieceRowHI         byte ?
-    TetrisFallingPiecePrevCol       byte ?
-    TetrisFallingPiecePrevRow       byte ?
+    TetrisFallingPiecePrevColHI     byte ?
+    TetrisFallingPiecePrevRowHI     byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
