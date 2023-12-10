@@ -25,31 +25,6 @@ TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
 ;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
 ;endm
 
-; Input: bx (unsigned col), si (unsigned row).
-; Output: zf (zero flag set if true).
-; Clobber: si, bp.
-TETRIS_BOARD_CELL_IS_USED macro
-if ASSERT_ENABLED
-    cmp bx,TETRIS_BOARD_COLS
-    jb short @f
-    ASSERT
-@@:
-    cmp si,TETRIS_BOARD_ROWS
-    jb short @f
-    ASSERT
-@@:
-endif
-    ; Could use a table to multiply faster by 10.
-    ; static_assert(TETRIS_BOARD_COLS == 10)
-    ; si = 10 * row = 2 * row + 8 * row.
-    shl si,1
-    mov bp,si
-    shl si,1
-    shl si,1
-    lea si,[bp + si]
-    cmp byte ptr [TetrisBoardCellUsedArray + bx + si],1
-endm
-
 code segment readonly public
 
 ;-------------;
@@ -104,36 +79,36 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
-    mov ax,[TetrisFallingPieceCol]
-    mov [TetrisFallingPiecePrevCol],ah
+    mov bx,[TetrisFallingPieceCol]
+    mov [TetrisFallingPiecePrevCol],bh
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
-    sub ax,TETRIS_PIECE_SPEED_X
-    cmp ax,((TETRIS_BOARD_COLS - 1) shl 8)
+    sub bx,TETRIS_PIECE_SPEED_X
+    cmp bx,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
-    xor ax,ax
+    xor bx,bx
 @@:
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
-    add ax,TETRIS_PIECE_SPEED_X
-    cmp ax,((TETRIS_BOARD_COLS - 1) shl 8)
+    add bx,TETRIS_PIECE_SPEED_X
+    cmp bx,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
-    mov ax,((TETRIS_BOARD_COLS - 1) shl 8)
+    mov bx,((TETRIS_BOARD_COLS - 1) shl 8)
 @@:
 
-    mov bx,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRow],bh
+    mov ax,[TetrisFallingPieceRow]
+    mov [TetrisFallingPiecePrevRow],ah
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
 @@:
-    add bx,TETRIS_PIECE_SPEED_Y
-    cmp bx,((TETRIS_BOARD_ROWS - 1) shl 8)
+    add ax,TETRIS_PIECE_SPEED_Y
+    cmp ax,((TETRIS_BOARD_ROWS - 1) shl 8)
 	jbe short @f
-    mov bx,((TETRIS_BOARD_ROWS - 1) shl 8)
+    mov ax,((TETRIS_BOARD_ROWS - 1) shl 8)
 @@:
 
-    mov [TetrisFallingPieceCol],ax
-    mov [TetrisFallingPieceRow],bx
+    mov [TetrisFallingPieceCol],bx
+    mov [TetrisFallingPieceRow],ax
     ret
 tetrisUpdate endp
 
@@ -158,6 +133,41 @@ tetrisRender endp
 ;--------------;
 ; Code private ;
 ;--------------;
+
+; Input: bx (unsigned col), si (unsigned row).
+; Output: bx (addr).
+; Clobber: si, bp.
+tetrisBoardGetCellAddr proc private
+if ASSERT_ENABLED
+    cmp bx,TETRIS_BOARD_COLS
+    jb short @f
+    ASSERT
+@@:
+    cmp si,TETRIS_BOARD_ROWS
+    jb short @f
+    ASSERT
+@@:
+endif
+    ; Could use a table to multiply faster by 10.
+    ; static_assert(TETRIS_BOARD_COLS == 10)
+    ; si = 10 * row = 2 * row + 8 * row.
+    shl si,1
+    mov bp,si
+    shl si,1
+    shl si,1
+    lea si,[bp + si]
+    lea bx,[TetrisBoardCellUsedArray + bx + si]
+    ret
+tetrisBoardGetCellAddr endp
+
+; Input: bx (unsigned col), si (unsigned row).
+; Output: zf (set if true).
+; Clobber: bx, si, bp.
+tetrisBoardGetCellIsUsed proc private
+    call tetrisBoardGetCellAddr
+    cmp byte ptr [bx],1
+    ret
+tetrisBoardGetCellIsUsed endp
 
 if CONSOLE_ENABLED
 tetrisRenderDebug proc private
