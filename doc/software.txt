@@ -6,8 +6,9 @@ Software
 - MASM 6.11d (https://sourceforge.net/projects/masm611/)
 - DebugX (https://pcdosretro.github.io/enhdebug.htm)
 - DOSBox (https://www.dosbox.com/)
-- MartyPC (https://github.com/dbalsom/martypc/tree/main)
 - OSFMount (https://www.osforensics.com/tools/mount-disk-images.html)
+- MartyPC (https://github.com/dbalsom/martypc/tree/main)
+- VirtualXT (https://phix.itch.io/virtualxt)
 
 MASM
 ----
@@ -30,16 +31,6 @@ SET TMP=D:\TMP
 d:
 cd invdrs
 
-MartyPC
--------
-- Install Rust (https://www.rust-lang.org/tools/install)
-- Build release version with "cargo build --release" from the command line in the main folder. This will output the binary to ".\target\release\martypc.exe", copy it to where you want the emulator to be, the other files in this folder are not important.
-- Build debug version with "cargo build".
-- Clean debug and release builds with "cargo clean".
-- Copy the contents of the "install" folder to the root folder of the emulator.
-- Download ROMs from (https://github.com/86Box/roms), copy the contents of the "ibmpc82" and "ibmxt86" folder to the "rom" folder of the emulator.
-- Download MS-DOS 3.30 disk 1 and 2 images from (https://www.pcjs.org/software/pcx86/sys/dos/microsoft/3.30/) and copy them to the "floppy" folder of the emulator.
-
 NMake
 -----
 - Build project with:   b.bat
@@ -51,3 +42,13 @@ Git BASH
 - Add user name and email so you can submit to repository:
     git config --global user.name "USERNAME"
     git config --global user.email "EMAIL"
+
+MartyPC
+-------
+- Install Rust (https://www.rust-lang.org/tools/install)
+- Build release version with "cargo build --release" from the command line in the main folder. This will output the binary to ".\target\release\martypc.exe", copy it to where you want the emulator to be, the other files in this folder are not important.
+- Build debug version with "cargo build".
+- Clean debug and release builds with "cargo clean".
+- Copy the contents of the "install" folder to the root folder of the emulator.
+- Download ROMs from (https://github.com/86Box/roms), copy the contents of the "ibmpc82" and "ibmxt86" folder to the "rom" folder of the emulator.
+- Download MS-DOS 3.30 disk 1 and 2 images from (https://www.pcjs.org/software/pcx86/sys/dos/microsoft/3.30/) and copy them to the "floppy" folder of the emulator.
