@@ -6,11 +6,13 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
-TETRIS_BLOCK_SIZE                   equ 8
 TETRIS_BOARD_COLS                   equ 10
 TETRIS_BOARD_ROWS                   equ 21
 TETRIS_BOARD_VISIBLE_ROWS           equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                  equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
+TETRIS_BLOCK_SIZE                   equ 8
+TETRIS_BLOCK_START_ROW              equ ((TETRIS_BOARD_COLS / 2) - 1)
+TETRIS_BOARD_CELL_USED              equ 1
 TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + ((TETRIS_BOARD_START_POS_X / TETRIS_BLOCK_SIZE) * 2)
@@ -18,7 +20,6 @@ TETRIS_BOARD_LIMIT_COLOR            equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
 TETRIS_PIECE_SPEED_X                equ 64
 TETRIS_PIECE_SPEED_Y                equ 16
-; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
 TETRIS_KEY_LEFT					    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_RIGHT				    equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
@@ -36,16 +37,19 @@ code segment readonly public
 ; Clobber: everything.
 tetrisInit proc
     ; Init col and row.
-    mov ax,(((TETRIS_BOARD_COLS / 2) - 1) shl 8)
+    mov ax,(TETRIS_BLOCK_START_ROW shl 8)
     mov [TetrisFallingPieceCol],ax
     mov [TetrisFallingPiecePrevColHI],ah
     xor ax,ax
     mov [TetrisFallingPieceRow],ax
     mov [TetrisFallingPiecePrevRowHI],ah
     ; Init board.
-    ; static_assert((TETRIS_BOARD_COUNT & 1) == 0)
-    mov cx,TETRIS_BOARD_COUNT / 2
+    ; static_assert((TETRIS_BOARD_COLS & 1) == 0)
+    mov cx,(TETRIS_BOARD_COLS * TETRIS_BOARD_VISIBLE_ROWS) / 2
     mov di,offset TetrisBoardCellUsedArray
+    rep stosw
+    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
+    mov cx,(TETRIS_BOARD_COLS * (TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS)) / 2
     rep stosw
     ret
 tetrisInit endp
@@ -81,8 +85,10 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
+    ; Horiz movement.
     mov bx,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevColHI],bh
+    ; static_assert(TETRIS_PIECE_SPEED_X <= 0x100)
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub bx,TETRIS_PIECE_SPEED_X
@@ -98,15 +104,27 @@ tetrisUpdate proc
     mov bx,((TETRIS_BOARD_COLS - 1) shl 8)
 @@:
 
+    ; Vert movement.
     mov ax,[TetrisFallingPieceRow]
     mov [TetrisFallingPiecePrevRowHI],ah
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
 @@:
+    ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
     add ax,TETRIS_PIECE_SPEED_Y
-    cmp ax,((TETRIS_BOARD_ROWS - 1) shl 8)
-	jbe short @f
-    mov ax,((TETRIS_BOARD_ROWS - 1) shl 8)
+    push ax
+    push bx
+    mov bl,bh
+    xor bh,bh
+    mov al,ah
+    xor ah,ah
+    mov si,ax
+    call tetrisBoardGetCellIsUsed
+    pop bx
+    pop ax
+	jnz short @f
+    dec ah
+    xor al,al
 @@:
 
     mov [TetrisFallingPieceCol],bx
@@ -167,7 +185,7 @@ tetrisBoardGetCellAddr endp
 ; Clobber: bx, si, bp.
 tetrisBoardGetCellIsUsed proc private
     call tetrisBoardGetCellAddr
-    cmp byte ptr [bx],1
+    cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
     ret
 tetrisBoardGetCellIsUsed endp
 
