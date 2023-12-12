@@ -11,7 +11,7 @@ TETRIS_BOARD_ROWS                   equ 21
 TETRIS_BOARD_VISIBLE_ROWS           equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                  equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                   equ 8
-TETRIS_BLOCK_START_ROW              equ ((TETRIS_BOARD_COLS / 2) - 1)
+TETRIS_BLOCK_START_COL              equ ((TETRIS_BOARD_COLS / 2) - 1)
 TETRIS_BOARD_CELL_USED              equ 1
 TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS / 2) * TETRIS_BLOCK_SIZE)
@@ -37,7 +37,7 @@ code segment readonly public
 ; Clobber: everything.
 tetrisInit proc
     ; Init col and row.
-    mov ax,(TETRIS_BLOCK_START_ROW shl 8)
+    mov ax,(TETRIS_BLOCK_START_COL shl 8)
     mov [TetrisFallingPieceCol],ax
     mov [TetrisFallingPiecePrevColHI],ah
     xor ax,ax
@@ -51,6 +51,13 @@ tetrisInit proc
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
     mov cx,(TETRIS_BOARD_COLS * (TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS)) / 2
     rep stosw
+    ; Add random blocks.
+    mov bx,TETRIS_BLOCK_START_COL
+    mov si,5
+    call tetrisBoardAddBlockToCell
+    mov bx,1
+    mov si,9
+    call tetrisBoardAddBlockToCell
     ret
 tetrisInit endp
 
@@ -80,6 +87,15 @@ tetrisInitRender proc
     pop bx
     pop dx
     call renderVertLine320x200x4
+    ; Render random blocks.
+    mov al,1
+    mov bx,TETRIS_BLOCK_START_COL
+    mov si,5
+    call tetrisRenderBlock
+    mov al,2
+    mov bx,1
+    mov si,9
+    call tetrisRenderBlock
     ret
 tetrisInitRender endp
 
@@ -189,6 +205,14 @@ tetrisBoardGetCellIsUsed proc private
     ret
 tetrisBoardGetCellIsUsed endp
 
+; Input: bx (unsigned col), si (unsigned row).
+; Clobber: bx, si, bp.
+tetrisBoardAddBlockToCell proc private
+    call tetrisBoardGetCellAddr
+    mov byte ptr [bx],TETRIS_BOARD_CELL_USED
+    ret
+tetrisBoardAddBlockToCell endp
+
 if CONSOLE_ENABLED
 tetrisRenderDebug proc private
 	CONSOLE_SET_CURSOR_COL_ROW 0, 0
@@ -222,7 +246,7 @@ if ASSERT_ENABLED
     jb short @f
     ASSERT
 @@:
-    cmp si,TETRIS_BOARD_ROWS
+    cmp si,TETRIS_BOARD_VISIBLE_ROWS
     jb short @f
     ASSERT
 @@:
