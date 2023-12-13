@@ -54,10 +54,13 @@ tetrisInit proc
     ; Add random blocks.
     mov bx,TETRIS_BLOCK_START_COL
     mov si,5
-    call tetrisBoardAddBlockToCell
+    call tetrisBoardSetCellUsed
     mov bx,1
     mov si,9
-    call tetrisBoardAddBlockToCell
+    call tetrisBoardSetCellUsed
+    mov bx,7
+    mov si,16
+    call tetrisBoardSetCellUsed
     ret
 tetrisInit endp
 
@@ -95,6 +98,10 @@ tetrisInitRender proc
     mov al,2
     mov bx,1
     mov si,9
+    call tetrisRenderBlock
+    mov al,1
+    mov bx,7
+    mov si,16
     call tetrisRenderBlock
     ret
 tetrisInitRender endp
@@ -207,11 +214,11 @@ tetrisBoardGetCellIsUsed endp
 
 ; Input: bx (unsigned col), si (unsigned row).
 ; Clobber: bx, si, bp.
-tetrisBoardAddBlockToCell proc private
+tetrisBoardSetCellUsed proc private
     call tetrisBoardGetCellAddr
     mov byte ptr [bx],TETRIS_BOARD_CELL_USED
     ret
-tetrisBoardAddBlockToCell endp
+tetrisBoardSetCellUsed endp
 
 if CONSOLE_ENABLED
 tetrisRenderDebug proc private
