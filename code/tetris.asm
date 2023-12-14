@@ -58,6 +58,21 @@ tetrisInit proc
     mov bx,1
     mov si,9
     call tetrisBoardSetCellUsed
+    mov bx,1
+    mov si,10
+    call tetrisBoardSetCellUsed
+    mov bx,1
+    mov si,11
+    call tetrisBoardSetCellUsed
+    mov bx,1
+    mov si,12
+    call tetrisBoardSetCellUsed
+    mov bx,5
+    mov si,16
+    call tetrisBoardSetCellUsed
+    mov bx,6
+    mov si,16
+    call tetrisBoardSetCellUsed
     mov bx,7
     mov si,16
     call tetrisBoardSetCellUsed
@@ -100,6 +115,26 @@ tetrisInitRender proc
     mov si,9
     call tetrisRenderBlock
     mov al,1
+    mov bx,1
+    mov si,10
+    call tetrisRenderBlock
+    mov al,2
+    mov bx,1
+    mov si,11
+    call tetrisRenderBlock
+    mov al,1
+    mov bx,1
+    mov si,12
+    call tetrisRenderBlock
+    mov al,1
+    mov bx,5
+    mov si,16
+    call tetrisRenderBlock
+    mov al,2
+    mov bx,6
+    mov si,16
+    call tetrisRenderBlock
+    mov al,1
     mov bx,7
     mov si,16
     call tetrisRenderBlock
@@ -108,9 +143,12 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
-    ; Horiz movement.
     mov bx,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevColHI],bh
+    mov ax,[TetrisFallingPieceRow]
+    mov [TetrisFallingPiecePrevRowHI],ah
+
+    ; Horizontal movement.
     ; static_assert(TETRIS_PIECE_SPEED_X <= 0x100)
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
@@ -118,18 +156,47 @@ tetrisUpdate proc
     cmp bx,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
     xor bx,bx
+    jmp leftDone
 @@:
+    push ax
+    push bx
+    mov bl,bh
+    xor bh,bh
+    mov al,ah
+    xor ah,ah
+    mov si,ax
+    call tetrisBoardGetCellIsUsed
+    pop bx
+    pop ax
+	jnz short leftDone
+    inc bh
+    xor bl,bl
+leftDone:
+
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
     add bx,TETRIS_PIECE_SPEED_X
     cmp bx,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
     mov bx,((TETRIS_BOARD_COLS - 1) shl 8)
+    jmp rightDone
 @@:
+    push ax
+    push bx
+    mov bl,bh
+    xor bh,bh
+    mov al,ah
+    xor ah,ah
+    mov si,ax
+    call tetrisBoardGetCellIsUsed
+    pop bx
+    pop ax
+	jnz short rightDone
+    dec bh
+    xor bl,bl
+rightDone:
 
-    ; Vert movement.
-    mov ax,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRowHI],ah
+    ; Vertical movement.
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
 @@:
