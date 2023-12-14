@@ -175,7 +175,7 @@ leftDone:
     call tetrisBoardGetCellIsUsed
 	jnz short rightDone
     dec bh
-    xor bl,bl
+    mov bl,0ffh
 rightDone:
 
     ; Vertical movement.
