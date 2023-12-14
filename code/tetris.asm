@@ -185,6 +185,54 @@ tetrisRender endp
 ; Code private ;
 ;--------------;
 
+; Input: ch (unsigned col), dh (unsigned row).
+; Output: bx (addr).
+; Clobber: ax, si, bp.
+tetrisBoardGetCellAddr proc private
+if ASSERT_ENABLED
+    cmp ch,TETRIS_BOARD_COLS
+    jb short @f
+    ASSERT
+@@:
+    cmp dh,TETRIS_BOARD_ROWS
+    jb short @f
+    ASSERT
+@@:
+endif
+    mov bl,ch
+    xor bh,bh
+    mov al,dh
+    xor ah,ah
+    mov si,ax
+    ; Could use a table to multiply faster by 10.
+    ; static_assert(TETRIS_BOARD_COLS == 10)
+    ; si = 10 * row = 2 * row + 8 * row.
+    shl si,1
+    mov bp,si
+    shl si,1
+    shl si,1
+    lea si,[bp + si]
+    lea bx,[TetrisBoardCellUsedArray + bx + si]
+    ret
+tetrisBoardGetCellAddr endp
+
+; Input: ch (unsigned col), dh (unsigned row).
+; Output: zf (set if true).
+; Clobber: ax, bx, si, bp.
+tetrisBoardGetCellIsUsed proc private
+    call tetrisBoardGetCellAddr
+    cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
+    ret
+tetrisBoardGetCellIsUsed endp
+
+; Input: ch (unsigned col), dh (unsigned row).
+; Clobber: ax, bx, si, bp.
+tetrisBoardSetCellUsed proc private
+    call tetrisBoardGetCellAddr
+    mov byte ptr [bx],TETRIS_BOARD_CELL_USED
+    ret
+tetrisBoardSetCellUsed endp
+
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
     mov cx,[TetrisFallingPieceCol]
@@ -319,54 +367,6 @@ tetrisRenderDebug proc private
     ret
 tetrisRenderDebug endp
 endif
-
-; Input: ch (unsigned col), dh (unsigned row).
-; Output: bx (addr).
-; Clobber: ax, si, bp.
-tetrisBoardGetCellAddr proc private
-if ASSERT_ENABLED
-    cmp ch,TETRIS_BOARD_COLS
-    jb short @f
-    ASSERT
-@@:
-    cmp dh,TETRIS_BOARD_ROWS
-    jb short @f
-    ASSERT
-@@:
-endif
-    mov bl,ch
-    xor bh,bh
-    mov al,dh
-    xor ah,ah
-    mov si,ax
-    ; Could use a table to multiply faster by 10.
-    ; static_assert(TETRIS_BOARD_COLS == 10)
-    ; si = 10 * row = 2 * row + 8 * row.
-    shl si,1
-    mov bp,si
-    shl si,1
-    shl si,1
-    lea si,[bp + si]
-    lea bx,[TetrisBoardCellUsedArray + bx + si]
-    ret
-tetrisBoardGetCellAddr endp
-
-; Input: ch (unsigned col), dh (unsigned row).
-; Output: zf (set if true).
-; Clobber: ax, bx, si, bp.
-tetrisBoardGetCellIsUsed proc private
-    call tetrisBoardGetCellAddr
-    cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
-    ret
-tetrisBoardGetCellIsUsed endp
-
-; Input: ch (unsigned col), dh (unsigned row).
-; Clobber: ax, bx, si, bp.
-tetrisBoardSetCellUsed proc private
-    call tetrisBoardGetCellAddr
-    mov byte ptr [bx],TETRIS_BOARD_CELL_USED
-    ret
-tetrisBoardSetCellUsed endp
 
 ; Input: al (blockId), bx (unsigned col), si (unsigned row).
 ; Clobber: ax, bx, si, di.
