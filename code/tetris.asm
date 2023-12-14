@@ -52,29 +52,29 @@ tetrisInit proc
     mov cx,(TETRIS_BOARD_COLS * (TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS)) / 2
     rep stosw
     ; Add random blocks.
-    mov bx,TETRIS_BLOCK_START_COL
-    mov si,5
+    mov ch,TETRIS_BLOCK_START_COL
+    mov dh,5
     call tetrisBoardSetCellUsed
-    mov bx,1
-    mov si,9
+    mov ch,1
+    mov dh,9
     call tetrisBoardSetCellUsed
-    mov bx,1
-    mov si,10
+    mov ch,1
+    mov dh,10
     call tetrisBoardSetCellUsed
-    mov bx,1
-    mov si,11
+    mov ch,1
+    mov dh,11
     call tetrisBoardSetCellUsed
-    mov bx,1
-    mov si,12
+    mov ch,1
+    mov dh,12
     call tetrisBoardSetCellUsed
-    mov bx,5
-    mov si,16
+    mov ch,5
+    mov dh,16
     call tetrisBoardSetCellUsed
-    mov bx,6
-    mov si,16
+    mov ch,6
+    mov dh,16
     call tetrisBoardSetCellUsed
-    mov bx,7
-    mov si,16
+    mov ch,7
+    mov dh,16
     call tetrisBoardSetCellUsed
     ret
 tetrisInit endp
@@ -143,39 +143,39 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
-    mov bx,[TetrisFallingPieceCol]
-    mov [TetrisFallingPiecePrevColHI],bh
-    mov ax,[TetrisFallingPieceRow]
-    mov [TetrisFallingPiecePrevRowHI],ah
+    mov cx,[TetrisFallingPieceCol]
+    mov [TetrisFallingPiecePrevColHI],ch
+    mov dx,[TetrisFallingPieceRow]
+    mov [TetrisFallingPiecePrevRowHI],dh
 
     ; Horizontal movement.
     ; static_assert(TETRIS_PIECE_SPEED_X <= 0x100)
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
-    sub bx,TETRIS_PIECE_SPEED_X
-    cmp bx,((TETRIS_BOARD_COLS - 1) shl 8)
+    sub cx,TETRIS_PIECE_SPEED_X
+    cmp cx,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
-    xor bx,bx
+    xor cx,cx
     jmp leftDone
 @@:
     call tetrisBoardGetCellIsUsed
 	jnz short leftDone
-    inc bh
-    xor bl,bl
+    inc ch
+    xor cl,cl
 leftDone:
 
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
-    add bx,TETRIS_PIECE_SPEED_X
-    cmp bx,((TETRIS_BOARD_COLS - 1) shl 8)
+    add cx,TETRIS_PIECE_SPEED_X
+    cmp cx,((TETRIS_BOARD_COLS - 1) shl 8)
 	jbe short @f
-    mov bx,((TETRIS_BOARD_COLS - 1) shl 8)
+    mov cx,((TETRIS_BOARD_COLS - 1) shl 8)
     jmp rightDone
 @@:
     call tetrisBoardGetCellIsUsed
 	jnz short rightDone
-    dec bh
-    mov bl,0ffh
+    dec ch
+    mov cl,0ffh
 rightDone:
 
     ; Vertical movement.
@@ -183,15 +183,15 @@ rightDone:
 	jnz short @f
 @@:
     ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
-    add ax,TETRIS_PIECE_SPEED_Y
+    add dx,TETRIS_PIECE_SPEED_Y
     call tetrisBoardGetCellIsUsed
 	jnz short @f
-    dec ah
-    xor al,al
+    dec dh
+    xor dl,dl
 @@:
 
-    mov [TetrisFallingPieceCol],bx
-    mov [TetrisFallingPieceRow],ax
+    mov [TetrisFallingPieceCol],cx
+    mov [TetrisFallingPieceRow],dx
     ret
 tetrisUpdate endp
 
@@ -217,20 +217,25 @@ tetrisRender endp
 ; Code private ;
 ;--------------;
 
-; Input: bx (unsigned col), si (unsigned row).
+; Input: ch (unsigned col), dh (unsigned row).
 ; Output: bx (addr).
-; Clobber: si, bp.
+; Clobber: ax, si, bp.
 tetrisBoardGetCellAddr proc private
 if ASSERT_ENABLED
-    cmp bx,TETRIS_BOARD_COLS
+    cmp ch,TETRIS_BOARD_COLS
     jb short @f
     ASSERT
 @@:
-    cmp si,TETRIS_BOARD_ROWS
+    cmp dh,TETRIS_BOARD_ROWS
     jb short @f
     ASSERT
 @@:
 endif
+    mov bl,ch
+    xor bh,bh
+    mov al,dh
+    xor ah,ah
+    mov si,ax
     ; Could use a table to multiply faster by 10.
     ; static_assert(TETRIS_BOARD_COLS == 10)
     ; si = 10 * row = 2 * row + 8 * row.
@@ -243,26 +248,17 @@ endif
     ret
 tetrisBoardGetCellAddr endp
 
-; Input: bh (unsigned col), ah (unsigned row).
+; Input: ch (unsigned col), dh (unsigned row).
 ; Output: zf (set if true).
-; Clobber: si, bp.
+; Clobber: ax, bx, si, bp.
 tetrisBoardGetCellIsUsed proc private
-    push ax
-    push bx
-    mov bl,bh
-    xor bh,bh
-    mov al,ah
-    xor ah,ah
-    mov si,ax
     call tetrisBoardGetCellAddr
     cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
-    pop bx
-    pop ax
     ret
 tetrisBoardGetCellIsUsed endp
 
-; Input: bx (unsigned col), si (unsigned row).
-; Clobber: bx, si, bp.
+; Input: ch (unsigned col), dh (unsigned row).
+; Clobber: ax, bx, si, bp.
 tetrisBoardSetCellUsed proc private
     call tetrisBoardGetCellAddr
     mov byte ptr [bx],TETRIS_BOARD_CELL_USED
