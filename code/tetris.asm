@@ -232,6 +232,13 @@ tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
+    mov ax,(TETRIS_BLOCK_START_COL shl 8)
+    mov [TetrisFallingPieceCol],ax
+    mov [TetrisFallingPiecePrevColHI],ah
+    xor ax,ax
+    mov [TetrisFallingPieceRow],ax
+    mov [TetrisFallingPiecePrevRowHI],ah
+    mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     ret
 tetrisUpdateLevelStateAnim endp
 
