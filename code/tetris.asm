@@ -23,6 +23,8 @@ TETRIS_PIECE_SPEED_Y                equ 16
 TETRIS_KEY_LEFT					    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_RIGHT				    equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
+TETRIS_LEVEL_STATE_PLAY             equ 0
+TETRIS_LEVEL_STATE_ANIM             equ 1
 
 ;COLOR_EXTEND_WORD_IMM macro aImm:req
 ;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
@@ -51,6 +53,7 @@ tetrisInit proc
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
     mov cx,(TETRIS_BOARD_COLS * (TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS)) / 2
     rep stosw
+    mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     ; Add random blocks.
     mov ch,TETRIS_BLOCK_START_COL
     mov dh,5
@@ -142,7 +145,7 @@ tetrisInitRender proc
 tetrisInitRender endp
 
 ; Clobber: everything.
-tetrisUpdate proc
+tetrisUpdateLevelStatePlay proc
     mov cx,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevColHI],ch
     mov dx,[TetrisFallingPieceRow]
@@ -193,6 +196,20 @@ rightDone:
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPieceRow],dx
     ret
+tetrisUpdateLevelStatePlay endp
+
+; Clobber: everything.
+tetrisUpdateLevelStateAnim proc
+    ret
+tetrisUpdateLevelStateAnim endp
+
+; Clobber: everything.
+tetrisUpdate proc
+    cmp [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    jne short @f
+    jmp tetrisUpdateLevelStatePlay
+@@:
+    jmp tetrisUpdateLevelStateAnim
 tetrisUpdate endp
 
 ; Clobber: everything.
@@ -372,6 +389,7 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
+    TetrisLevelState                byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
