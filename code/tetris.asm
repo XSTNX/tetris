@@ -158,16 +158,7 @@ tetrisUpdate proc
     xor bx,bx
     jmp leftDone
 @@:
-    push ax
-    push bx
-    mov bl,bh
-    xor bh,bh
-    mov al,ah
-    xor ah,ah
-    mov si,ax
     call tetrisBoardGetCellIsUsed
-    pop bx
-    pop ax
 	jnz short leftDone
     inc bh
     xor bl,bl
@@ -181,16 +172,7 @@ leftDone:
     mov bx,((TETRIS_BOARD_COLS - 1) shl 8)
     jmp rightDone
 @@:
-    push ax
-    push bx
-    mov bl,bh
-    xor bh,bh
-    mov al,ah
-    xor ah,ah
-    mov si,ax
     call tetrisBoardGetCellIsUsed
-    pop bx
-    pop ax
 	jnz short rightDone
     dec bh
     xor bl,bl
@@ -202,16 +184,7 @@ rightDone:
 @@:
     ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
     add ax,TETRIS_PIECE_SPEED_Y
-    push ax
-    push bx
-    mov bl,bh
-    xor bh,bh
-    mov al,ah
-    xor ah,ah
-    mov si,ax
     call tetrisBoardGetCellIsUsed
-    pop bx
-    pop ax
 	jnz short @f
     dec ah
     xor al,al
@@ -270,12 +243,21 @@ endif
     ret
 tetrisBoardGetCellAddr endp
 
-; Input: bx (unsigned col), si (unsigned row).
+; Input: bh (unsigned col), ah (unsigned row).
 ; Output: zf (set if true).
-; Clobber: bx, si, bp.
+; Clobber: si, bp.
 tetrisBoardGetCellIsUsed proc private
+    push ax
+    push bx
+    mov bl,bh
+    xor bh,bh
+    mov al,ah
+    xor ah,ah
+    mov si,ax
     call tetrisBoardGetCellAddr
     cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
+    pop bx
+    pop ax
     ret
 tetrisBoardGetCellIsUsed endp
 
