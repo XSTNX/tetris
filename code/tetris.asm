@@ -145,7 +145,36 @@ tetrisInitRender proc
 tetrisInitRender endp
 
 ; Clobber: everything.
-tetrisUpdateLevelStatePlay proc
+tetrisUpdate proc
+    cmp [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    jne short @f
+    jmp tetrisUpdateLevelStatePlay
+@@:
+    jmp tetrisUpdateLevelStateAnim
+tetrisUpdate endp
+
+; Clobber: everything.
+tetrisRender proc
+    cmp [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    jne short @f
+    call tetrisRenderLevelStatePlay
+    jmp short done
+@@:
+    call tetrisRenderLevelStateAnim
+done:
+
+if CONSOLE_ENABLED
+    call tetrisRenderDebug
+endif
+    ret
+tetrisRender endp
+
+;--------------;
+; Code private ;
+;--------------;
+
+; Clobber: everything.
+tetrisUpdateLevelStatePlay proc private
     mov cx,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevColHI],ch
     mov dx,[TetrisFallingPieceRow]
@@ -202,21 +231,12 @@ rightDone:
 tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
-tetrisUpdateLevelStateAnim proc
+tetrisUpdateLevelStateAnim proc private
     ret
 tetrisUpdateLevelStateAnim endp
 
 ; Clobber: everything.
-tetrisUpdate proc
-    cmp [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
-    jne short @f
-    jmp tetrisUpdateLevelStatePlay
-@@:
-    jmp tetrisUpdateLevelStateAnim
-tetrisUpdate endp
-
-; Clobber: everything.
-tetrisRender proc
+tetrisRenderLevelStatePlay proc private
     ; Erase previous position.
     xor al,al
     mov cl,[TetrisFallingPiecePrevColHI]
@@ -226,16 +246,13 @@ tetrisRender proc
     mov al,3
     mov cl,[TetrisFallingPieceColHI]
     mov dl,[TetrisFallingPieceRowHI]
-    call tetrisRenderPiece
-if CONSOLE_ENABLED
-    call tetrisRenderDebug
-endif
-    ret
-tetrisRender endp
+    jmp tetrisRenderPiece
+tetrisRenderLevelStatePlay endp
 
-;--------------;
-; Code private ;
-;--------------;
+; Clobber: everything.
+tetrisRenderLevelStateAnim proc private
+    ret
+tetrisRenderLevelStateAnim endp
 
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Output: bx (addr).
