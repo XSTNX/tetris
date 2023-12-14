@@ -25,6 +25,7 @@ TETRIS_KEY_RIGHT				    equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
 TETRIS_LEVEL_STATE_PLAY             equ 0
 TETRIS_LEVEL_STATE_ANIM             equ 1
+TETRIS_LEVEL_STATE_OVER             equ 2
 
 ;COLOR_EXTEND_WORD_IMM macro aImm:req
 ;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
@@ -146,21 +147,32 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
-    cmp [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    mov al,[TetrisLevelState]
+    cmp al,TETRIS_LEVEL_STATE_PLAY
     jne short @f
     jmp tetrisUpdateLevelStatePlay
 @@:
+    cmp al,TETRIS_LEVEL_STATE_ANIM
+    jne short @f
     jmp tetrisUpdateLevelStateAnim
+@@:
+    jmp tetrisUpdateLevelStateOver    
 tetrisUpdate endp
 
 ; Clobber: everything.
 tetrisRender proc
-    cmp [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    mov al,[TetrisLevelState]
+    cmp al,TETRIS_LEVEL_STATE_PLAY
     jne short @f
     call tetrisRenderLevelStatePlay
     jmp short done
 @@:
+    cmp al,TETRIS_LEVEL_STATE_ANIM
+    jne short @f
     call tetrisRenderLevelStateAnim
+    jmp short done
+@@:
+    call tetrisRenderLevelStateOver
 done:
 
 if CONSOLE_ENABLED
@@ -232,15 +244,27 @@ tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
-    mov ax,(TETRIS_BLOCK_START_COL shl 8)
-    mov [TetrisFallingPieceCol],ax
-    mov [TetrisFallingPiecePrevColHI],ah
-    xor ax,ax
-    mov [TetrisFallingPieceRow],ax
-    mov [TetrisFallingPiecePrevRowHI],ah
-    mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    mov cx,(TETRIS_BLOCK_START_COL shl 8)
+    mov [TetrisFallingPieceCol],cx
+    mov [TetrisFallingPiecePrevColHI],ch
+    xor dx,dx
+    mov [TetrisFallingPieceRow],dx
+    mov [TetrisFallingPiecePrevRowHI],dh
+    call tetrisBoardGetCellIsUsed
+	jnz short @f
+    mov al,TETRIS_LEVEL_STATE_OVER
+    jmp short done
+@@:
+    mov al,TETRIS_LEVEL_STATE_PLAY
+done:
+    mov [TetrisLevelState],al
     ret
 tetrisUpdateLevelStateAnim endp
+
+; Clobber: everything.
+tetrisUpdateLevelStateOver proc private
+    ret
+tetrisUpdateLevelStateOver endp
 
 ; Clobber: everything.
 tetrisRenderLevelStatePlay proc private
@@ -260,6 +284,41 @@ tetrisRenderLevelStatePlay endp
 tetrisRenderLevelStateAnim proc private
     ret
 tetrisRenderLevelStateAnim endp
+
+; Clobber: everything.
+tetrisRenderLevelStateOver proc private
+if CONSOLE_ENABLED
+    CONSOLE_SET_CURSOR_COL_ROW 15, 1
+	mov si,offset allSegments:tmpText
+	call consolePrintString
+endif
+    ret
+if CONSOLE_ENABLED
+tmpText:
+	db "Game Over!", 0
+endif
+tetrisRenderLevelStateOver endp
+
+if CONSOLE_ENABLED
+tetrisRenderDebug proc private
+	CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
+	call consolePrintZeroFlag
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
+    call consolePrintZeroFlag
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
+    call consolePrintZeroFlag
+    
+    CONSOLE_SET_CURSOR_COL_ROW 0, 1
+    mov ax,[TetrisFallingPieceCol]
+    call consolePrintWordHex
+    mov al,"-"
+    call consolePrintChar
+    mov ax,[TetrisFallingPieceRow]
+    call consolePrintWordHex    
+    ret
+tetrisRenderDebug endp
+endif
 
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Output: bx (addr).
@@ -308,27 +367,6 @@ tetrisBoardSetCellUsed proc private
     mov byte ptr [bx],TETRIS_BOARD_CELL_USED
     ret
 tetrisBoardSetCellUsed endp
-
-if CONSOLE_ENABLED
-tetrisRenderDebug proc private
-	CONSOLE_SET_CURSOR_COL_ROW 0, 0
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
-	call consolePrintZeroFlag
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
-    call consolePrintZeroFlag
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
-    call consolePrintZeroFlag
-    
-    CONSOLE_SET_CURSOR_COL_ROW 0, 1
-    mov ax,[TetrisFallingPieceCol]
-    call consolePrintWordHex
-    mov al,"-"
-    call consolePrintChar
-    mov ax,[TetrisFallingPieceRow]
-    call consolePrintWordHex    
-    ret
-tetrisRenderDebug endp
-endif
 
 ; Input: al (blockId), bx (unsigned col), si (unsigned row).
 ; Clobber: ax, bx, si, di.
