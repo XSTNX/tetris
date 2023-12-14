@@ -191,6 +191,9 @@ rightDone:
 	jnz short @f
     dec dh
     xor dl,dl
+    xor cl,cl
+    call tetrisBoardSetCellUsed
+    mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
 @@:
 
     mov [TetrisFallingPieceCol],cx
