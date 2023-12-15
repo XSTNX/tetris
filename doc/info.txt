@@ -1,4 +1,4 @@
-Bugs
+BUGS
 ----
 - Placing the piece must not be correct for some cases, since sometimes the place where it was rendered and where they exist on the board array is not the same.
 
