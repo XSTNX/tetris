@@ -28,6 +28,7 @@ TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
 TETRIS_LEVEL_STATE_PLAY             equ 0
 TETRIS_LEVEL_STATE_ANIM             equ 1
 TETRIS_LEVEL_STATE_OVER             equ 2
+TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT equ 25
 
 ;COLOR_EXTEND_WORD_IMM macro aImm:req
 ;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
@@ -70,9 +71,6 @@ tetrisInit proc
     rep stosw
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     ; Add random blocks.
-    mov ch,TETRIS_BLOCK_START_COL
-    mov dh,5
-    call tetrisBoardSetCellUsed
     mov ch,2
     mov dh,9
     call tetrisBoardSetCellUsed
@@ -124,10 +122,6 @@ tetrisInitRender proc
     pop dx
     call renderVertLine320x200x4
     ; Render random blocks.
-    mov al,1
-    mov bx,TETRIS_BLOCK_START_COL
-    mov si,5
-    call tetrisRenderBlock
     mov al,2
     mov bx,2
     mov si,9
@@ -277,17 +271,29 @@ tetrisUpdateLevelStatePlay proc private
     ; Vertical movement.
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
+    xor cl,cl    
+    xor dl,dl
+nextRow:    
+    inc dh
+    call tetrisBoardGetCellIsUsed
+    jnz short nextRow
+    dec dh
+    call tetrisBoardSetCellUsed
+    mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
+    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+    jmp short done
 @@:
     ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
     add dx,TETRIS_PIECE_SPEED_Y
     call tetrisBoardGetCellIsUsed
-	jnz short @f
+	jnz short done
     dec dh
     xor dl,dl
     xor cl,cl
     call tetrisBoardSetCellUsed
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
-@@:
+    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+done:
 
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPieceRow],dx
@@ -296,6 +302,10 @@ tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
+    dec [TetrisLevelStateAnimFramesLeft]
+    jz short @f
+    ret
+@@:
     mov cx,(TETRIS_BLOCK_START_COL shl 8)
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPiecePrevColHI],ch
@@ -334,6 +344,16 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
+    ; Erase previous position.
+    xor al,al
+    mov cl,[TetrisFallingPiecePrevColHI]
+    mov dl,[TetrisFallingPiecePrevRowHI]
+    call tetrisRenderPiece
+    ; Draw new position.
+    mov al,3
+    mov cl,[TetrisFallingPieceColHI]
+    mov dl,[TetrisFallingPieceRowHI]
+    jmp tetrisRenderPiece
     ret
 tetrisRenderLevelStateAnim endp
 
@@ -464,6 +484,7 @@ data segment public
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
     TetrisLevelState                byte ?
+    TetrisLevelStateAnimFramesLeft  byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
