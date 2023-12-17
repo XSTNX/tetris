@@ -135,7 +135,7 @@ renderHorizLine320x200x4 endp
 ; ds (data).
 ; es (video ram).
 ;
-; Clobber: ax, si.
+; Clobber: ax, dl, si.
 renderVertLine320x200x4 proc
 if ASSERT_ENABLED
 	cmp dl,bl

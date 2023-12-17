@@ -6,17 +6,19 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
-TETRIS_BOARD_COLS                   equ 10
+TETRIS_BOARD_COLS                   equ 12
 TETRIS_BOARD_ROWS                   equ 21
+TETRIS_BOARD_VISIBLE_COLS           equ TETRIS_BOARD_COLS - 2
 TETRIS_BOARD_VISIBLE_ROWS           equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                  equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                   equ 8
 TETRIS_BLOCK_START_COL              equ ((TETRIS_BOARD_COLS / 2) - 1)
+TETRIS_BOARD_CELL_NOT_USED          equ 0
 TETRIS_BOARD_CELL_USED              equ 1
-TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_COLS / 2) * TETRIS_BLOCK_SIZE)
+TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS / 2) * TETRIS_BLOCK_SIZE)
-TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + ((TETRIS_BOARD_START_POS_X / TETRIS_BLOCK_SIZE) * 2)
-TETRIS_BOARD_LIMIT_COLOR            equ 1
+TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) * 2)
+TETRIS_BOARD_BORDER_COLOR           equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
 TETRIS_PIECE_SPEED_X                equ 64
 TETRIS_PIECE_SPEED_Y                equ 16
@@ -47,32 +49,41 @@ tetrisInit proc
     mov [TetrisFallingPieceRow],ax
     mov [TetrisFallingPiecePrevRowHI],ah
     ; Init board.
-    ; static_assert((TETRIS_BOARD_COLS & 1) == 0)
-    mov cx,(TETRIS_BOARD_COLS * TETRIS_BOARD_VISIBLE_ROWS) / 2
+    ; static_assert(TETRIS_BOARD_COLS == 12)
+    mov cx,TETRIS_BOARD_VISIBLE_ROWS
     mov di,offset TetrisBoardCellUsedArray
-    rep stosw
+@@:
+    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_NOT_USED shl 8)
+    stosw
+    dec ax
+    ; assert(ax == 0)
+    stosw
+    stosw
+    stosw
+    stosw
+    mov ax,TETRIS_BOARD_CELL_NOT_USED or (TETRIS_BOARD_CELL_USED shl 8)
+    stosw
+    loop short @b
+    ; static_assert(TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS == 1)
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
-    mov cx,(TETRIS_BOARD_COLS * (TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS)) / 2
+    mov cx,TETRIS_BOARD_COLS / 2
     rep stosw
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     ; Add random blocks.
     mov ch,TETRIS_BLOCK_START_COL
     mov dh,5
     call tetrisBoardSetCellUsed
-    mov ch,1
+    mov ch,2
     mov dh,9
     call tetrisBoardSetCellUsed
-    mov ch,1
+    mov ch,2
     mov dh,10
     call tetrisBoardSetCellUsed
-    mov ch,1
+    mov ch,2
     mov dh,11
     call tetrisBoardSetCellUsed
-    mov ch,1
+    mov ch,2
     mov dh,12
-    call tetrisBoardSetCellUsed
-    mov ch,5
-    mov dh,16
     call tetrisBoardSetCellUsed
     mov ch,6
     mov dh,16
@@ -80,32 +91,35 @@ tetrisInit proc
     mov ch,7
     mov dh,16
     call tetrisBoardSetCellUsed
+    mov ch,8
+    mov dh,16
+    call tetrisBoardSetCellUsed
     ret
 tetrisInit endp
 
 ; Clobber: everything.
 tetrisInitRender proc
-    ; Top limit.
+    ; Top border.
     mov cx,TETRIS_BOARD_START_POS_X
     push cx
-    mov di,TETRIS_BOARD_START_POS_X + (TETRIS_BOARD_COLS * TETRIS_BLOCK_SIZE)
+    mov di,TETRIS_BOARD_START_POS_X + (TETRIS_BOARD_VISIBLE_COLS * TETRIS_BLOCK_SIZE)
     push di
-    mov dx,(TETRIS_BOARD_START_POS_Y - 1) or (TETRIS_BOARD_LIMIT_COLOR shl 8)
+    mov dx,(TETRIS_BOARD_START_POS_Y - 1) or (TETRIS_BOARD_BORDER_COLOR shl 8)
     call renderHorizLine320x200x4
-    ; Bottom limit.
+    ; Bottom border.
     pop di
     pop cx
-    mov dx,(TETRIS_BOARD_START_POS_Y + (TETRIS_BOARD_VISIBLE_ROWS * TETRIS_BLOCK_SIZE)) or (TETRIS_BOARD_LIMIT_COLOR shl 8)
+    mov dx,(TETRIS_BOARD_START_POS_Y + (TETRIS_BOARD_VISIBLE_ROWS * TETRIS_BLOCK_SIZE)) or (TETRIS_BOARD_BORDER_COLOR shl 8)
     call renderHorizLine320x200x4
-    ; Left limit.
+    ; Left border.
     mov cx,TETRIS_BOARD_START_POS_X - 1
-    mov dx,TETRIS_BOARD_START_POS_Y or (TETRIS_BOARD_LIMIT_COLOR shl 8)
+    mov dx,TETRIS_BOARD_START_POS_Y or (TETRIS_BOARD_BORDER_COLOR shl 8)
     push dx
     mov bl,(TETRIS_BOARD_START_POS_Y + (TETRIS_BOARD_VISIBLE_ROWS * TETRIS_BLOCK_SIZE))
     push bx
     call renderVertLine320x200x4
-    ; Right limit.
-    mov cx,TETRIS_BOARD_START_POS_X + (TETRIS_BOARD_COLS * TETRIS_BLOCK_SIZE)
+    ; Right border.
+    mov cx,TETRIS_BOARD_START_POS_X + (TETRIS_BOARD_VISIBLE_COLS * TETRIS_BLOCK_SIZE)
     pop bx
     pop dx
     call renderVertLine320x200x4
@@ -115,31 +129,31 @@ tetrisInitRender proc
     mov si,5
     call tetrisRenderBlock
     mov al,2
-    mov bx,1
+    mov bx,2
     mov si,9
     call tetrisRenderBlock
     mov al,1
-    mov bx,1
+    mov bx,2
     mov si,10
     call tetrisRenderBlock
     mov al,2
-    mov bx,1
+    mov bx,2
     mov si,11
     call tetrisRenderBlock
     mov al,1
-    mov bx,1
+    mov bx,2
     mov si,12
     call tetrisRenderBlock
     mov al,1
-    mov bx,5
-    mov si,16
-    call tetrisRenderBlock
-    mov al,2
     mov bx,6
     mov si,16
     call tetrisRenderBlock
-    mov al,1
+    mov al,2
     mov bx,7
+    mov si,16
+    call tetrisRenderBlock
+    mov al,1
+    mov bx,8
     mov si,16
     call tetrisRenderBlock
     ret
@@ -204,14 +218,14 @@ endif
     mov al,dh
     xor ah,ah
     mov si,ax
-    ; Could use a table to multiply faster by 10.
-    ; static_assert(TETRIS_BOARD_COLS == 10)
-    ; si = 10 * row = 2 * row + 8 * row.
-    shl si,1
+    ; Could use a table to multiply faster by 12.
+    ; static_assert(TETRIS_BOARD_COLS == 12)
+    ; si = 12 * row = 4 * (row + (2 * row))
     mov bp,si
     shl si,1
-    shl si,1
     lea si,[bp + si]
+    shl si,1
+    shl si,1
     lea bx,[TetrisBoardCellUsedArray + bx + si]
     ret
 tetrisBoardGetCellAddr endp
@@ -245,30 +259,20 @@ tetrisUpdateLevelStatePlay proc private
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub cx,TETRIS_PIECE_SPEED_X
-    cmp cx,((TETRIS_BOARD_COLS - 1) shl 8)
-	jbe short @f
-    xor cx,cx
-    jmp leftDone
-@@:
     call tetrisBoardGetCellIsUsed
-	jnz short leftDone
+	jnz short @f
     inc ch
     xor cl,cl
-leftDone:
+@@:
 
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
     add cx,TETRIS_PIECE_SPEED_X
-    cmp cx,((TETRIS_BOARD_COLS - 1) shl 8)
-	jbe short @f
-    mov cx,((TETRIS_BOARD_COLS - 1) shl 8)
-    jmp rightDone
-@@:
     call tetrisBoardGetCellIsUsed
-	jnz short rightDone
+	jnz short @f
     dec ch
     mov cl,0ffh
-rightDone:
+@@:
 
     ; Vertical movement.
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
@@ -376,7 +380,12 @@ if ASSERT_ENABLED
     jb short @f
     ASSERT
 @@:
-    cmp bx,TETRIS_BOARD_COLS
+    ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
+    cmp bx,1
+    jae short @f
+    ASSERT
+@@:
+    cmp bx,TETRIS_BOARD_COLS - 1
     jb short @f
     ASSERT
 @@:
