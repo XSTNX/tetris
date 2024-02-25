@@ -367,7 +367,7 @@ endif
     ret
 if CONSOLE_ENABLED
 tmpText:
-	db "Game Over!", 0
+	byte "Game Over!", 0
 endif
 tetrisRenderLevelStateOver endp
 

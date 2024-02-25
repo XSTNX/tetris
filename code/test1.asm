@@ -152,8 +152,8 @@ constData segment readonly public
 constData ends
 
 data segment public
-    Test1PosYPacked         dw ?
-    Test1PrevPosY           db ?
+    Test1PosYPacked         word ?
+    Test1PrevPosY           byte ?
 data ends
 
 end

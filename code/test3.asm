@@ -46,7 +46,7 @@ endif
     ret
 if CONSOLE_ENABLED
 tmpText:
-	db "Es la guitarra de Lolo!", 0
+	byte "Es la guitarra de Lolo!", 0
 endif
 test3InitRender endp
 

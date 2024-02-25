@@ -289,11 +289,11 @@ quit:
 	GAME_QUIT ERROR_CODE_NONE
 
 strStart:
-	db "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
+	byte "Press any key to see its scancode and ascii value, press CTRL-C to quit.", ASCII_CR, ASCII_LF, 0
 strScancode:
-	db "Scancode: ", 0
+	byte "Scancode: ", 0
 strASCII:
-	db " - ASCII: ", 0
+	byte " - ASCII: ", 0
 testKeyboardScancode endp
 
 testKeyboardFlags proc private
@@ -337,9 +337,9 @@ testDOSVersion proc private
 
 	GAME_QUIT ERROR_CODE_NONE
 strVer:
-	db "Ver: ", 0
+	byte "Ver: ", 0
 strDOSType:
-	db " DosType: ", 0
+	byte " DosType: ", 0
 testDOSVersion endp
 
 endif
