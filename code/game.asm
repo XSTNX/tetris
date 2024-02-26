@@ -123,8 +123,14 @@ allSegments group code, constData, data
 
 code segment readonly public
 
+;-------------;
+; Code public ;
+;-------------;
+
 	org 100h
-gameMain proc private
+; This procedure is in the public area just because a com file requires the main function to be at the begining of the code segment,
+; but it will not be called by anyone else, so it's not in the include file.
+gameMain proc
 	; All procedures should assume the direction flag is reset.
 	cld
 if CONSOLE_ENABLED
@@ -206,6 +212,10 @@ if CONSOLE_ENABLED
 endif
 	DOS_QUIT_COM
 gameQuit endp
+
+;--------------;
+; Code private ;
+;--------------;
 
 gameSetState proc private
 	mov [GameStateInitProc],ax

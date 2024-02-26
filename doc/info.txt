@@ -32,6 +32,7 @@ MASM
 - How to detect if a macro argument is a register? Should be used to optimize KEYBOARD_IS_KEY_PRESSED.
 - Might be a good idea to read on how to use the repeat macro to create RenderMultiplyRowBy80Table at assembly time.
 - Is there a way to have a static assert or any other way to force an assembly error on a condition? I tagged code that needs this with a comment with "static_assert(...)".
+- Confirm that procedure calls are near and not far.
 
 IBM PC
 ------
