@@ -13,7 +13,7 @@ TETRIS_BOARD_VISIBLE_ROWS           equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                  equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                   equ 8
 TETRIS_BLOCK_START_COL              equ ((TETRIS_BOARD_COLS / 2) - 1)
-TETRIS_BOARD_CELL_NOT_USED          equ 0
+TETRIS_BOARD_CELL_UNUSED            equ 0
 TETRIS_BOARD_CELL_USED              equ 1
 TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS / 2) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS / 2) * TETRIS_BLOCK_SIZE)
@@ -54,7 +54,7 @@ tetrisInit proc
     mov cx,TETRIS_BOARD_VISIBLE_ROWS
     mov di,offset TetrisBoardCellUsedArray
 @@:
-    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_NOT_USED shl 8)
+    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_UNUSED shl 8)
     stosw
     dec ax
     ; assert(ax == 0)
@@ -62,7 +62,7 @@ tetrisInit proc
     stosw
     stosw
     stosw
-    mov ax,TETRIS_BOARD_CELL_NOT_USED or (TETRIS_BOARD_CELL_USED shl 8)
+    mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_USED shl 8)
     stosw
     loop short @b
     ; static_assert(TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS == 1)
@@ -236,10 +236,27 @@ tetrisBoardGetCellIsUsed endp
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Clobber: ax, bx, si, bp.
 tetrisBoardSetCellUsed proc private
-    call tetrisBoardGetCellAddr
+    call tetrisBoardGetCellAddr    
+if ASSERT_ENABLED
+    ; Validate that the cell is not used already.
+    cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
+    jne short @f
+    ASSERT
+@@:
+endif
     mov byte ptr [bx],TETRIS_BOARD_CELL_USED
     ret
 tetrisBoardSetCellUsed endp
+
+; Input: ch (unsigned col), dh (unsigned row) of the piece that already touched a used cell.
+tetrisBoardPlacePiece proc
+    ; Decrement row so we go back to the free cell above this one.
+    dec dh
+    call tetrisBoardSetCellUsed
+    mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
+    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+    ret
+tetrisBoardPlacePiece endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
@@ -258,7 +275,6 @@ tetrisUpdateLevelStatePlay proc private
     inc ch
     xor cl,cl
 @@:
-
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
     add cx,TETRIS_PIECE_SPEED_X
@@ -271,28 +287,18 @@ tetrisUpdateLevelStatePlay proc private
     ; Vertical movement.
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
-    xor cl,cl    
-    xor dl,dl
 nextRow:    
     inc dh
     call tetrisBoardGetCellIsUsed
     jnz short nextRow
-    dec dh
-    call tetrisBoardSetCellUsed
-    mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
-    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+    call tetrisBoardPlacePiece
     jmp short done
 @@:
     ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
     add dx,TETRIS_PIECE_SPEED_Y
     call tetrisBoardGetCellIsUsed
 	jnz short done
-    dec dh
-    xor dl,dl
-    xor cl,cl
-    call tetrisBoardSetCellUsed
-    mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
-    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+    call tetrisBoardPlacePiece
 done:
 
     mov [TetrisFallingPieceCol],cx
