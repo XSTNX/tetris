@@ -43,13 +43,15 @@ code segment readonly public
 
 ; Clobber: everything.
 tetrisInit proc
+    mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
+    xor ax,ax    
+    mov [TetrisLevelNextStateSet],al
     ; Init col and row.
+    mov [TetrisFallingPieceRow],ax
+    mov [TetrisFallingPiecePrevRowHI],ah
     mov ax,(TETRIS_BLOCK_START_COL shl 8)
     mov [TetrisFallingPieceCol],ax
     mov [TetrisFallingPiecePrevColHI],ah
-    xor ax,ax
-    mov [TetrisFallingPieceRow],ax
-    mov [TetrisFallingPiecePrevRowHI],ah
     ; Init board.
     ; static_assert(TETRIS_BOARD_COLS == 12)
     mov cx,TETRIS_BOARD_VISIBLE_ROWS
@@ -70,7 +72,6 @@ tetrisInit proc
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
     mov cx,TETRIS_BOARD_COLS / 2
     rep stosw
-    mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
 if TETRIS_BOARD_RANDOM_BLOCKS
     mov ch,2
     mov dh,9
@@ -93,7 +94,7 @@ if TETRIS_BOARD_RANDOM_BLOCKS
     mov ch,8
     mov dh,16
     call tetrisBoardSetCellUsed
-endif    
+endif
     ret
 tetrisInit endp
 
@@ -158,6 +159,14 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
+    ; Change state if needed.
+    cmp [TetrisLevelNextStateSet],1
+    jne short @f
+    mov [TetrisLevelNextStateSet],0
+    mov al,[TetrisLevelNextState]
+    mov [TetrisLevelState],al
+@@:
+    ; Update state.
     mov al,[TetrisLevelState]
     cmp al,TETRIS_LEVEL_STATE_PLAY
     jne short @f
@@ -167,11 +176,12 @@ tetrisUpdate proc
     jne short @f
     jmp tetrisUpdateLevelStateAnim
 @@:
-    jmp tetrisUpdateLevelStateOver    
+    jmp tetrisUpdateLevelStateOver
 tetrisUpdate endp
 
 ; Clobber: everything.
 tetrisRender proc
+    ; Render state.
     mov al,[TetrisLevelState]
     cmp al,TETRIS_LEVEL_STATE_PLAY
     jne short @f
@@ -195,6 +205,20 @@ tetrisRender endp
 ;--------------;
 ; Code private ;
 ;--------------;
+
+; Input: al (next state).
+tetrisSetLevelNextState proc
+if ASSERT_ENABLED
+    ; The next state should be set only once per frame.
+    cmp [TetrisLevelNextStateSet],1
+    jne short @f
+    ASSERT
+@@:
+endif
+    mov [TetrisLevelNextStateSet],1
+    mov [TetrisLevelNextState],al
+    ret
+tetrisSetLevelNextState endp
 
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Output: bx (addr).
@@ -252,11 +276,14 @@ endif
 tetrisBoardSetCellUsed endp
 
 ; Input: ch (unsigned col), dh (unsigned row) of the piece that already touched a used cell.
+; Output: dh (decremented dh).
+; Clobber: ax, bx, si, bp.
 tetrisBoardAddBlock proc
     ; Decrement row so we go back to the free cell above this one.
     dec dh
     call tetrisBoardSetCellUsed
-    mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
+    mov al,TETRIS_LEVEL_STATE_ANIM
+    call tetrisSetLevelNextState
     mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     ret
 tetrisBoardAddBlock endp
@@ -324,7 +351,7 @@ tetrisUpdateLevelStateAnim proc private
 	jnz short @f
     mov al,TETRIS_LEVEL_STATE_OVER
 @@:
-    mov [TetrisLevelState],al
+    call tetrisSetLevelNextState
 done:
     ret
 tetrisUpdateLevelStateAnim endp
@@ -481,6 +508,10 @@ constData segment readonly public
 constData ends
 
 data segment public
+    TetrisLevelState                byte ?
+    TetrisLevelNextStateSet         byte ?
+    TetrisLevelNextState            byte ?
+    TetrisLevelStateAnimFramesLeft  byte ?
     TetrisFallingPieceCol           label word
     TetrisFallingPieceColLO         byte ?
     TetrisFallingPieceColHI         byte ?
@@ -489,8 +520,6 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
-    TetrisLevelState                byte ?
-    TetrisLevelStateAnimFramesLeft  byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
