@@ -309,9 +309,7 @@ tetrisUpdateLevelStatePlay endp
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
     dec [TetrisLevelStateAnimFramesLeft]
-    jz short @f
-    ret
-@@:
+    jnz short done
     mov cx,(TETRIS_BLOCK_START_COL shl 8)
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPiecePrevColHI],ch
@@ -319,13 +317,12 @@ tetrisUpdateLevelStateAnim proc private
     mov [TetrisFallingPieceRow],dx
     mov [TetrisFallingPiecePrevRowHI],dh
     call tetrisBoardGetCellIsUsed
+    mov al,TETRIS_LEVEL_STATE_PLAY
 	jnz short @f
     mov al,TETRIS_LEVEL_STATE_OVER
-    jmp short done
 @@:
-    mov al,TETRIS_LEVEL_STATE_PLAY
-done:
     mov [TetrisLevelState],al
+done:
     ret
 tetrisUpdateLevelStateAnim endp
 
