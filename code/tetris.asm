@@ -70,28 +70,7 @@ tetrisInit proc
     mov cx,TETRIS_BOARD_COLS / 2
     rep stosw
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
-    ; Add random blocks.
-    mov ch,2
-    mov dh,9
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,10
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,11
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,12
-    call tetrisBoardSetCellUsed
-    mov ch,6
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    mov ch,7
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    mov ch,8
-    mov dh,16
-    call tetrisBoardSetCellUsed
+    call tetrisBoardAddRandomBlocks
     ret
 tetrisInit endp
 
@@ -249,14 +228,40 @@ endif
 tetrisBoardSetCellUsed endp
 
 ; Input: ch (unsigned col), dh (unsigned row) of the piece that already touched a used cell.
-tetrisBoardPlacePiece proc
+tetrisBoardAddBlock proc
     ; Decrement row so we go back to the free cell above this one.
     dec dh
     call tetrisBoardSetCellUsed
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_ANIM
     mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     ret
-tetrisBoardPlacePiece endp
+tetrisBoardAddBlock endp
+
+tetrisBoardAddRandomBlocks proc
+    ; Add random blocks.
+    mov ch,2
+    mov dh,9
+    call tetrisBoardSetCellUsed
+    mov ch,2
+    mov dh,10
+    call tetrisBoardSetCellUsed
+    mov ch,2
+    mov dh,11
+    call tetrisBoardSetCellUsed
+    mov ch,2
+    mov dh,12
+    call tetrisBoardSetCellUsed
+    mov ch,6
+    mov dh,16
+    call tetrisBoardSetCellUsed
+    mov ch,7
+    mov dh,16
+    call tetrisBoardSetCellUsed
+    mov ch,8
+    mov dh,16
+    call tetrisBoardSetCellUsed
+    ret
+tetrisBoardAddRandomBlocks endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
@@ -291,14 +296,14 @@ nextRow:
     inc dh
     call tetrisBoardGetCellIsUsed
     jnz short nextRow
-    call tetrisBoardPlacePiece
+    call tetrisBoardAddBlock
     jmp short done
 @@:
     ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
     add dx,TETRIS_PIECE_SPEED_Y
     call tetrisBoardGetCellIsUsed
 	jnz short done
-    call tetrisBoardPlacePiece
+    call tetrisBoardAddBlock
 done:
 
     mov [TetrisFallingPieceCol],cx
