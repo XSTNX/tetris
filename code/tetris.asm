@@ -6,6 +6,7 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
+TETRIS_BOARD_RANDOM_BLOCKS          equ 1
 TETRIS_BOARD_COLS                   equ 12
 TETRIS_BOARD_ROWS                   equ 21
 TETRIS_BOARD_VISIBLE_COLS           equ TETRIS_BOARD_COLS - 2
@@ -70,7 +71,29 @@ tetrisInit proc
     mov cx,TETRIS_BOARD_COLS / 2
     rep stosw
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
-    call tetrisBoardAddRandomBlocks
+if TETRIS_BOARD_RANDOM_BLOCKS
+    mov ch,2
+    mov dh,9
+    call tetrisBoardSetCellUsed
+    mov ch,2
+    mov dh,10
+    call tetrisBoardSetCellUsed
+    mov ch,2
+    mov dh,11
+    call tetrisBoardSetCellUsed
+    mov ch,2
+    mov dh,12
+    call tetrisBoardSetCellUsed
+    mov ch,6
+    mov dh,16
+    call tetrisBoardSetCellUsed
+    mov ch,7
+    mov dh,16
+    call tetrisBoardSetCellUsed
+    mov ch,8
+    mov dh,16
+    call tetrisBoardSetCellUsed
+endif    
     ret
 tetrisInit endp
 
@@ -100,7 +123,7 @@ tetrisInitRender proc
     pop bx
     pop dx
     call renderVertLine320x200x4
-    ; Render random blocks.
+if TETRIS_BOARD_RANDOM_BLOCKS
     mov al,2
     mov bx,2
     mov si,9
@@ -129,6 +152,7 @@ tetrisInitRender proc
     mov bx,8
     mov si,16
     call tetrisRenderBlock
+endif    
     ret
 tetrisInitRender endp
 
@@ -236,32 +260,6 @@ tetrisBoardAddBlock proc
     mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     ret
 tetrisBoardAddBlock endp
-
-tetrisBoardAddRandomBlocks proc
-    ; Add random blocks.
-    mov ch,2
-    mov dh,9
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,10
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,11
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,12
-    call tetrisBoardSetCellUsed
-    mov ch,6
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    mov ch,7
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    mov ch,8
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    ret
-tetrisBoardAddRandomBlocks endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
