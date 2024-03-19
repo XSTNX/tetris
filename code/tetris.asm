@@ -340,7 +340,7 @@ tetrisUpdateLevelStatePlay endp
 tetrisUpdateLevelStateAnim proc private
     dec [TetrisLevelStateAnimFramesLeft]
     jnz short done
-if 0    
+    mov [TetrisLevelStateAnimRowToWipe],TETRIS_BOARD_ROWS
     ; Check if the row is full.
     mov ch,1
     mov dh,[TetrisFallingPieceRowHI]
@@ -351,6 +351,7 @@ if 0
     mov di,bx
     repe scasw
     jne short @f
+    mov [TetrisLevelStateAnimRowToWipe],dh
     ; If row is full, empty it.
     mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_UNUSED shl 8)
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
@@ -358,7 +359,6 @@ if 0
     mov di,bx
     rep stosw
 @@:
-endif
     ; Set next state, either the game continues or it's over.
     mov cx,(TETRIS_BLOCK_START_COL shl 8)
     mov [TetrisFallingPieceCol],cx
@@ -397,6 +397,26 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
+    ; Check if wiping the row is needed.
+    cmp [TetrisLevelStateAnimFramesLeft],0
+    jne short done
+    ; Is this check necessary?
+    cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
+    jne short done
+    mov al,[TetrisLevelStateAnimRowToWipe]
+    cmp al,TETRIS_BOARD_ROWS
+    jae short done
+    ; Should wipe the video memory directly which is faster than calling tetrisRenderBlock for each column.
+    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    xor ah,ah
+    mov dx,ax
+@@:
+    xor al,al
+    mov bx,cx
+    mov si,dx
+    call tetrisRenderBlock
+    loop short @b
+done:
     ; Erase previous position.
     xor al,al
     mov cl,[TetrisFallingPiecePrevColHI]
@@ -532,6 +552,7 @@ data segment public
     TetrisLevelNextStateSet         byte ?
     TetrisLevelNextState            byte ?
     TetrisLevelStateAnimFramesLeft  byte ?
+    TetrisLevelStateAnimRowToWipe   byte ?
     TetrisFallingPieceCol           label word
     TetrisFallingPieceColLO         byte ?
     TetrisFallingPieceColHI         byte ?
