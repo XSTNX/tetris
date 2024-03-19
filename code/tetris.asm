@@ -207,7 +207,7 @@ tetrisRender endp
 ;--------------;
 
 ; Input: al (next state).
-tetrisSetLevelNextState proc
+tetrisSetLevelNextState proc private
 if ASSERT_ENABLED
     ; The next state should be set only once per frame.
     cmp [TetrisLevelNextStateSet],1
@@ -278,7 +278,7 @@ tetrisBoardSetCellUsed endp
 ; Input: ch (unsigned col), dh (unsigned row) of the piece that already touched a used cell.
 ; Output: dh (decremented dh).
 ; Clobber: ax, bx, si, bp.
-tetrisBoardAddBlock proc
+tetrisBoardAddBlock proc private
     ; Decrement row so we go back to the free cell above this one.
     dec dh
     call tetrisBoardSetCellUsed
@@ -340,6 +340,26 @@ tetrisUpdateLevelStatePlay endp
 tetrisUpdateLevelStateAnim proc private
     dec [TetrisLevelStateAnimFramesLeft]
     jnz short done
+if 0    
+    ; Check if the row is full.
+    mov ch,1
+    mov dh,[TetrisFallingPieceRowHI]
+    call tetrisBoardGetCellAddr
+    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
+    ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
+    mov cx,TETRIS_BOARD_VISIBLE_COLS / 2
+    mov di,bx
+    repe scasw
+    jne short @f
+    ; If row is full, empty it.
+    mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_UNUSED shl 8)
+    ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
+    mov cx,TETRIS_BOARD_VISIBLE_COLS / 2
+    mov di,bx
+    rep stosw
+@@:
+endif
+    ; Set next state, either the game continues or it's over.
     mov cx,(TETRIS_BLOCK_START_COL shl 8)
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPiecePrevColHI],ch
