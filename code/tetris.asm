@@ -278,7 +278,7 @@ tetrisBoardSetCellUsed endp
 ; Input: ch (unsigned col), dh (unsigned row) of the piece that already touched a used cell.
 ; Output: dh (decremented dh).
 ; Clobber: ax, bx, si, bp.
-tetrisBoardAddBlock proc private
+tetrisBoardAddPiece proc private
     ; Decrement row so we go back to the free cell above this one.
     dec dh
     call tetrisBoardSetCellUsed
@@ -286,7 +286,7 @@ tetrisBoardAddBlock proc private
     call tetrisSetLevelNextState
     mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     ret
-tetrisBoardAddBlock endp
+tetrisBoardAddPiece endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
@@ -321,15 +321,15 @@ nextRow:
     inc dh
     call tetrisBoardGetCellIsUsed
     jnz short nextRow
-    call tetrisBoardAddBlock
-    jmp short done
+    jmp short addPiece
 @@:
     ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
     add dx,TETRIS_PIECE_SPEED_Y
     call tetrisBoardGetCellIsUsed
-	jnz short done
-    call tetrisBoardAddBlock
-done:
+	jnz short @f
+addPiece:
+    call tetrisBoardAddPiece
+@@:
 
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPieceRow],dx
