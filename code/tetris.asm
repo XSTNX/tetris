@@ -44,14 +44,9 @@ code segment readonly public
 ; Clobber: everything.
 tetrisInit proc
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
-    xor ax,ax    
-    mov [TetrisLevelNextStateSet],al
+    mov [TetrisLevelNextStateSet],0
     ; Init col and row.
-    mov [TetrisFallingPieceRow],ax
-    mov [TetrisFallingPiecePrevRowHI],ah
-    mov ax,(TETRIS_BLOCK_START_COL shl 8)
-    mov [TetrisFallingPieceCol],ax
-    mov [TetrisFallingPiecePrevColHI],ah
+    call tetrisBoardInitFallingPiece
     ; Init board.
     ; static_assert(TETRIS_BOARD_COLS == 12)
     mov cx,TETRIS_BOARD_VISIBLE_ROWS
@@ -60,7 +55,12 @@ tetrisInit proc
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_UNUSED shl 8)
     stosw
     dec ax
-    ; assert(ax == 0)
+if ASSERT_ENABLED
+    cmp ax,0
+    je short skip
+    ASSERT
+skip:
+endif
     stosw
     stosw
     stosw
@@ -288,6 +288,17 @@ tetrisBoardAddPiece proc private
     ret
 tetrisBoardAddPiece endp
 
+; Output: cx (unsigned col), dx (unsigned row).
+tetrisBoardInitFallingPiece proc private
+    mov cx,(TETRIS_BLOCK_START_COL shl 8)
+    mov [TetrisFallingPieceCol],cx
+    mov [TetrisFallingPiecePrevColHI],ch
+    xor dx,dx
+    mov [TetrisFallingPieceRow],dx
+    mov [TetrisFallingPiecePrevRowHI],dh
+    ret
+tetrisBoardInitFallingPiece endp
+
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
     mov cx,[TetrisFallingPieceCol]
@@ -360,12 +371,7 @@ tetrisUpdateLevelStateAnim proc private
     rep stosw
 @@:
     ; Set next state, either the game continues or it's over.
-    mov cx,(TETRIS_BLOCK_START_COL shl 8)
-    mov [TetrisFallingPieceCol],cx
-    mov [TetrisFallingPiecePrevColHI],ch
-    xor dx,dx
-    mov [TetrisFallingPieceRow],dx
-    mov [TetrisFallingPiecePrevRowHI],dh
+    call tetrisBoardInitFallingPiece
     call tetrisBoardGetCellIsUsed
     mov al,TETRIS_LEVEL_STATE_PLAY
 	jnz short @f
