@@ -21,8 +21,11 @@ TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - 
 TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) * 2)
 TETRIS_BOARD_BORDER_COLOR           equ 1
 TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
-TETRIS_PIECE_SPEED_X                equ 64
-TETRIS_PIECE_SPEED_Y                equ 16
+TETRIS_FALLING_PIECE_SPEED_X        equ 64
+TETRIS_FALLING_PIECE_SPEED_Y        equ 16
+TETRIS_FALLING_PIECE_COLOR_MASK     equ 11b
+TETRIS_FALLING_PIECE_COLOR_CLEAR    equ TETRIS_FALLING_PIECE_COLOR_MASK + 1
+TETRIS_FALLING_PIECE_COLOR_COUNT    equ TETRIS_FALLING_PIECE_COLOR_CLEAR + 1
 TETRIS_KEY_LEFT					    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_RIGHT				    equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
@@ -45,7 +48,7 @@ code segment readonly public
 tetrisInit proc
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     mov [TetrisLevelNextStateSet],0
-    ; Init col and row.
+    mov [TetrisFallingPieceColor],TETRIS_FALLING_PIECE_COLOR_MASK
     call tetrisBoardInitFallingPiece
     ; Init board.
     ; static_assert(TETRIS_BOARD_COLS == 12)
@@ -125,7 +128,7 @@ tetrisInitRender proc
     pop dx
     call renderVertLine320x200x4
 if TETRIS_BOARD_RANDOM_BLOCKS
-    mov al,2
+    mov al,0
     mov bx,2
     mov si,9
     call tetrisRenderBlock
@@ -137,19 +140,19 @@ if TETRIS_BOARD_RANDOM_BLOCKS
     mov bx,2
     mov si,11
     call tetrisRenderBlock
-    mov al,1
+    mov al,3
     mov bx,2
     mov si,12
     call tetrisRenderBlock
-    mov al,1
+    mov al,0
     mov bx,6
     mov si,16
     call tetrisRenderBlock
-    mov al,2
+    mov al,1
     mov bx,7
     mov si,16
     call tetrisRenderBlock
-    mov al,1
+    mov al,2
     mov bx,8
     mov si,16
     call tetrisRenderBlock
@@ -296,6 +299,10 @@ tetrisBoardInitFallingPiece proc private
     xor dx,dx
     mov [TetrisFallingPieceRow],dx
     mov [TetrisFallingPiecePrevRowHI],dh
+    mov al,[TetrisFallingPieceColor]
+    inc al
+    and al,TETRIS_FALLING_PIECE_COLOR_MASK
+    mov [TetrisFallingPieceColor],al
     ret
 tetrisBoardInitFallingPiece endp
 
@@ -307,10 +314,10 @@ tetrisUpdateLevelStatePlay proc private
     mov [TetrisFallingPiecePrevRowHI],dh
 
     ; Horizontal movement.
-    ; static_assert(TETRIS_PIECE_SPEED_X <= 0x100)
+    ; static_assert(TETRIS_FALLING_PIECE_SPEED_X <= 0x100)
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
-    sub cx,TETRIS_PIECE_SPEED_X
+    sub cx,TETRIS_FALLING_PIECE_SPEED_X
     call tetrisBoardGetCellIsUsed
 	jnz short @f
     inc ch
@@ -318,7 +325,7 @@ tetrisUpdateLevelStatePlay proc private
 @@:
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
-    add cx,TETRIS_PIECE_SPEED_X
+    add cx,TETRIS_FALLING_PIECE_SPEED_X
     call tetrisBoardGetCellIsUsed
 	jnz short @f
     dec ch
@@ -334,8 +341,8 @@ nextRow:
     jnz short nextRow
     jmp short addPiece
 @@:
-    ; static_assert(TETRIS_PIECE_SPEED_Y <= 0x100)
-    add dx,TETRIS_PIECE_SPEED_Y
+    ; static_assert(TETRIS_FALLING_PIECE_SPEED_Y <= 0x100)
+    add dx,TETRIS_FALLING_PIECE_SPEED_Y
     call tetrisBoardGetCellIsUsed
 	jnz short @f
 addPiece:
@@ -390,12 +397,12 @@ tetrisUpdateLevelStateOver endp
 ; Clobber: everything.
 tetrisRenderLevelStatePlay proc private
     ; Erase previous position.
-    xor al,al
+    mov al,TETRIS_FALLING_PIECE_COLOR_CLEAR
     mov cl,[TetrisFallingPiecePrevColHI]
     mov dl,[TetrisFallingPiecePrevRowHI]
     call tetrisRenderPiece
     ; Draw new position.
-    mov al,3
+    mov al,[TetrisFallingPieceColor]
     mov cl,[TetrisFallingPieceColHI]
     mov dl,[TetrisFallingPieceRowHI]
     jmp tetrisRenderPiece
@@ -417,22 +424,12 @@ tetrisRenderLevelStateAnim proc private
     xor ah,ah
     mov dx,ax
 @@:
-    xor al,al
+    mov al,TETRIS_FALLING_PIECE_COLOR_CLEAR
     mov bx,cx
     mov si,dx
     call tetrisRenderBlock
     loop short @b
 done:
-    ; Erase previous position.
-    xor al,al
-    mov cl,[TetrisFallingPiecePrevColHI]
-    mov dl,[TetrisFallingPiecePrevRowHI]
-    call tetrisRenderPiece
-    ; Draw new position.
-    mov al,3
-    mov cl,[TetrisFallingPieceColHI]
-    mov dl,[TetrisFallingPieceRowHI]
-    jmp tetrisRenderPiece
     ret
 tetrisRenderLevelStateAnim endp
 
@@ -471,11 +468,11 @@ tetrisRenderDebug proc private
 tetrisRenderDebug endp
 endif
 
-; Input: al (blockId), bx (unsigned col), si (unsigned row).
-; Clobber: ax, bx, si, di.
+; Input: al (block color), bx (unsigned col), si (unsigned row).
+; Clobber: ax, bx, si, di, bp.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
-    cmp al,4
+    cmp al,TETRIS_FALLING_PIECE_COLOR_COUNT
     jb short @f
     ASSERT
 @@:
@@ -511,6 +508,7 @@ endif
     shl bx,1
     ; Render the four even lines.
     mov ax,[TetrisBlockColor + bx]
+    mov bp,ax
     mov di,si
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
@@ -526,14 +524,14 @@ repeat 3
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
 endm
-    mov ax,[TetrisBlockColor + bx]
+    mov ax,bp
     stosw
 
     ret
 tetrisRenderBlock endp
 
-; Input: al (blockId), cl (unsigned col), dl (unsigned row).
-; Clobber: ax, bx, ch, dh, si, di.
+; Input: al (piece color), cl (unsigned col), dl (unsigned row).
+; Clobber: ax, bx, ch, dh, si, di, bp.
 tetrisRenderPiece proc private
     xor ch,ch
     mov bx,cx
@@ -547,10 +545,11 @@ code ends
 
 constData segment readonly public
                                         ;    Limit, Center
-    TetrisBlockColor                word    00000h, 00000h,
+    TetrisBlockColor                word    0aaaah, 0febfh,
+                                            0ffffh, 0abeah,
                                             05555h, 0fd7fh,
                                             0aaaah, 05695h,
-                                            0ffffh, 0abeah
+                                            00000h, 00000h
 constData ends
 
 data segment public
@@ -567,6 +566,7 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
+    TetrisFallingPieceColor         byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
