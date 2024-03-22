@@ -34,9 +34,13 @@ TETRIS_LEVEL_STATE_ANIM             equ 1
 TETRIS_LEVEL_STATE_OVER             equ 2
 TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT equ 25
 
-;COLOR_EXTEND_WORD_IMM macro aImm:req
-;    mov ax,((aImm and 3) shl 0) or ((aImm and 3) shl 2) or ((aImm and 3) shl 4) or ((aImm and 3) shl 6) or ((aImm and 3) shl 8) or ((aImm and 3) shl 10) or ((aImm and 3) shl 12) or ((aImm and 3) shl 14)
-;endm
+if TETRIS_BOARD_RANDOM_BLOCKS
+TetrisBoardRandomBlock struct
+    Col     byte ?
+    Row     byte ?
+    Color   byte ?
+TetrisBoardRandomBlock ends
+endif
 
 code segment readonly public
 
@@ -76,27 +80,16 @@ endif
     mov cx,TETRIS_BOARD_COLS / 2
     rep stosw
 if TETRIS_BOARD_RANDOM_BLOCKS
-    mov ch,2
-    mov dh,9
+    mov di,offset TetrisRandomBlocks
+@@:
+    mov ch,[di+TetrisBoardRandomBlock.Col]
+    cmp ch,0
+    je short @f
+    mov dh,[di+TetrisBoardRandomBlock.Row]
     call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,10
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,11
-    call tetrisBoardSetCellUsed
-    mov ch,2
-    mov dh,12
-    call tetrisBoardSetCellUsed
-    mov ch,6
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    mov ch,7
-    mov dh,16
-    call tetrisBoardSetCellUsed
-    mov ch,8
-    mov dh,16
-    call tetrisBoardSetCellUsed
+    add di,sizeof TetrisBoardRandomBlock
+    jmp short @b
+@@:
 endif
     ret
 tetrisInit endp
@@ -128,34 +121,22 @@ tetrisInitRender proc
     pop dx
     call renderVertLine320x200x4
 if TETRIS_BOARD_RANDOM_BLOCKS
-    mov al,0
-    mov bx,2
-    mov si,9
+    mov di,offset TetrisRandomBlocks
+@@:
+    mov bl,[di+TetrisBoardRandomBlock.Col]
+    cmp bl,0
+    je short @f
+    xor bh,bh
+    mov cl,[di+TetrisBoardRandomBlock.Row]
+    xor ch,ch
+    mov si,cx
+    mov al,[di+TetrisBoardRandomBlock.Color]
+    mov dx,di
     call tetrisRenderBlock
-    mov al,1
-    mov bx,2
-    mov si,10
-    call tetrisRenderBlock
-    mov al,2
-    mov bx,2
-    mov si,11
-    call tetrisRenderBlock
-    mov al,3
-    mov bx,2
-    mov si,12
-    call tetrisRenderBlock
-    mov al,0
-    mov bx,6
-    mov si,16
-    call tetrisRenderBlock
-    mov al,1
-    mov bx,7
-    mov si,16
-    call tetrisRenderBlock
-    mov al,2
-    mov bx,8
-    mov si,16
-    call tetrisRenderBlock
+    mov di,dx
+    add di,sizeof TetrisBoardRandomBlock
+    jmp short @b
+@@:
 endif    
     ret
 tetrisInitRender endp
@@ -544,12 +525,24 @@ tetrisRenderPiece endp
 code ends
 
 constData segment readonly public
-                                        ;    Limit, Center
+                                        ;    Limit, Center.
     TetrisBlockColor                word    0aaaah, 0febfh,
                                             0ffffh, 0abeah,
                                             05555h, 0fd7fh,
                                             0aaaah, 05695h,
                                             00000h, 00000h
+if TETRIS_BOARD_RANDOM_BLOCKS           ;  Col, Row, Color.
+    TetrisRandomBlocks              label byte
+    TetrisRandomBlockShape0         byte     8,  17,     2,
+                                             9,  17,     2,
+                                             8,  18,     2,
+                                             8,  19,     2
+    TetrisRandomBlockCube0          byte     9,  18,     1,
+                                            10,  18,     1,
+                                             9,  19,     1,
+                                            10,  19,     1
+    TetrisRandomBlocksEnd           byte     0
+endif
 constData ends
 
 data segment public
