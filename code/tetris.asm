@@ -121,23 +121,20 @@ tetrisInitRender proc
     pop dx
     call renderVertLine320x200x4
 if TETRIS_BOARD_RANDOM_BLOCKS
-    mov di,offset TetrisRandomBlocks
+    mov bx,offset TetrisRandomBlocks
 @@:
-    mov bl,[di+TetrisBoardRandomBlock.Col]
-    cmp bl,0
+    mov cl,[bx+TetrisBoardRandomBlock.Col]
+    cmp cl,0
     je short @f
-    xor bh,bh
-    mov cl,[di+TetrisBoardRandomBlock.Row]
-    xor ch,ch
-    mov si,cx
-    mov al,[di+TetrisBoardRandomBlock.Color]
-    mov dx,di
+    mov dl,[bx+TetrisBoardRandomBlock.Row]
+    mov al,[bx+TetrisBoardRandomBlock.Color]
+    push bx
     call tetrisRenderBlock
-    mov di,dx
-    add di,sizeof TetrisBoardRandomBlock
+    pop bx
+    add bx,sizeof TetrisBoardRandomBlock
     jmp short @b
 @@:
-endif    
+endif
     ret
 tetrisInitRender endp
 
@@ -381,12 +378,12 @@ tetrisRenderLevelStatePlay proc private
     mov al,TETRIS_FALLING_PIECE_COLOR_CLEAR
     mov cl,[TetrisFallingPiecePrevColHI]
     mov dl,[TetrisFallingPiecePrevRowHI]
-    call tetrisRenderPiece
+    call tetrisRenderBlock
     ; Draw new position.
     mov al,[TetrisFallingPieceColor]
     mov cl,[TetrisFallingPieceColHI]
     mov dl,[TetrisFallingPieceRowHI]
-    jmp tetrisRenderPiece
+    jmp tetrisRenderBlock
 tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
@@ -397,17 +394,13 @@ tetrisRenderLevelStateAnim proc private
     ; Is this check necessary?
     cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
     jne short done
-    mov al,[TetrisLevelStateAnimRowToWipe]
-    cmp al,TETRIS_BOARD_ROWS
+    mov dl,[TetrisLevelStateAnimRowToWipe]
+    cmp dl,TETRIS_BOARD_ROWS
     jae short done
     ; Should wipe the video memory directly which is faster than calling tetrisRenderBlock for each column.
     mov cx,TETRIS_BOARD_VISIBLE_COLS
-    xor ah,ah
-    mov dx,ax
 @@:
     mov al,TETRIS_FALLING_PIECE_COLOR_CLEAR
-    mov bx,cx
-    mov si,dx
     call tetrisRenderBlock
     loop short @b
 done:
@@ -449,7 +442,7 @@ tetrisRenderDebug proc private
 tetrisRenderDebug endp
 endif
 
-; Input: al (block color), bx (unsigned col), si (unsigned row).
+; Input: al (block color), cl (unsigned col), dl (unsigned row).
 ; Clobber: ax, bx, si, di, bp.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
@@ -458,19 +451,23 @@ if ASSERT_ENABLED
     ASSERT
 @@:
     ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
-    cmp bx,1
+    cmp cl,1
     jae short @f
     ASSERT
 @@:
-    cmp bx,TETRIS_BOARD_COLS - 1
+    cmp cl,TETRIS_BOARD_COLS - 1
     jb short @f
     ASSERT
 @@:
-    cmp si,TETRIS_BOARD_VISIBLE_ROWS
+    cmp dl,TETRIS_BOARD_VISIBLE_ROWS
     jb short @f
     ASSERT
 @@:
 endif
+    mov bl,dl
+    xor bh,bh
+    mov si,bx
+    mov bl,cl
     ; Each row contains four lines per bank.
     shl si,1
     shl si,1
@@ -510,17 +507,6 @@ endm
 
     ret
 tetrisRenderBlock endp
-
-; Input: al (piece color), cl (unsigned col), dl (unsigned row).
-; Clobber: ax, bx, ch, dh, si, di, bp.
-tetrisRenderPiece proc private
-    xor ch,ch
-    mov bx,cx
-    xor dh,dh
-    mov si,dx
-    call tetrisRenderBlock
-    ret
-tetrisRenderPiece endp
 
 code ends
 
