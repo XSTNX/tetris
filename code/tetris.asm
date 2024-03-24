@@ -442,14 +442,11 @@ tetrisRenderDebug proc private
 tetrisRenderDebug endp
 endif
 
-; Input: al (block color), cl (unsigned col), dl (unsigned row).
-; Clobber: ax, bx, si, di, bp.
-tetrisRenderBlock proc private
+; Input: cl (unsigned col), dl (unsigned row).
+; Output: di (offset).
+; Clobber: bx, di.
+tetrisRenderGetVideoOffset proc private
 if ASSERT_ENABLED
-    cmp al,TETRIS_FALLING_PIECE_COLOR_COUNT
-    jb short @f
-    ASSERT
-@@:
     ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
     cmp cl,1
     jae short @f
@@ -466,31 +463,46 @@ if ASSERT_ENABLED
 endif
     mov bl,dl
     xor bh,bh
-    mov si,bx
+    mov di,bx
     mov bl,cl
     ; Each row contains four lines per bank.
-    shl si,1
-    shl si,1
-    ; Multiply lines by two to use as an index into a table of words.
-    shl si,1
+    shl di,1
+    shl di,1
+    ; Multiply lines by two to obtain index into the multiplication table.
+    shl di,1
     ; Load the offset into the bank for the start of the line.
-    mov si,[RenderMultiplyRowBy80Table + si]
-    ; Each col takes a word.
+    mov di,[RenderMultiplyRowBy80Table + di]
+    ; Each col is 8 pixels, so it uses a word.
     shl bx,1
     ; Add row and column offsets to obtain the word in memory where the block starts.
-    lea si,[TETRIS_BOARD_BANK_START_OFFSET + si + bx]
+    lea di,[TETRIS_BOARD_BANK_START_OFFSET + di + bx]
+    ret
+tetrisRenderGetVideoOffset endp
 
-    mov bx,ax
+; Input: al (block color), cl (unsigned col), dl (unsigned row).
+; Clobber: ax, bx, si, di, bp.
+tetrisRenderBlock proc private
+if ASSERT_ENABLED
+    cmp al,TETRIS_FALLING_PIECE_COLOR_COUNT
+    jb short @f
+    ASSERT
+@@:
+endif
+    call tetrisRenderGetVideoOffset
+    mov si,di
+    ; Get limit color.
+    mov bl,al
     xor bh,bh
     shl bx,1
     shl bx,1
-    ; Render the four even lines.
     mov ax,[TetrisBlockColor + bx]
     mov bp,ax
-    mov di,si
+
+    ; Render the four even lines.
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
-    mov ax,[TetrisBlockColor + 2 + bx]
+    ; Get center color.
+    mov ax,[TetrisBlockColor + (type TetrisBlockColor) + bx]
 repeat 2
     stosw
     add di,TETRIS_RENDER_NEXT_LINE_OFFSET
