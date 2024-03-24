@@ -6,33 +6,36 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
-TETRIS_BOARD_RANDOM_BLOCKS          equ 1
-TETRIS_BOARD_COLS                   equ 12
-TETRIS_BOARD_ROWS                   equ 21
-TETRIS_BOARD_VISIBLE_COLS           equ TETRIS_BOARD_COLS - 2
-TETRIS_BOARD_VISIBLE_ROWS           equ TETRIS_BOARD_ROWS - 1
-TETRIS_BOARD_COUNT                  equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
-TETRIS_BLOCK_SIZE                   equ 8
-TETRIS_BLOCK_START_COL              equ ((TETRIS_BOARD_COLS / 2) - 1)
-TETRIS_BOARD_CELL_UNUSED            equ 0
-TETRIS_BOARD_CELL_USED              equ 1
-TETRIS_BOARD_START_POS_X            equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS / 2) * TETRIS_BLOCK_SIZE)
-TETRIS_BOARD_START_POS_Y            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS / 2) * TETRIS_BLOCK_SIZE)
-TETRIS_BOARD_BANK_START_OFFSET      equ ((TETRIS_BOARD_START_POS_Y / 2) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) * 2)
-TETRIS_BOARD_BORDER_COLOR           equ 1
-TETRIS_RENDER_NEXT_LINE_OFFSET      equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 2)
-TETRIS_FALLING_PIECE_SPEED_X        equ 64
-TETRIS_FALLING_PIECE_SPEED_Y        equ 16
-TETRIS_FALLING_PIECE_COLOR_MASK     equ 11b
-TETRIS_FALLING_PIECE_COLOR_CLEAR    equ TETRIS_FALLING_PIECE_COLOR_MASK + 1
-TETRIS_FALLING_PIECE_COLOR_COUNT    equ TETRIS_FALLING_PIECE_COLOR_CLEAR + 1
-TETRIS_KEY_LEFT					    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
-TETRIS_KEY_RIGHT				    equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
-TETRIS_KEY_DOWN				        equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
-TETRIS_LEVEL_STATE_PLAY             equ 0
-TETRIS_LEVEL_STATE_ANIM             equ 1
-TETRIS_LEVEL_STATE_OVER             equ 2
-TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT equ 25
+TETRIS_BOARD_RANDOM_BLOCKS              equ 1
+TETRIS_BOARD_COLS                       equ 12
+TETRIS_BOARD_ROWS                       equ 21
+TETRIS_BOARD_VISIBLE_COLS               equ TETRIS_BOARD_COLS - 2
+TETRIS_BOARD_VISIBLE_ROWS               equ TETRIS_BOARD_ROWS - 1
+TETRIS_BOARD_COUNT                      equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
+TETRIS_BLOCK_SIZE                       equ 8
+TETRIS_BLOCK_HALF_SIZE                  equ (TETRIS_BLOCK_SIZE shr 1)
+TETRIS_BLOCK_START_COL                  equ ((TETRIS_BOARD_COLS shr 1) - 1)
+TETRIS_BOARD_CELL_UNUSED                equ 0
+TETRIS_BOARD_CELL_USED                  equ 1
+TETRIS_BOARD_START_POS_X                equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS shr 1) * TETRIS_BLOCK_SIZE)
+TETRIS_BOARD_START_POS_Y                equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS shr 1) * TETRIS_BLOCK_SIZE)
+TETRIS_BOARD_BANK_START_OFFSET          equ ((TETRIS_BOARD_START_POS_Y shr 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) shl 1)
+TETRIS_BOARD_BORDER_COLOR               equ 1
+TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES      equ 2
+TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET    equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES)
+TETRIS_RENDER_NEXT_BANK_OFFSET          equ (BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
+TETRIS_FALLING_PIECE_SPEED_X            equ 64
+TETRIS_FALLING_PIECE_SPEED_Y            equ 16
+TETRIS_FALLING_PIECE_COLOR_MASK         equ 11b
+TETRIS_FALLING_PIECE_COLOR_CLEAR        equ TETRIS_FALLING_PIECE_COLOR_MASK + 1
+TETRIS_FALLING_PIECE_COLOR_COUNT        equ TETRIS_FALLING_PIECE_COLOR_CLEAR + 1
+TETRIS_KEY_LEFT					        equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
+TETRIS_KEY_RIGHT				        equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
+TETRIS_KEY_DOWN				            equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
+TETRIS_LEVEL_STATE_PLAY                 equ 0
+TETRIS_LEVEL_STATE_ANIM                 equ 1
+TETRIS_LEVEL_STATE_OVER                 equ 2
+TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT     equ 25
 
 if TETRIS_BOARD_RANDOM_BLOCKS
 TetrisBoardRandomBlock struct
@@ -77,7 +80,7 @@ endif
     loop short @b
     ; static_assert(TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS == 1)
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
-    mov cx,TETRIS_BOARD_COLS / 2
+    mov cx,(TETRIS_BOARD_COLS shr 1)
     rep stosw
 if TETRIS_BOARD_RANDOM_BLOCKS
     mov di,offset TetrisRandomBlocks
@@ -128,9 +131,9 @@ if TETRIS_BOARD_RANDOM_BLOCKS
     je short @f
     mov dl,[bx+TetrisBoardRandomBlock.Row]
     mov al,[bx+TetrisBoardRandomBlock.Color]
-    push bx
+    mov si,bx
     call tetrisRenderBlock
-    pop bx
+    mov bx,si
     add bx,sizeof TetrisBoardRandomBlock
     jmp short @b
 @@:
@@ -343,7 +346,7 @@ tetrisUpdateLevelStateAnim proc private
     call tetrisBoardGetCellAddr
     mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
-    mov cx,TETRIS_BOARD_VISIBLE_COLS / 2
+    mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
     repe scasw
     jne short @f
@@ -351,7 +354,7 @@ tetrisUpdateLevelStateAnim proc private
     ; If row is full, empty it.
     mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_UNUSED shl 8)
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
-    mov cx,TETRIS_BOARD_VISIBLE_COLS / 2
+    mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
     rep stosw
 @@:
@@ -480,7 +483,7 @@ endif
 tetrisRenderGetVideoOffset endp
 
 ; Input: al (block color), cl (unsigned col), dl (unsigned row).
-; Clobber: ax, bx, si, di, bp.
+; Clobber: ax, bx, di, bp.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
     cmp al,TETRIS_FALLING_PIECE_COLOR_COUNT
@@ -489,7 +492,6 @@ if ASSERT_ENABLED
 @@:
 endif
     call tetrisRenderGetVideoOffset
-    mov si,di
     ; Get limit color.
     mov bl,al
     xor bh,bh
@@ -500,23 +502,23 @@ endif
 
     ; Render the four even lines.
     stosw
-    add di,TETRIS_RENDER_NEXT_LINE_OFFSET
+    add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
     ; Get center color.
     mov ax,[TetrisBlockColor + (type TetrisBlockColor) + bx]
 repeat 2
     stosw
-    add di,TETRIS_RENDER_NEXT_LINE_OFFSET
+    add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
 endm
     stosw
     ; Render the four odd lines.
-    lea di,[BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + si]
+    add di,TETRIS_RENDER_NEXT_BANK_OFFSET
 repeat 3
     stosw
-    add di,TETRIS_RENDER_NEXT_LINE_OFFSET
+    add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
 endm
     mov ax,bp
     stosw
-
+    
     ret
 tetrisRenderBlock endp
 

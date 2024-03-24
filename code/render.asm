@@ -9,7 +9,7 @@ local l
 	mov bl,dl
 	; Should use the multiplication table instead.
 	shr dl,1
-	mov al,80
+	mov al,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
 	mul dl
 	shr cx,1
 	shr cx,1
@@ -17,9 +17,9 @@ local l
 	mov di,ax
 	;; Is posY odd?
 	test bl,1
-	lea bx,[di + 2000h]	
+	lea bx,[di + BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET]
 	jz short l
-	add di,80
+	add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
 l:
 endm
 
@@ -40,7 +40,7 @@ renderStart proc
 	mov di,offset RenderMultiplyRowBy80Table
 @@:
 	stosw
-	add ax,80
+	add ax,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
 	loop @b
 	ret
 renderStart endp
