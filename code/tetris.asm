@@ -206,7 +206,7 @@ tetrisSetLevelNextState endp
 
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Output: bx (addr).
-; Clobber: ax, si, bp.
+; Clobber: si, bp.
 tetrisBoardGetCellAddr proc private
 if ASSERT_ENABLED
     cmp ch,TETRIS_BOARD_COLS
@@ -218,11 +218,10 @@ if ASSERT_ENABLED
     ASSERT
 @@:
 endif
-    mov bl,ch
+    mov bl,dh
     xor bh,bh
-    mov al,dh
-    xor ah,ah
-    mov si,ax
+    mov si,bx
+    mov bl,ch
     ; Could use a table to multiply faster by 12.
     ; static_assert(TETRIS_BOARD_COLS == 12)
     ; si = 12 * row = 4 * (row + (2 * row))
@@ -247,7 +246,7 @@ tetrisBoardGetCellIsUsed endp
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Clobber: ax, bx, si, bp.
 tetrisBoardSetCellUsed proc private
-    call tetrisBoardGetCellAddr    
+    call tetrisBoardGetCellAddr
 if ASSERT_ENABLED
     ; Validate that the cell is not used already.
     cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
@@ -258,19 +257,6 @@ endif
     mov byte ptr [bx],TETRIS_BOARD_CELL_USED
     ret
 tetrisBoardSetCellUsed endp
-
-; Input: ch (unsigned col), dh (unsigned row) of the piece that already touched a used cell.
-; Output: dh (decremented dh).
-; Clobber: ax, bx, si, bp.
-tetrisBoardAddPiece proc private
-    ; Decrement row so we go back to the free cell above this one.
-    dec dh
-    call tetrisBoardSetCellUsed
-    mov al,TETRIS_LEVEL_STATE_ANIM
-    call tetrisSetLevelNextState
-    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
-    ret
-tetrisBoardAddPiece endp
 
 ; Output: cx (unsigned col), dx (unsigned row).
 tetrisBoardInitFallingPiece proc private
@@ -327,7 +313,12 @@ nextRow:
     call tetrisBoardGetCellIsUsed
 	jnz short @f
 addPiece:
-    call tetrisBoardAddPiece
+    ; Decrement row so we go back to the free cell above this one.
+    dec dh
+    call tetrisBoardSetCellUsed
+    mov al,TETRIS_LEVEL_STATE_ANIM
+    call tetrisSetLevelNextState
+    mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
 @@:
 
     mov [TetrisFallingPieceCol],cx
@@ -536,7 +527,7 @@ tetrisRenderDebug proc private
     mov al,"-"
     call consolePrintChar
     mov ax,[TetrisFallingPieceRow]
-    call consolePrintWordHex    
+    call consolePrintWordHex
     ret
 tetrisRenderDebug endp
 endif
@@ -586,8 +577,8 @@ data segment public
     TetrisFallingPieceColor         byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
+    TetrisBoardRowToWipeVideoOffset word ?    
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
-    TetrisBoardRowToWipeVideoOffset word ?
 data ends
 
 end
