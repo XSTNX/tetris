@@ -7,7 +7,7 @@ KEYBOARD_ENABLED                equ 1
 KEYBOARD_KEY_PRESSED_COUNT      equ 128
 
 externdef keyboardStart:proc, keyboardStop:proc
-ifndef KEYBOARD_NO_EXTERNS
+ifndef KEYBOARD_INC_HACK
 externdef KeyboardKeyPressed:byte
 endif
 
