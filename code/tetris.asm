@@ -388,14 +388,14 @@ tetrisRenderLevelStatePlay endp
 tetrisRenderLevelStateAnim proc private
     ; Check if wiping the row is needed.
     cmp [TetrisLevelStateAnimFramesLeft],0
-    jne short done
+    jne short @f
     ; Is this check necessary?
     cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
-    jne short done
+    jne short @f
     mov di,[TetrisBoardRowToWipeVideoOffset]
     xor ax,ax
     cmp di,ax
-    je short done
+    je short @f
     ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
     ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
     ; Wipe the four even lines.
@@ -415,7 +415,7 @@ repeat (TETRIS_BLOCK_HALF_SIZE - 1)
 endm
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
-done:
+@@:
     ret
 tetrisRenderLevelStateAnim endp
 
