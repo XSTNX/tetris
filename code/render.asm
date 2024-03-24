@@ -4,7 +4,7 @@ include code\render.inc
 include code\assert.inc
 include code\bios.inc
 
-COMPUTE_VIDEO_ADDR_3200X200x4 macro
+COMPUTE_VIDEO_ADDR_320x200x4 macro
 local l
 	mov bl,dl
 	shr dl,1
@@ -31,18 +31,15 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
-; Clobber: ax, bx, cx, dx.
+; Clobber: ax, cx, dx, di.
 renderStart proc
-	xor bx,bx
-	mov cx,100
-	mov dl,80
+	; Initialize muliplication table.
+	xor ax,ax
+	mov cx,lengthof RenderMultiplyRowBy80Table
+	mov di,offset RenderMultiplyRowBy80Table
 @@:
-	mov al,bl
-	shr al,1
-	mul dl
-	mov [RenderMultiplyRowBy80Table + bx],ax
-	inc bx
-	inc bx
+	stosw
+	add ax,80
 	loop @b
 	ret
 renderStart endp
@@ -189,7 +186,7 @@ renderRect320x200x4 endp
 ;	dl: posYLow (unsigned byte).
 renderEmptyTile8x8 proc
 	; Compute addr in video memory to erase.
-	COMPUTE_VIDEO_ADDR_3200X200x4
+	COMPUTE_VIDEO_ADDR_320x200x4
 
 	xor ax,ax
 	mov cx,4
@@ -216,7 +213,7 @@ renderEmptyTile8x8 endp
 ;	si: bitmap (near ptr).
 renderTile8x8 proc
 	; Compute addr in video memory to copy the bitmap to.
-	COMPUTE_VIDEO_ADDR_3200X200x4
+	COMPUTE_VIDEO_ADDR_320x200x4
 
 	; Copy even lines.
 	mov cx,4
@@ -253,6 +250,7 @@ constData segment readonly public
 constData ends
 
 data segment public
+	; Each line in video memory uses 80 bytes and there are two banks with half of the lines each.
 	public RenderMultiplyRowBy80Table
 	RenderMultiplyRowBy80Table		word (BIOS_VIDEO_MODE_320_200_4_HEIGHT shr 1) dup(?)
 data ends
