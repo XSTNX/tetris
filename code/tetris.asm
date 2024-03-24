@@ -328,8 +328,9 @@ tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
-    dec [TetrisLevelStateAnimFramesLeft]
-    jnz short done
+    mov al,[TetrisLevelStateAnimFramesLeft]
+    cmp al,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+    jne short @f
     mov [TetrisBoardRowToWipeVideoOffset],0
     ; Check if the row is full.
     mov ch,1
@@ -353,6 +354,8 @@ tetrisUpdateLevelStateAnim proc private
     call tetrisRenderGetVideoOffset
     mov [TetrisBoardRowToWipeVideoOffset],di
 @@:
+    dec [TetrisLevelStateAnimFramesLeft]
+    jnz short done
     ; Set next state, either the game continues or it's over.
     call tetrisBoardInitFallingPiece
     call tetrisBoardGetCellIsUsed
@@ -386,8 +389,18 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
+    mov bl,[TetrisLevelStateAnimFramesLeft]
+    ; Check if highlighting the row is needed.
+    cmp bl,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT - 1
+    jne short @f
+    mov di,[TetrisBoardRowToWipeVideoOffset]
+    cmp di,0
+    je short @f
+    mov ax,0ffffh
+    jmp short renderRow
+@@:
     ; Check if wiping the row is needed.
-    cmp [TetrisLevelStateAnimFramesLeft],0
+    cmp bl,0
     jne short @f
     ; Is this check necessary?
     cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
@@ -396,9 +409,10 @@ tetrisRenderLevelStateAnim proc private
     xor ax,ax
     cmp di,ax
     je short @f
+renderRow:    
     ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
     ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
-    ; Wipe the four even lines.
+    ; Render the four even lines.
 repeat (TETRIS_BLOCK_HALF_SIZE - 1)
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
@@ -407,7 +421,7 @@ endm
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
     add di,(BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - (TETRIS_BOARD_VISIBLE_COLS shl 1)) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
-    ; Wipe the four odd lines.
+    ; Render the four odd lines.
 repeat (TETRIS_BLOCK_HALF_SIZE - 1)
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
