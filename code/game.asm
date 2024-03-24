@@ -108,14 +108,15 @@ skip:
 endm
 
 VIDEO_STOP macro
+local l
 	cmp [GameVideoAlreadyInitalized],1
-	jne short @f
+	jne short l
 	;; Restore previous video mode.
 	mov al,[GamePrevVideoMode]
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
 	dec [GameVideoAlreadyInitalized]
-@@:
+l:
 endm
 
 allSegments group code, constData, data
@@ -137,8 +138,7 @@ if CONSOLE_ENABLED
 	; Make sure console can print on the right place even before setting the video mode.
 	call readCurrentCursorPosAndSetConsoleCursorColRow
 endif
-	; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
-	call renderInitMultiplyRowBy80Table
+	call renderStart
 	call keyboardStart
 	VIDEO_START
 

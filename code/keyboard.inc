@@ -15,14 +15,15 @@ endif
 ; Output: zf (zero flag set if true).
 ; Clobber: nothing.
 KEYBOARD_IS_KEY_PRESSED macro aScancode:req
+local l
 if ASSERT_ENABLED
     ; How to avoid moving the scancode to a register if the argument is a register already????????
     push ax
     mov ax,aScancode
     cmp ax,KEYBOARD_KEY_PRESSED_COUNT
-    jb short @f
+    jb short l
     ASSERT
-@@:
+l:
     pop ax
 endif
     test cs:[KeyboardKeyPressed + aScancode],080h

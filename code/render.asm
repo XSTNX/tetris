@@ -4,8 +4,8 @@ include code\render.inc
 include code\assert.inc
 include code\bios.inc
 
-computeVideoAddr320x200x4 macro
-local skipOdd
+COMPUTE_VIDEO_ADDR_3200X200x4 macro
+local l
 	mov bl,dl
 	shr dl,1
 	mov al,80
@@ -17,9 +17,9 @@ local skipOdd
 	;; Is posY odd?
 	test bl,1
 	lea bx,[di + 2000h]	
-	jz skipOdd
+	jz short l
 	add di,80
-skipOdd:
+l:
 endm
 
 allSegments group code, constData, data
@@ -31,10 +31,8 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
-; Input: none.
 ; Clobber: ax, bx, cx, dx.
-; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
-renderInitMultiplyRowBy80Table proc
+renderStart proc
 	xor bx,bx
 	mov cx,100
 	mov dl,80
@@ -47,7 +45,7 @@ renderInitMultiplyRowBy80Table proc
 	inc bx
 	loop @b
 	ret
-renderInitMultiplyRowBy80Table endp
+renderStart endp
 
 ; Input:
 ; cx (unsigned posX).
@@ -191,7 +189,7 @@ renderRect320x200x4 endp
 ;	dl: posYLow (unsigned byte).
 renderEmptyTile8x8 proc
 	; Compute addr in video memory to erase.
-	computeVideoAddr320x200x4
+	COMPUTE_VIDEO_ADDR_3200X200x4
 
 	xor ax,ax
 	mov cx,4
@@ -218,7 +216,7 @@ renderEmptyTile8x8 endp
 ;	si: bitmap (near ptr).
 renderTile8x8 proc
 	; Compute addr in video memory to copy the bitmap to.
-	computeVideoAddr320x200x4
+	COMPUTE_VIDEO_ADDR_3200X200x4
 
 	; Copy even lines.
 	mov cx,4
@@ -256,8 +254,7 @@ constData ends
 
 data segment public
 	public RenderMultiplyRowBy80Table
-	; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
-	RenderMultiplyRowBy80Table		word 100 dup(?)
+	RenderMultiplyRowBy80Table		word (BIOS_VIDEO_MODE_320_200_4_HEIGHT shr 1) dup(?)
 data ends
 
 end

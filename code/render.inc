@@ -8,8 +8,7 @@ RENDER_CGA_STATUS_PORT				equ 3dah
 ; This should be confirmed on real hardware.
 RENDER_CGA_STATUS_MASK_VSYNC		equ (1 shl 3)
 
-; Might make more sense to create this table at assembly time, need to figure out how to use the repeat macro.
-externdef renderInitMultiplyRowBy80Table:proc
+externdef renderStart:proc
 externdef renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderVertLine320x200x4:proc, renderRect320x200x4:proc
 externdef renderTile8x8:proc, renderEmptyTile8x8:proc
 ifndef RENDER_NO_EXTERNS
