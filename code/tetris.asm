@@ -435,7 +435,7 @@ tetrisRenderLevelStateOver endp
 
 ; Input: cl (unsigned col), dl (unsigned row).
 ; Output: di (offset).
-; Clobber: bx, di.
+; Clobber: bx.
 tetrisRenderGetVideoOffset proc private
 if ASSERT_ENABLED
     ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
