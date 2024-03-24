@@ -339,7 +339,7 @@ tetrisUpdateLevelStatePlay endp
 tetrisUpdateLevelStateAnim proc private
     dec [TetrisLevelStateAnimFramesLeft]
     jnz short done
-    mov [TetrisLevelStateAnimRowToWipe],TETRIS_BOARD_ROWS
+    mov [TetrisBoardRowToWipeVideoOffset],0
     ; Check if the row is full.
     mov ch,1
     mov dh,[TetrisFallingPieceRowHI]
@@ -350,13 +350,17 @@ tetrisUpdateLevelStateAnim proc private
     mov di,bx
     repe scasw
     jne short @f
-    mov [TetrisLevelStateAnimRowToWipe],dh
     ; If row is full, empty it.
     mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_UNUSED shl 8)
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
     rep stosw
+    ; Maybe I should store this offset in a table so it doesn't have to be computed every time.
+    mov cl,1
+    mov dl,dh
+    call tetrisRenderGetVideoOffset
+    mov [TetrisBoardRowToWipeVideoOffset],di
 @@:
     ; Set next state, either the game continues or it's over.
     call tetrisBoardInitFallingPiece
@@ -397,15 +401,29 @@ tetrisRenderLevelStateAnim proc private
     ; Is this check necessary?
     cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
     jne short done
-    mov dl,[TetrisLevelStateAnimRowToWipe]
-    cmp dl,TETRIS_BOARD_ROWS
-    jae short done
-    ; Should wipe the video memory directly which is faster than calling tetrisRenderBlock for each column.
+    mov di,[TetrisBoardRowToWipeVideoOffset]
+    xor ax,ax
+    cmp di,ax
+    je short done
+    ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
+    ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
+    ; Wipe the four even lines.
+repeat (TETRIS_BLOCK_HALF_SIZE - 1)
     mov cx,TETRIS_BOARD_VISIBLE_COLS
-@@:
-    mov al,TETRIS_FALLING_PIECE_COLOR_CLEAR
-    call tetrisRenderBlock
-    loop short @b
+    rep stosw
+    add di,(BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - (TETRIS_BOARD_VISIBLE_COLS shl 1))
+endm
+    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    rep stosw
+    add di,(BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - (TETRIS_BOARD_VISIBLE_COLS shl 1)) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
+    ; Wipe the four odd lines.
+repeat (TETRIS_BLOCK_HALF_SIZE - 1)
+    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    rep stosw
+    add di,(BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - (TETRIS_BOARD_VISIBLE_COLS shl 1))
+endm
+    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    rep stosw
 done:
     ret
 tetrisRenderLevelStateAnim endp
@@ -423,27 +441,6 @@ tmpText:
 	byte "Game Over!", 0
 endif
 tetrisRenderLevelStateOver endp
-
-if CONSOLE_ENABLED
-tetrisRenderDebug proc private
-	CONSOLE_SET_CURSOR_COL_ROW 0, 0
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
-	call consolePrintZeroFlag
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
-    call consolePrintZeroFlag
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
-    call consolePrintZeroFlag
-    
-    CONSOLE_SET_CURSOR_COL_ROW 0, 1
-    mov ax,[TetrisFallingPieceCol]
-    call consolePrintWordHex
-    mov al,"-"
-    call consolePrintChar
-    mov ax,[TetrisFallingPieceRow]
-    call consolePrintWordHex    
-    ret
-tetrisRenderDebug endp
-endif
 
 ; Input: cl (unsigned col), dl (unsigned row).
 ; Output: di (offset).
@@ -500,6 +497,7 @@ endif
     mov ax,[TetrisBlockColor + bx]
     mov bp,ax
 
+    ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
     ; Render the four even lines.
     stosw
     add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
@@ -518,9 +516,30 @@ repeat 3
 endm
     mov ax,bp
     stosw
-    
+
     ret
 tetrisRenderBlock endp
+
+if CONSOLE_ENABLED
+tetrisRenderDebug proc private
+	CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
+	call consolePrintZeroFlag
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
+    call consolePrintZeroFlag
+	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
+    call consolePrintZeroFlag
+    
+    CONSOLE_SET_CURSOR_COL_ROW 0, 1
+    mov ax,[TetrisFallingPieceCol]
+    call consolePrintWordHex
+    mov al,"-"
+    call consolePrintChar
+    mov ax,[TetrisFallingPieceRow]
+    call consolePrintWordHex    
+    ret
+tetrisRenderDebug endp
+endif
 
 code ends
 
@@ -541,6 +560,12 @@ if TETRIS_BOARD_RANDOM_BLOCKS           ;  Col, Row, Color.
                                             10,  18,     1,
                                              9,  19,     1,
                                             10,  19,     1
+    TetrisRandomBlockHorizLine0     byte     1,  19,     3,
+                                             2,  19,     3,
+                                             3,  19,     3,
+                                             4,  19,     3,
+                                             6,  19,     3,
+                                             7,  19,     3
     TetrisRandomBlocksEnd           byte     0
 endif
 constData ends
@@ -550,7 +575,6 @@ data segment public
     TetrisLevelNextStateSet         byte ?
     TetrisLevelNextState            byte ?
     TetrisLevelStateAnimFramesLeft  byte ?
-    TetrisLevelStateAnimRowToWipe   byte ?
     TetrisFallingPieceCol           label word
     TetrisFallingPieceColLO         byte ?
     TetrisFallingPieceColHI         byte ?
@@ -563,6 +587,7 @@ data segment public
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
+    TetrisBoardRowToWipeVideoOffset word ?
 data ends
 
 end
