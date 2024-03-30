@@ -401,7 +401,7 @@ tetrisRenderLevelStateAnim proc private
     xor ax,ax
     cmp di,ax
     je short @f
-renderRow:    
+renderRow:
     ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
     ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
     ; Render the four even lines.
