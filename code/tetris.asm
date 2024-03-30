@@ -25,6 +25,7 @@ TETRIS_BOARD_BLOCK_ID_EMPTY             equ 4
 TETRIS_BOARD_BLOCK_ID_COUNT             equ 5
 ; static_assert(isPowerOfTwo(TETRIS_BOARD_BLOCK_ID_EMPTY))
 TETRIS_BOARD_BLOCK_ID_MASK              equ TETRIS_BOARD_BLOCK_ID_EMPTY - 1
+TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR      equ 0ffffh
 TETRIS_BOARD_START_POS_X                equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS shr 1) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y                equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS shr 1) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_BANK_START_OFFSET          equ ((TETRIS_BOARD_START_POS_Y shr 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) shl 1)
@@ -334,7 +335,7 @@ tetrisUpdateLevelStateAnim proc private
     mov di,bx
     repne scasb
     je short @f
-    ; If row is full, empty it.
+    ; If row is full, clear it.
     mov ah,al
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
@@ -388,10 +389,10 @@ tetrisRenderLevelStateAnim proc private
     mov di,[TetrisBoardRowToWipeVideoOffset]
     cmp di,0
     je short @f
-    mov ax,0ffffh
+    mov ax,TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR
     jmp short renderRow
 @@:
-    ; Check if wiping the row is needed.
+    ; Check if clearing the row is needed.
     cmp bl,0
     jne short @f
     ; Is this check necessary?
