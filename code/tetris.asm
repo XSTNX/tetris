@@ -32,8 +32,8 @@ TETRIS_BOARD_BORDER_COLOR               equ 1
 TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES      equ 2
 TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET    equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES)
 TETRIS_RENDER_NEXT_BANK_OFFSET          equ (BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
-TETRIS_FALLING_PIECE_SPEED_X            equ 64
-TETRIS_FALLING_PIECE_SPEED_Y            equ 16
+TETRIS_FALLING_PIECE_SPEED_X_LOHI       equ 64
+TETRIS_FALLING_PIECE_SPEED_Y_LOHI       equ 16
 TETRIS_KEY_LEFT					        equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_RIGHT				        equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DOWN				            equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
@@ -273,10 +273,10 @@ tetrisUpdateLevelStatePlay proc private
     mov [TetrisFallingPiecePrevRowHI],dh
 
     ; Horizontal movement.
-    ; static_assert(TETRIS_FALLING_PIECE_SPEED_X <= 0x100)
+    ; static_assert(TETRIS_FALLING_PIECE_SPEED_X_LOHI <= 0x100)
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
-    sub cx,TETRIS_FALLING_PIECE_SPEED_X
+    sub cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
     call tetrisBoardGetBlockIsEmpty
 	jz short @f
     inc ch
@@ -284,7 +284,7 @@ tetrisUpdateLevelStatePlay proc private
 @@:
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
-    add cx,TETRIS_FALLING_PIECE_SPEED_X
+    add cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
     call tetrisBoardGetBlockIsEmpty
 	jz short @f
     dec ch
@@ -300,8 +300,8 @@ nextRow:
     jz short nextRow
     jmp short addPiece
 @@:
-    ; static_assert(TETRIS_FALLING_PIECE_SPEED_Y <= 0x100)
-    add dx,TETRIS_FALLING_PIECE_SPEED_Y
+    ; static_assert(TETRIS_FALLING_PIECE_SPEED_Y_LOHI <= 0x100)
+    add dx,TETRIS_FALLING_PIECE_SPEED_Y_LOHI
     call tetrisBoardGetBlockIsEmpty
 	jz short @f
 addPiece:
