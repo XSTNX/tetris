@@ -6,9 +6,12 @@ Software
 - MASM 6.11d (https://sourceforge.net/projects/masm611/)
 - DebugX (https://pcdosretro.github.io/enhdebug.htm)
 - DOSBox (https://www.dosbox.com/)
+- DOSBox Staging (https://dosbox-staging.github.io/)
 - OSFMount (https://www.osforensics.com/tools/mount-disk-images.html)
 - MartyPC (https://github.com/dbalsom/martypc/tree/main)
 - VirtualXT (https://phix.itch.io/virtualxt)
+- 86Box (https://86box.net/)
+- IBMulator (https://barotto.github.io/IBMulator/)
 
 MASM
 ----
