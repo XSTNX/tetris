@@ -9,14 +9,22 @@ include code\timer.inc
 TETRIS_BOARD_RANDOM_BLOCKS              equ 1
 TETRIS_BOARD_COLS                       equ 12
 TETRIS_BOARD_ROWS                       equ 21
+TETRIS_BOARD_FIRST_VISIBLE_COL          equ 1
 TETRIS_BOARD_VISIBLE_COLS               equ TETRIS_BOARD_COLS - 2
 TETRIS_BOARD_VISIBLE_ROWS               equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                      equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                       equ 8
 TETRIS_BLOCK_HALF_SIZE                  equ (TETRIS_BLOCK_SIZE shr 1)
 TETRIS_BLOCK_START_COL                  equ ((TETRIS_BOARD_COLS shr 1) - 1)
-TETRIS_BOARD_CELL_UNUSED                equ 0
-TETRIS_BOARD_CELL_USED                  equ 1
+TETRIS_BLOCK_START_COL_LOHI             equ 80h or (TETRIS_BLOCK_START_COL shl 8)
+TETRIS_BOARD_BLOCK_ID_0                 equ 0
+TETRIS_BOARD_BLOCK_ID_1                 equ 1
+TETRIS_BOARD_BLOCK_ID_2                 equ 2
+TETRIS_BOARD_BLOCK_ID_3                 equ 3
+TETRIS_BOARD_BLOCK_ID_EMPTY             equ 4
+TETRIS_BOARD_BLOCK_ID_COUNT             equ 5
+; static_assert(isPowerOfTwo(TETRIS_BOARD_BLOCK_ID_EMPTY))
+TETRIS_BOARD_BLOCK_ID_MASK              equ TETRIS_BOARD_BLOCK_ID_EMPTY - 1
 TETRIS_BOARD_START_POS_X                equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS shr 1) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_START_POS_Y                equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS shr 1) * TETRIS_BLOCK_SIZE)
 TETRIS_BOARD_BANK_START_OFFSET          equ ((TETRIS_BOARD_START_POS_Y shr 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) shl 1)
@@ -26,9 +34,6 @@ TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET    equ (BIOS_VIDEO_MODE_320_200_4_BYTES_P_L
 TETRIS_RENDER_NEXT_BANK_OFFSET          equ (BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
 TETRIS_FALLING_PIECE_SPEED_X            equ 64
 TETRIS_FALLING_PIECE_SPEED_Y            equ 16
-TETRIS_FALLING_PIECE_COLOR_MASK         equ 11b
-TETRIS_FALLING_PIECE_COLOR_CLEAR        equ TETRIS_FALLING_PIECE_COLOR_MASK + 1
-TETRIS_FALLING_PIECE_COLOR_COUNT        equ TETRIS_FALLING_PIECE_COLOR_CLEAR + 1
 TETRIS_KEY_LEFT					        equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_RIGHT				        equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DOWN				            equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
@@ -39,9 +44,9 @@ TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT     equ 25
 
 if TETRIS_BOARD_RANDOM_BLOCKS
 TetrisBoardRandomBlock struct
-    Col     byte ?
-    Row     byte ?
-    Color   byte ?
+    BlockId     byte ?
+    Col         byte ?
+    Row         byte ?
 TetrisBoardRandomBlock ends
 endif
 
@@ -55,41 +60,37 @@ code segment readonly public
 tetrisInit proc
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     mov [TetrisLevelNextStateSet],0
-    mov [TetrisFallingPieceColor],TETRIS_FALLING_PIECE_COLOR_MASK
+    mov [TetrisFallingPieceBlockId],TETRIS_BOARD_BLOCK_ID_MASK
     call tetrisBoardInitFallingPiece
     ; Init board.
     ; static_assert(TETRIS_BOARD_COLS == 12)
     mov cx,TETRIS_BOARD_VISIBLE_ROWS
-    mov di,offset TetrisBoardCellUsedArray
+    mov di,offset TetrisBoardBlockIdArray
 @@:
-    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_UNUSED shl 8)
+    mov ax,TETRIS_BOARD_BLOCK_ID_0 or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8)
     stosw
-    dec ax
-if ASSERT_ENABLED
-    cmp ax,0
-    je short skip
-    ASSERT
-skip:
-endif
+    mov al,TETRIS_BOARD_BLOCK_ID_EMPTY
     stosw
     stosw
     stosw
     stosw
-    mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_USED shl 8)
+    mov ah,(TETRIS_BOARD_BLOCK_ID_0 shl 8)
     stosw
     loop short @b
     ; static_assert(TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS == 1)
-    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
+    ; static_assert(TETRIS_BOARD_BLOCK_ID_0 == 0)
+    xor ax,ax
     mov cx,(TETRIS_BOARD_COLS shr 1)
     rep stosw
 if TETRIS_BOARD_RANDOM_BLOCKS
     mov di,offset TetrisRandomBlocks
 @@:
-    mov ch,[di+TetrisBoardRandomBlock.Col]
-    cmp ch,0
+    mov al,[di+TetrisBoardRandomBlock.BlockId]
+    cmp al,TETRIS_BOARD_BLOCK_ID_EMPTY
     je short @f
+    mov ch,[di+TetrisBoardRandomBlock.Col]
     mov dh,[di+TetrisBoardRandomBlock.Row]
-    call tetrisBoardSetCellUsed
+    call tetrisBoardSetBlockId
     add di,sizeof TetrisBoardRandomBlock
     jmp short @b
 @@:
@@ -124,17 +125,15 @@ tetrisInitRender proc
     pop dx
     call renderVertLine320x200x4
 if TETRIS_BOARD_RANDOM_BLOCKS
-    mov bx,offset TetrisRandomBlocks
+    mov si,offset TetrisRandomBlocks
 @@:
-    mov cl,[bx+TetrisBoardRandomBlock.Col]
-    cmp cl,0
+    mov al,[si+TetrisBoardRandomBlock.BlockId]
+    cmp al,TETRIS_BOARD_BLOCK_ID_EMPTY
     je short @f
-    mov dl,[bx+TetrisBoardRandomBlock.Row]
-    mov al,[bx+TetrisBoardRandomBlock.Color]
-    mov si,bx
+    mov cl,[si+TetrisBoardRandomBlock.Col]
+    mov dl,[si+TetrisBoardRandomBlock.Row]
     call tetrisRenderBlock
-    mov bx,si
-    add bx,sizeof TetrisBoardRandomBlock
+    add si,sizeof TetrisBoardRandomBlock
     jmp short @b
 @@:
 endif
@@ -207,7 +206,7 @@ tetrisSetLevelNextState endp
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Output: bx (addr).
 ; Clobber: si, bp.
-tetrisBoardGetCellAddr proc private
+tetrisBoardGetBlockAddr proc private
 if ASSERT_ENABLED
     cmp ch,TETRIS_BOARD_COLS
     jb short @f
@@ -227,49 +226,42 @@ endif
     ; si = 12 * row = 4 * (row + (2 * row))
     mov bp,si
     shl si,1
-    lea si,[bp + si]
+    add si,bp
     shl si,1
     shl si,1
-    lea bx,[TetrisBoardCellUsedArray + bx + si]
+    lea bx,[TetrisBoardBlockIdArray + bx + si]
     ret
-tetrisBoardGetCellAddr endp
+tetrisBoardGetBlockAddr endp
 
 ; Input: ch (unsigned col), dh (unsigned row).
 ; Output: zf (set if true).
-; Clobber: ax, bx, si, bp.
-tetrisBoardGetCellIsUsed proc private
-    call tetrisBoardGetCellAddr
-    cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
+; Clobber: bx, si, bp.
+tetrisBoardGetBlockIsEmpty proc private
+    call tetrisBoardGetBlockAddr
+    cmp byte ptr [bx],TETRIS_BOARD_BLOCK_ID_EMPTY
     ret
-tetrisBoardGetCellIsUsed endp
+tetrisBoardGetBlockIsEmpty endp
 
-; Input: ch (unsigned col), dh (unsigned row).
-; Clobber: ax, bx, si, bp.
-tetrisBoardSetCellUsed proc private
-    call tetrisBoardGetCellAddr
-if ASSERT_ENABLED
-    ; Validate that the cell is not used already.
-    cmp byte ptr [bx],TETRIS_BOARD_CELL_USED
-    jne short @f
-    ASSERT
-@@:
-endif
-    mov byte ptr [bx],TETRIS_BOARD_CELL_USED
+; Input: al (block id), ch (unsigned col), dh (unsigned row).
+; Clobber: bx, si, bp.
+tetrisBoardSetBlockId proc private
+    call tetrisBoardGetBlockAddr
+    mov byte ptr [bx],al
     ret
-tetrisBoardSetCellUsed endp
+tetrisBoardSetBlockId endp
 
-; Output: cx (unsigned col), dx (unsigned row).
+; Output: al (block id), cx (unsigned colLOHI), dx (unsigned rowLOHI).
 tetrisBoardInitFallingPiece proc private
-    mov cx,(TETRIS_BLOCK_START_COL shl 8)
+    mov cx,TETRIS_BLOCK_START_COL_LOHI
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPiecePrevColHI],ch
     xor dx,dx
     mov [TetrisFallingPieceRow],dx
     mov [TetrisFallingPiecePrevRowHI],dh
-    mov al,[TetrisFallingPieceColor]
+    mov al,[TetrisFallingPieceBlockId]
     inc al
-    and al,TETRIS_FALLING_PIECE_COLOR_MASK
-    mov [TetrisFallingPieceColor],al
+    and al,TETRIS_BOARD_BLOCK_ID_MASK
+    mov [TetrisFallingPieceBlockId],al
     ret
 tetrisBoardInitFallingPiece endp
 
@@ -285,16 +277,16 @@ tetrisUpdateLevelStatePlay proc private
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub cx,TETRIS_FALLING_PIECE_SPEED_X
-    call tetrisBoardGetCellIsUsed
-	jnz short @f
+    call tetrisBoardGetBlockIsEmpty
+	jz short @f
     inc ch
     xor cl,cl
 @@:
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_RIGHT
     jnz short @f
     add cx,TETRIS_FALLING_PIECE_SPEED_X
-    call tetrisBoardGetCellIsUsed
-	jnz short @f
+    call tetrisBoardGetBlockIsEmpty
+	jz short @f
     dec ch
     mov cl,0ffh
 @@:
@@ -304,18 +296,19 @@ tetrisUpdateLevelStatePlay proc private
 	jnz short @f
 nextRow:    
     inc dh
-    call tetrisBoardGetCellIsUsed
-    jnz short nextRow
+    call tetrisBoardGetBlockIsEmpty
+    jz short nextRow
     jmp short addPiece
 @@:
     ; static_assert(TETRIS_FALLING_PIECE_SPEED_Y <= 0x100)
     add dx,TETRIS_FALLING_PIECE_SPEED_Y
-    call tetrisBoardGetCellIsUsed
-	jnz short @f
+    call tetrisBoardGetBlockIsEmpty
+	jz short @f
 addPiece:
     ; Decrement row so we go back to the free cell above this one.
     dec dh
-    call tetrisBoardSetCellUsed
+    mov al,TetrisFallingPieceBlockId
+    call tetrisBoardSetBlockId
     mov al,TETRIS_LEVEL_STATE_ANIM
     call tetrisSetLevelNextState
     mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
@@ -333,17 +326,16 @@ tetrisUpdateLevelStateAnim proc private
     jne short @f
     mov [TetrisBoardRowToWipeVideoOffset],0
     ; Check if the row is full.
-    mov ch,1
+    mov ch,TETRIS_BOARD_FIRST_VISIBLE_COL
     mov dh,[TetrisFallingPieceRowHI]
-    call tetrisBoardGetCellAddr
-    mov ax,TETRIS_BOARD_CELL_USED or (TETRIS_BOARD_CELL_USED shl 8)
-    ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
-    mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
+    call tetrisBoardGetBlockAddr
+    mov al,TETRIS_BOARD_BLOCK_ID_EMPTY
+    mov cx,TETRIS_BOARD_VISIBLE_COLS
     mov di,bx
-    repe scasw
-    jne short @f
+    repne scasb
+    je short @f
     ; If row is full, empty it.
-    mov ax,TETRIS_BOARD_CELL_UNUSED or (TETRIS_BOARD_CELL_UNUSED shl 8)
+    mov ah,al
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
@@ -358,9 +350,9 @@ tetrisUpdateLevelStateAnim proc private
     jnz short done
     ; Set next state, either the game continues or it's over.
     call tetrisBoardInitFallingPiece
-    call tetrisBoardGetCellIsUsed
+    call tetrisBoardGetBlockIsEmpty
     mov al,TETRIS_LEVEL_STATE_PLAY
-	jnz short @f
+	jz short @f
     mov al,TETRIS_LEVEL_STATE_OVER
 @@:
     call tetrisSetLevelNextState
@@ -376,12 +368,12 @@ tetrisUpdateLevelStateOver endp
 ; Clobber: everything.
 tetrisRenderLevelStatePlay proc private
     ; Erase previous position.
-    mov al,TETRIS_FALLING_PIECE_COLOR_CLEAR
+    mov al,TETRIS_BOARD_BLOCK_ID_EMPTY
     mov cl,[TetrisFallingPiecePrevColHI]
     mov dl,[TetrisFallingPiecePrevRowHI]
     call tetrisRenderBlock
     ; Draw new position.
-    mov al,[TetrisFallingPieceColor]
+    mov al,[TetrisFallingPieceBlockId]
     mov cl,[TetrisFallingPieceColHI]
     mov dl,[TetrisFallingPieceRowHI]
     jmp tetrisRenderBlock
@@ -439,12 +431,12 @@ if CONSOLE_ENABLED
     CONSOLE_SET_CURSOR_COL_ROW 15, 1
 	mov si,offset allSegments:tmpText
 	call consolePrintString
-endif
-    ret
-if CONSOLE_ENABLED
+    jmp short @f
 tmpText:
 	byte "Game Over!", 0
+@@:
 endif
+    ret
 tetrisRenderLevelStateOver endp
 
 ; Input: cl (unsigned col), dl (unsigned row).
@@ -453,7 +445,7 @@ tetrisRenderLevelStateOver endp
 tetrisRenderGetVideoOffset proc private
 if ASSERT_ENABLED
     ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
-    cmp cl,1
+    cmp cl,TETRIS_BOARD_FIRST_VISIBLE_COL
     jae short @f
     ASSERT
 @@:
@@ -484,11 +476,11 @@ endif
     ret
 tetrisRenderGetVideoOffset endp
 
-; Input: al (block color), cl (unsigned col), dl (unsigned row).
+; Input: al (block id), cl (unsigned col), dl (unsigned row).
 ; Clobber: ax, bx, di, bp.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
-    cmp al,TETRIS_FALLING_PIECE_COLOR_COUNT
+    cmp al,TETRIS_BOARD_BLOCK_ID_COUNT
     jb short @f
     ASSERT
 @@:
@@ -499,7 +491,7 @@ endif
     xor bh,bh
     shl bx,1
     shl bx,1
-    mov ax,[TetrisBlockColor + bx]
+    mov ax,[TetrisBlockIdColor + bx]
     mov bp,ax
 
     ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
@@ -507,7 +499,7 @@ endif
     stosw
     add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
     ; Get center color.
-    mov ax,[TetrisBlockColor + (type TetrisBlockColor) + bx]
+    mov ax,[TetrisBlockIdColor + (type TetrisBlockIdColor) + bx]
 repeat 2
     stosw
     add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
@@ -549,29 +541,29 @@ endif
 code ends
 
 constData segment readonly public
-                                        ;    Limit, Center.
-    TetrisBlockColor                word    0aaaah, 0febfh,
+                                           ; Limit, Center.
+    TetrisBlockIdColor              word    0aaaah, 0febfh,
                                             0ffffh, 0abeah,
                                             05555h, 0fd7fh,
                                             0aaaah, 05695h,
                                             00000h, 00000h
-if TETRIS_BOARD_RANDOM_BLOCKS           ;  Col, Row, Color.
+if TETRIS_BOARD_RANDOM_BLOCKS          ; BlockId, Col, Row.
     TetrisRandomBlocks              label byte
-    TetrisRandomBlockShape0         byte     8,  17,     2,
-                                             9,  17,     2,
-                                             8,  18,     2,
-                                             8,  19,     2
-    TetrisRandomBlockCube0          byte     9,  18,     1,
-                                            10,  18,     1,
-                                             9,  19,     1,
-                                            10,  19,     1
-    TetrisRandomBlockHorizLine0     byte     1,  19,     3,
-                                             2,  19,     3,
-                                             3,  19,     3,
-                                             4,  19,     3,
-                                             6,  19,     3,
-                                             7,  19,     3
-    TetrisRandomBlocksEnd           byte     0
+    TetrisRandomBlockHorizLine0     byte       3,   1,  19,
+                                               3,   2,  19,
+                                               3,   3,  19,
+                                               3,   4,  19,
+                                               3,   6,  19,
+                                               3,   7,  19
+    TetrisRandomBlockShape0         byte       2,   8,  17,
+                                               2,   9,  17,
+                                               2,   8,  18,
+                                               2,   8,  19
+    TetrisRandomBlockCube0          byte       1,   9,  18,
+                                               1,  10,  18,
+                                               1,   9,  19,
+                                               1,  10,  19
+    TetrisRandomBlocksEnd           byte TETRIS_BOARD_BLOCK_ID_EMPTY
 endif
 constData ends
 
@@ -588,11 +580,11 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
-    TetrisFallingPieceColor         byte ?
+    TetrisFallingPieceBlockId       byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardRowToWipeVideoOffset word ?    
-    TetrisBoardCellUsedArray        byte TETRIS_BOARD_COUNT dup(?)
+    TetrisBoardBlockIdArray         byte TETRIS_BOARD_COUNT dup(?)
 data ends
 
 end
