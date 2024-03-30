@@ -321,9 +321,8 @@ addPiece:
 tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
-tetrisUpdateLevelStateAnim proc private
-    mov al,[TetrisLevelStateAnimFramesLeft]
-    cmp al,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
+tetrisUpdateLevelStateAnim proc private    
+    cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     jne short @f
     mov [TetrisBoardRowToWipeVideoOffset],0
     ; Check if the row is full.
