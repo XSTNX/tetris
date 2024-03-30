@@ -321,9 +321,9 @@ addPiece:
 tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
-tetrisUpdateLevelStateAnim proc private    
+tetrisUpdateLevelStateAnim proc private
     cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
-    jne short @f
+    jne short clearDone
     mov [TetrisBoardRowToWipeVideoOffset],0
     ; Check if the row is full.
     mov ch,TETRIS_BOARD_FIRST_VISIBLE_COL
@@ -333,9 +333,24 @@ tetrisUpdateLevelStateAnim proc private
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     mov di,bx
     repne scasb
-    je short @f
+    je short clearDone
     ; If row is full, clear it.
-    mov ah,al
+if 0
+@@:
+    lea si,[bx-TETRIS_BOARD_COLS]
+    cmp si,offset TetrisBoardBlockIdArray
+    jb short clearFirstLine
+    ; If there is a row above this one, copy it here.
+    ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
+    mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
+    mov di,bx
+    rep movsw
+    mov bx,si
+    jmp short @b
+clearFirstLine:
+endif
+    ; If there are no more rows, clear this one.
+    mov ax,(TETRIS_BOARD_BLOCK_ID_EMPTY or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8))
     ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
@@ -345,9 +360,9 @@ tetrisUpdateLevelStateAnim proc private
     mov dl,dh
     call tetrisRenderGetVideoOffset
     mov [TetrisBoardRowToWipeVideoOffset],di
-@@:
+clearDone:
     dec [TetrisLevelStateAnimFramesLeft]
-    jnz short done
+    jnz short nextStateDone
     ; Set next state, either the game continues or it's over.
     call tetrisBoardInitFallingPiece
     call tetrisBoardGetBlockIsEmpty
@@ -356,7 +371,7 @@ tetrisUpdateLevelStateAnim proc private
     mov al,TETRIS_LEVEL_STATE_OVER
 @@:
     call tetrisSetLevelNextState
-done:
+nextStateDone:
     ret
 tetrisUpdateLevelStateAnim endp
 
