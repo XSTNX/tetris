@@ -580,7 +580,7 @@ constData segment readonly public
                                             0aaaah, 05695h,
                                             00000h, 00000h
 if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
-    TetrisBoardInitBlocks                       label byte
+    TetrisBoardInitBlocks              label byte
     TetrisBoardInitBlockHorizLine0     byte    3,   1,  19,
                                                3,   2,  19,
                                                3,   3,  19,
@@ -605,7 +605,7 @@ if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
                                                3,  10,  17,
                                                3,  10,  18,
                                                3,  10,  19
-    TetrisBoardInitBlocksEnd           byte TETRIS_BOARD_BLOCK_ID_EMPTY
+    TetrisBoardInitBlocksEnd           byte    TETRIS_BOARD_BLOCK_ID_EMPTY
 endif
 constData ends
 
