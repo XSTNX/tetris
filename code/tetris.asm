@@ -340,7 +340,7 @@ tetrisUpdateLevelStatePlay endp
 tetrisUpdateLevelStateAnim proc private
     cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     jne short clearDone
-    mov [TetrisFallingPieceRowToClear],TETRIS_BOARD_ROWS
+    mov [TetrisLevelStateAnimRowToClear],TETRIS_BOARD_ROWS
     ; Check if the row is full.
     mov ch,TETRIS_BOARD_FIRST_VISIBLE_COL
     mov dh,[TetrisFallingPieceRowHI]
@@ -371,7 +371,7 @@ clearRow:
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
     rep stosw
-    mov [TetrisFallingPieceRowToClear],dh
+    mov [TetrisLevelStateAnimRowToClear],dh
 clearDone:
     dec [TetrisLevelStateAnimFramesLeft]
     jnz short nextStateDone
@@ -410,7 +410,7 @@ tetrisRenderLevelStatePlay endp
 tetrisRenderLevelStateAnim proc private
     ; static_assert(TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT > 1)
     mov cl,TETRIS_BOARD_FIRST_VISIBLE_COL
-    mov bl,[TetrisFallingPieceRowToClear]    
+    mov bl,[TetrisLevelStateAnimRowToClear]    
     cmp bl,TETRIS_BOARD_ROWS
     je short done
     mov al,[TetrisLevelStateAnimFramesLeft]
@@ -614,6 +614,7 @@ data segment public
     TetrisLevelNextStateSet         byte ?
     TetrisLevelNextState            byte ?
     TetrisLevelStateAnimFramesLeft  byte ?
+    TetrisLevelStateAnimRowToClear  byte ?
     TetrisFallingPieceBlockId       byte ?
     TetrisFallingPieceCol           label word
     TetrisFallingPieceColLO         byte ?
@@ -623,7 +624,6 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
-    TetrisFallingPieceRowToClear    byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
     TetrisBoardBlockIdArray         byte TETRIS_BOARD_COUNT dup(?)
