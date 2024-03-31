@@ -6,7 +6,7 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
-TETRIS_BOARD_RANDOM_BLOCKS              equ 1
+TETRIS_BOARD_INIT_BLOCKS                equ 1
 TETRIS_BOARD_COLS                       equ 12
 TETRIS_BOARD_ROWS                       equ 21
 TETRIS_BOARD_FIRST_VISIBLE_COL          equ 1
@@ -44,12 +44,12 @@ TETRIS_LEVEL_STATE_ANIM                 equ 1
 TETRIS_LEVEL_STATE_OVER                 equ 2
 TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT     equ 25
 
-if TETRIS_BOARD_RANDOM_BLOCKS
-TetrisBoardRandomBlock struct
+if TETRIS_BOARD_INIT_BLOCKS
+TetrisBoardInitBlock struct
     BlockId     byte ?
     Col         byte ?
     Row         byte ?
-TetrisBoardRandomBlock ends
+TetrisBoardInitBlock ends
 endif
 
 code segment readonly public
@@ -84,16 +84,16 @@ tetrisInit proc
     xor ax,ax
     mov cx,(TETRIS_BOARD_COLS shr 1)
     rep stosw
-if TETRIS_BOARD_RANDOM_BLOCKS
-    mov di,offset TetrisRandomBlocks
+if TETRIS_BOARD_INIT_BLOCKS
+    mov di,offset TetrisBoardInitBlocks
 @@:
-    mov al,[di+TetrisBoardRandomBlock.BlockId]
+    mov al,[di+TetrisBoardInitBlock.BlockId]
     cmp al,TETRIS_BOARD_BLOCK_ID_EMPTY
     je short @f
-    mov ch,[di+TetrisBoardRandomBlock.Col]
-    mov dh,[di+TetrisBoardRandomBlock.Row]
+    mov ch,[di+TetrisBoardInitBlock.Col]
+    mov dh,[di+TetrisBoardInitBlock.Row]
     call tetrisBoardSetBlockId
-    add di,sizeof TetrisBoardRandomBlock
+    add di,sizeof TetrisBoardInitBlock
     jmp short @b
 @@:
 endif
@@ -126,16 +126,16 @@ tetrisInitRender proc
     pop bx
     pop dx
     call renderVertLine320x200x4
-if TETRIS_BOARD_RANDOM_BLOCKS
-    mov si,offset TetrisRandomBlocks
+if TETRIS_BOARD_INIT_BLOCKS
+    mov si,offset TetrisBoardInitBlocks
 @@:
-    mov al,[si+TetrisBoardRandomBlock.BlockId]
+    mov al,[si+TetrisBoardInitBlock.BlockId]
     cmp al,TETRIS_BOARD_BLOCK_ID_EMPTY
     je short @f
-    mov cl,[si+TetrisBoardRandomBlock.Col]
-    mov dl,[si+TetrisBoardRandomBlock.Row]
+    mov cl,[si+TetrisBoardInitBlock.Col]
+    mov dl,[si+TetrisBoardInitBlock.Row]
     call tetrisRenderBlock
-    add si,sizeof TetrisBoardRandomBlock
+    add si,sizeof TetrisBoardInitBlock
     jmp short @b
 @@:
 endif
@@ -579,23 +579,33 @@ constData segment readonly public
                                             05555h, 0fd7fh,
                                             0aaaah, 05695h,
                                             00000h, 00000h
-if TETRIS_BOARD_RANDOM_BLOCKS          ; BlockId, Col, Row.
-    TetrisRandomBlocks              label byte
-    TetrisRandomBlockHorizLine0     byte       3,   1,  19,
+if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
+    TetrisBoardInitBlocks                       label byte
+    TetrisBoardInitBlockHorizLine0     byte    3,   1,  19,
                                                3,   2,  19,
                                                3,   3,  19,
-                                               3,   4,  19,
-                                               3,   6,  19,
-                                               3,   7,  19
-    TetrisRandomBlockShape0         byte       2,   8,  17,
-                                               2,   9,  17,
-                                               2,   8,  18,
-                                               2,   8,  19
-    TetrisRandomBlockCube0          byte       1,   9,  18,
-                                               1,  10,  18,
-                                               1,   9,  19,
-                                               1,  10,  19
-    TetrisRandomBlocksEnd           byte TETRIS_BOARD_BLOCK_ID_EMPTY
+                                               3,   4,  19
+    TetrisBoardInitBlockShape0         byte    1,   2,  18,
+                                               1,   3,  17,
+                                               1,   3,  18,
+                                               1,   4,  17
+    TetrisBoardInitBlockShape1         byte    0,   5,  17,
+                                               0,   4,  18,
+                                               0,   5,  18,
+                                               0,   5,  19
+    TetrisBoardInitBlockShape2         byte    2,   7,  17,
+                                               2,   8,  17,
+                                               2,   7,  18,
+                                               2,   7,  19
+    TetrisBoardInitBlockCube0          byte    1,   8,  18,
+                                               1,   9,  18,
+                                               1,   8,  19,
+                                               1,   9,  19
+    TetrisBoardInitBlockShape3         byte    3,   9,  17,
+                                               3,  10,  17,
+                                               3,  10,  18,
+                                               3,  10,  19
+    TetrisBoardInitBlocksEnd           byte TETRIS_BOARD_BLOCK_ID_EMPTY
 endif
 constData ends
 
