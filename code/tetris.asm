@@ -11,6 +11,7 @@ TETRIS_BOARD_COLS                       equ 12
 TETRIS_BOARD_ROWS                       equ 21
 TETRIS_BOARD_FIRST_VISIBLE_COL          equ 1
 TETRIS_BOARD_VISIBLE_COLS               equ TETRIS_BOARD_COLS - 2
+; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
 TETRIS_BOARD_VISIBLE_ROWS               equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                      equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                       equ 8
@@ -246,6 +247,21 @@ tetrisBoardGetBlockIsEmpty endp
 ; Input: al (block id), ch (unsigned col), dh (unsigned row).
 ; Clobber: bx, si, bp.
 tetrisBoardSetBlockId proc private
+if ASSERT_ENABLED
+    ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
+    cmp ch,TETRIS_BOARD_FIRST_VISIBLE_COL
+    jae short @f
+    ASSERT
+@@:
+    cmp ch,TETRIS_BOARD_COLS - 1
+    jb short @f
+    ASSERT
+@@:
+    cmp dh,TETRIS_BOARD_VISIBLE_ROWS
+    jb short @f
+    ASSERT
+@@:
+endif
     call tetrisBoardGetBlockAddr
     mov byte ptr [bx],al
     ret
@@ -253,16 +269,16 @@ tetrisBoardSetBlockId endp
 
 ; Output: al (block id), cx (unsigned colLOHI), dx (unsigned rowLOHI).
 tetrisBoardInitFallingPiece proc private
+    mov al,[TetrisFallingPieceBlockId]
+    inc al
+    and al,TETRIS_BOARD_BLOCK_ID_MASK
+    mov [TetrisFallingPieceBlockId],al
     mov cx,TETRIS_BLOCK_START_COL_LOHI
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPiecePrevColHI],ch
     xor dx,dx
     mov [TetrisFallingPieceRow],dx
     mov [TetrisFallingPiecePrevRowHI],dh
-    mov al,[TetrisFallingPieceBlockId]
-    inc al
-    and al,TETRIS_BOARD_BLOCK_ID_MASK
-    mov [TetrisFallingPieceBlockId],al
     ret
 tetrisBoardInitFallingPiece endp
 
@@ -324,7 +340,7 @@ tetrisUpdateLevelStatePlay endp
 tetrisUpdateLevelStateAnim proc private
     cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     jne short clearDone
-    mov [TetrisBoardRowToWipeVideoOffset],0
+    mov [TetrisFallingPieceRowToClear],TETRIS_BOARD_ROWS
     ; Check if the row is full.
     mov ch,TETRIS_BOARD_FIRST_VISIBLE_COL
     mov dh,[TetrisFallingPieceRowHI]
@@ -336,30 +352,26 @@ tetrisUpdateLevelStateAnim proc private
     je short clearDone
     ; If row is full, clear it.
 if 0
+    ; Disable this code temporarily, since the matching code to render the blocks that moved is not done yet.
 @@:
+    ; static_assert(offset TetrisBoardBlockIdArray > TETRIS_BOARD_COLS)
     lea si,[bx-TETRIS_BOARD_COLS]
     cmp si,offset TetrisBoardBlockIdArray
-    jb short clearFirstLine
+    jb short clearRow
     ; If there is a row above this one, copy it here.
-    ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
-    rep movsw
     mov bx,si
+    rep movsw
     jmp short @b
-clearFirstLine:
 endif
-    ; If there are no more rows, clear this one.
+clearRow:
+    ; If there are no more rows above this one, clear it.
     mov ax,(TETRIS_BOARD_BLOCK_ID_EMPTY or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8))
-    ; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
     mov di,bx
     rep stosw
-    ; Maybe I should store this offset in a table so it doesn't have to be computed every time.
-    mov cl,1
-    mov dl,dh
-    call tetrisRenderGetVideoOffset
-    mov [TetrisBoardRowToWipeVideoOffset],di
+    mov [TetrisFallingPieceRowToClear],dh
 clearDone:
     dec [TetrisLevelStateAnimFramesLeft]
     jnz short nextStateDone
@@ -396,30 +408,22 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
-    mov bl,[TetrisLevelStateAnimFramesLeft]
+    ; static_assert(TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT > 1)
+    mov cl,TETRIS_BOARD_FIRST_VISIBLE_COL
+    mov bl,[TetrisFallingPieceRowToClear]    
+    cmp bl,TETRIS_BOARD_ROWS
+    je short done
+    mov al,[TetrisLevelStateAnimFramesLeft]
     ; Check if highlighting the row is needed.
-    cmp bl,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT - 1
-    jne short @f
-    mov di,[TetrisBoardRowToWipeVideoOffset]
-    cmp di,0
-    je short @f
+    cmp al,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT - 1
+    jne short highlightSkip
+    mov dl,bl
+    call tetrisRenderGetVideoOffset
     mov ax,TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR
-    jmp short renderRow
-@@:
-    ; Check if clearing the row is needed.
-    cmp bl,0
-    jne short @f
-    ; Is this check necessary?
-    cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
-    jne short @f
-    mov di,[TetrisBoardRowToWipeVideoOffset]
-    xor ax,ax
-    cmp di,ax
-    je short @f
-renderRow:
+tmpLabel:    
     ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
     ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
-    ; Render the four even lines.
+    ; Highlight the four even lines.
 repeat (TETRIS_BLOCK_HALF_SIZE - 1)
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
@@ -428,7 +432,7 @@ endm
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
     add di,(BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - (TETRIS_BOARD_VISIBLE_COLS shl 1)) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
-    ; Render the four odd lines.
+    ; Highlight the four odd lines.
 repeat (TETRIS_BLOCK_HALF_SIZE - 1)
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
@@ -436,7 +440,20 @@ repeat (TETRIS_BLOCK_HALF_SIZE - 1)
 endm
     mov cx,TETRIS_BOARD_VISIBLE_COLS
     rep stosw
-@@:
+    jmp short done
+highlightSkip:
+    ; Check if clearing the row is needed.
+    cmp al,0
+    jne short done
+    ; Is this check necessary or an assert is enough?
+    cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
+    jne short done
+    ; This code should redraw the pieces that moved instead of clearing the current row.
+    mov dl,bl
+    call tetrisRenderGetVideoOffset
+    xor ah,ah
+    jmp short tmpLabel
+done:
     ret
 tetrisRenderLevelStateAnim endp
 
@@ -587,6 +604,7 @@ data segment public
     TetrisLevelNextStateSet         byte ?
     TetrisLevelNextState            byte ?
     TetrisLevelStateAnimFramesLeft  byte ?
+    TetrisFallingPieceBlockId       byte ?
     TetrisFallingPieceCol           label word
     TetrisFallingPieceColLO         byte ?
     TetrisFallingPieceColHI         byte ?
@@ -595,10 +613,9 @@ data segment public
     TetrisFallingPieceRowHI         byte ?
     TetrisFallingPiecePrevColHI     byte ?
     TetrisFallingPiecePrevRowHI     byte ?
-    TetrisFallingPieceBlockId       byte ?
+    TetrisFallingPieceRowToClear    byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
-    TetrisBoardRowToWipeVideoOffset word ?    
     TetrisBoardBlockIdArray         byte TETRIS_BOARD_COUNT dup(?)
 data ends
 
