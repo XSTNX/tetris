@@ -38,13 +38,14 @@ IBM PC
 ------
 - How do I check before setting the video mode that the desire mode is supported?
 - When I call a BIOS or DOS interrupt what registers can I expect to be saved?
+- What is the difference between BIOS_VIDEO_MODE_320_200_4_COLOR and BIOS_VIDEO_MODE_320_200_4_BW really?
+- How do I enable the third palette that uses red instead of magenta?
 - Color 3 in Palette 0 can be brown or yellow, apparently. What decides that exactly? In the web emulator color 3 looks brown and in dosbox it looks yellow.
 - Make sure I understand which version of DOS is required to run the game.
 - See if I can find proper documentation on how vsync works.
 - Seems like the keypress has to be read before quitting, otherwise it will show up in the DOS prompt.
 - Should I worry about alignment? The PC and XT will not care about it, because they use an 8088, but newer models do. Probably the code would run fast enough to not care about the penalty?
 - Is there any emulator that produces accurate results for the IBM PC? Otherwise it will be very difficult to measure optmizations.
-- What is the difference between BIOS_VIDEO_MODE_320_200_4_COLOR and BIOS_VIDEO_MODE_320_200_4_BW really?
 - Added code to detect if you are using a CGA card, but I'm not sure if this is the right way to do it yet.
 - The way that I capture the keys but don't send them to the buffer maybe it's not ideal, since ctrl-alt-del will probably not work.
 - Should I make structs word aligned? This would be better for newer cpus, but bad for the 8086.
@@ -92,6 +93,8 @@ LINKS
 - https://www.youtube.com/watch?v=BCSaKuqPrf4 (PCjr patching tutorial)
 - https://www.vogons.org/viewtopic.php?f=9&t=94972 (PC Emulation, MartyPC)
 - https://xlogicx.net/Boot_Sector_Graphical_Programming_-_Tutorial.html
+- https://en.wikipedia.org/wiki/Color_Graphics_Adapter
+- https://en.wikipedia.org/wiki/List_of_8-bit_computer_hardware_graphics#Mode_4,_palette_#1,_low_intensity
 - https://www.youtube.com/@chillruns6221/videos
 - https://www.youtube.com/@EricICX
 - https://www.youtube.com/@hydrantdude3642/videos
