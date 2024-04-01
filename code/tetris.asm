@@ -311,7 +311,7 @@ tetrisUpdateLevelStatePlay proc private
     ; Vertical movement.
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DOWN
 	jnz short @f
-nextRow:    
+nextRow:
     inc dh
     call tetrisBoardGetBlockIsEmpty
     jz short nextRow
@@ -410,7 +410,7 @@ tetrisRenderLevelStatePlay endp
 tetrisRenderLevelStateAnim proc private
     ; static_assert(TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT > 1)
     mov cl,TETRIS_BOARD_FIRST_VISIBLE_COL
-    mov bl,[TetrisLevelStateAnimRowToClear]    
+    mov bl,[TetrisLevelStateAnimRowToClear]
     cmp bl,TETRIS_BOARD_ROWS
     je short done
     mov al,[TetrisLevelStateAnimFramesLeft]
@@ -420,7 +420,7 @@ tetrisRenderLevelStateAnim proc private
     mov dl,bl
     call tetrisRenderGetVideoOffset
     mov ax,TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR
-tmpLabel:    
+tmpLabel:
     ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
     ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
     ; Highlight the four even lines.
