@@ -22,8 +22,12 @@ TETRIS_BOARD_BLOCK_ID_0                 equ 0
 TETRIS_BOARD_BLOCK_ID_1                 equ 1
 TETRIS_BOARD_BLOCK_ID_2                 equ 2
 TETRIS_BOARD_BLOCK_ID_3                 equ 3
-TETRIS_BOARD_BLOCK_ID_EMPTY             equ 4
-TETRIS_BOARD_BLOCK_ID_COUNT             equ 5
+TETRIS_BOARD_BLOCK_ID_4                 equ 4
+TETRIS_BOARD_BLOCK_ID_5                 equ 5
+TETRIS_BOARD_BLOCK_ID_6                 equ 6
+TETRIS_BOARD_BLOCK_ID_7                 equ 7
+TETRIS_BOARD_BLOCK_ID_EMPTY             equ 8
+TETRIS_BOARD_BLOCK_ID_COUNT             equ TETRIS_BOARD_BLOCK_ID_EMPTY + 1
 ; static_assert(isPowerOfTwo(TETRIS_BOARD_BLOCK_ID_EMPTY))
 TETRIS_BOARD_BLOCK_ID_MASK              equ TETRIS_BOARD_BLOCK_ID_EMPTY - 1
 TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR      equ 0ffffh
@@ -51,6 +55,15 @@ TetrisBoardInitBlock struct
     Row         byte ?
 TetrisBoardInitBlock ends
 endif
+
+TETRIS_BLOCK_COLOR macro aName:req, aLimitColor:req, aCenterColor:req
+    ; static_assert(aLimit < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
+    ; static_assert(aCenter < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
+    aName byte (aLimitColor shl 6) or (aLimitColor shl 4) or (aLimitColor shl 2) or aLimitColor,    ; LLLLLLLL
+               (aLimitColor shl 6) or (aLimitColor shl 4) or (aLimitColor shl 2) or aLimitColor,    
+               (aLimitColor shl 6) or (aCenterColor shl 4) or (aCenterColor shl 2) or aCenterColor, ; LCCCCCCL
+               (aCenterColor shl 6) or (aCenterColor shl 4) or (aCenterColor shl 2) or aLimitColor  
+endm
 
 code segment readonly public
 
@@ -573,12 +586,18 @@ endif
 code ends
 
 constData segment readonly public
-                                           ; Limit, Center.
-    TetrisBlockIdColor              word    0aaaah, 0febfh,
-                                            0ffffh, 0abeah,
-                                            05555h, 0fd7fh,
-                                            0aaaah, 05695h,
-                                            00000h, 00000h
+    TetrisBlockIdColor                 label word
+                                          ; Limit,  Center.
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor0,     1,       2
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor1,     1,       3
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor2,     2,       0
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor3,     2,       1
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor4,     2,       3
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor5,     3,       0
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor6,     3,       1
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor7,     3,       2
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor8,     0,       0
+                                            
 if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
     TetrisBoardInitBlocks              label byte
     TetrisBoardInitBlockHorizLine0     byte    3,   1,  19,
@@ -593,18 +612,18 @@ if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
                                                0,   4,  18,
                                                0,   5,  18,
                                                0,   5,  19
-    TetrisBoardInitBlockShape2         byte    2,   7,  17,
-                                               2,   8,  17,
-                                               2,   7,  18,
-                                               2,   7,  19
+    TetrisBoardInitBlockShape2         byte    4,   7,  17,
+                                               4,   8,  17,
+                                               4,   7,  18,
+                                               4,   7,  19
     TetrisBoardInitBlockCube0          byte    1,   8,  18,
                                                1,   9,  18,
                                                1,   8,  19,
                                                1,   9,  19
-    TetrisBoardInitBlockShape3         byte    3,   9,  17,
-                                               3,  10,  17,
-                                               3,  10,  18,
-                                               3,  10,  19
+    TetrisBoardInitBlockShape3         byte    6,   9,  17,
+                                               6,  10,  17,
+                                               6,  10,  18,
+                                               6,  10,  19
     TetrisBoardInitBlocksEnd           byte    TETRIS_BOARD_BLOCK_ID_EMPTY
 endif
 constData ends
