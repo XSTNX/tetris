@@ -596,7 +596,7 @@ constData segment readonly public
     TETRIS_BLOCK_COLOR TetrisBlockIdColor5,     3,       0
     TETRIS_BLOCK_COLOR TetrisBlockIdColor6,     3,       1
     TETRIS_BLOCK_COLOR TetrisBlockIdColor7,     3,       2
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor8,     0,       0
+    TETRIS_BLOCK_COLOR TetrisBlockIdColorEmpty, 0,       0
                                             
 if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
     TetrisBoardInitBlocks              label byte
