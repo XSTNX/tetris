@@ -47,6 +47,11 @@ TETRIS_LEVEL_STATE_PLAY                 equ 0
 TETRIS_LEVEL_STATE_ANIM                 equ 1
 TETRIS_LEVEL_STATE_OVER                 equ 2
 TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT     equ 25
+; Color names have to be short or the macro where they are used will not parse correctly. I guess it hits some sort of limit.
+T_CLR_BKGRND                            equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_BACKGROUND
+T_CLR_GREEN                             equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_GREEN
+T_CLR_RED                               equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
+T_CLR_YELLOW                            equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_YELLOW
 
 if TETRIS_BOARD_INIT_BLOCKS
 TetrisBoardInitBlock struct
@@ -587,16 +592,16 @@ code ends
 
 constData segment readonly public
     TetrisBlockIdColor                 label word
-                                          ; Limit,  Center.
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor0,     1,       2
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor1,     1,       3
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor2,     2,       0
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor3,     2,       1
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor4,     2,       3
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor5,     3,       0
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor6,     3,       1
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor7,     3,       2
-    TETRIS_BLOCK_COLOR TetrisBlockIdColorEmpty, 0,       0
+                                                         ; Limit,           Center.
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor0,          T_CLR_GREEN,        T_CLR_RED
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor1,          T_CLR_GREEN,     T_CLR_YELLOW
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor2,            T_CLR_RED,     T_CLR_BKGRND
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor3,            T_CLR_RED,      T_CLR_GREEN
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor4,            T_CLR_RED,     T_CLR_YELLOW
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor5,         T_CLR_YELLOW,     T_CLR_BKGRND
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor6,         T_CLR_YELLOW,      T_CLR_GREEN
+    TETRIS_BLOCK_COLOR TetrisBlockIdColor7,         T_CLR_YELLOW,        T_CLR_RED
+    TETRIS_BLOCK_COLOR TetrisBlockIdColorEmpty,     T_CLR_BKGRND,     T_CLR_BKGRND
                                             
 if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
     TetrisBoardInitBlocks              label byte
@@ -620,10 +625,10 @@ if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
                                                1,   9,  18,
                                                1,   8,  19,
                                                1,   9,  19
-    TetrisBoardInitBlockShape3         byte    6,   9,  17,
-                                               6,  10,  17,
-                                               6,  10,  18,
-                                               6,  10,  19
+    TetrisBoardInitBlockShape3         byte    0,   9,  17,
+                                               0,  10,  17,
+                                               0,  10,  18,
+                                               0,  10,  19
     TetrisBoardInitBlocksEnd           byte    TETRIS_BOARD_BLOCK_ID_EMPTY
 endif
 constData ends
