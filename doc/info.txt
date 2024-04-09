@@ -109,6 +109,7 @@ GAMES
 - https://archive.org/details/msdos_Snack_Attack_II_1982 (by Michael Abrash)
 - https://www.youtube.com/watch?v=aeoBwV7NwSc (Big Top, by Michael Abrash)
 - https://www.youtube.com/watch?v=lMJzf5iOqwg (Cosmic Crusader, by Michael Abrash)
+- https://deathshadow.com/pakuPaku (Paku Paku, Link to binary, source code and blog)
 - https://www.youtube.com/watch?v=HiGDcmbUT_I (Space Commanders, a Space Invaders clone)
 - https://www.youtube.com/watch?v=wIJasD3FjPU (Space Strike, by Michael Abrash)
 - https://www.youtube.com/watch?v=KVjw7jGZgdU (Tetris)
