@@ -7,7 +7,7 @@ include code\bios.inc
 COMPUTE_VIDEO_ADDR_320x200x4 macro
 local l
 	mov bl,dl
-	; Should use the multiplication table instead.
+	;; Should use the multiplication table instead.
 	shr dl,1
 	mov al,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
 	mul dl
