@@ -13,15 +13,15 @@ if ASSERT_ENABLED
 externdef assert:proc
 endif
 
-ASSERT macro errorCode
+ASSERT macro aErrorCode
 if ASSERT_ENABLED
-ifnb <errorCode>
-ifdifi <errorCode>,<al>
-	mov al,errorCode
-endif
-else
+	ifnb <aErrorCode>
+		ifdifi <aErrorCode>,<al>
+	mov al,aErrorCode
+		endif
+	else
 	mov al,ERROR_CODE_ASSERT
-endif
+	endif
 	call assert
 endif
 endm
