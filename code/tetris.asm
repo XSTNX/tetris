@@ -11,7 +11,7 @@ TETRIS_BOARD_COLS                       equ 12
 TETRIS_BOARD_ROWS                       equ 21
 TETRIS_BOARD_FIRST_VISIBLE_COL          equ 1
 TETRIS_BOARD_VISIBLE_COLS               equ TETRIS_BOARD_COLS - 2
-; static_assert((TETRIS_BOARD_VISIBLE_COLS & 1) == 0)
+.errnz TETRIS_BOARD_VISIBLE_COLS and 1
 TETRIS_BOARD_VISIBLE_ROWS               equ TETRIS_BOARD_ROWS - 1
 TETRIS_BOARD_COUNT                      equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                       equ 8
@@ -28,7 +28,7 @@ TETRIS_BOARD_BLOCK_ID_6                 equ 6
 TETRIS_BOARD_BLOCK_ID_7                 equ 7
 TETRIS_BOARD_BLOCK_ID_EMPTY             equ 8
 TETRIS_BOARD_BLOCK_ID_COUNT             equ TETRIS_BOARD_BLOCK_ID_EMPTY + 1
-; static_assert(isPowerOfTwo(TETRIS_BOARD_BLOCK_ID_EMPTY))
+; .err isPowerOfTwo(TETRIS_BOARD_BLOCK_ID_EMPTY)
 TETRIS_BOARD_BLOCK_ID_MASK              equ TETRIS_BOARD_BLOCK_ID_EMPTY - 1
 TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR      equ 0ffffh
 TETRIS_BOARD_START_POS_X                equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - ((TETRIS_BOARD_VISIBLE_COLS shr 1) * TETRIS_BLOCK_SIZE)
@@ -62,8 +62,8 @@ TetrisBoardInitBlock ends
 endif
 
 TETRIS_BLOCK_COLOR macro aIdStr:req, aLmtClr:req, aCtrClr:req
-    ;; static_assert(aLimit < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
-    ;; static_assert(aCenter < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
+    .erre aLmtClr lt BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
+    .erre aCtrClr lt BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
     ;; LLLL,LLLL,
     ;; LCCC,CCCL
     TetrisBlockIdColor&aIdStr byte (aLmtClr shl 6) or (aLmtClr shl 4) or (aLmtClr shl 2) or aLmtClr,
@@ -85,7 +85,7 @@ tetrisInit proc
     mov [TetrisFallingPieceBlockId],TETRIS_BOARD_BLOCK_ID_MASK
     call tetrisBoardInitFallingPiece
     ; Init board.
-    ; static_assert(TETRIS_BOARD_COLS == 12)
+    .erre TETRIS_BOARD_COLS eq 12
     mov cx,TETRIS_BOARD_VISIBLE_ROWS
     mov di,offset TetrisBoardBlockIdArray
 @@:
@@ -96,11 +96,12 @@ tetrisInit proc
     stosw
     stosw
     stosw
-    mov ah,(TETRIS_BOARD_BLOCK_ID_0 shl 8)
+    .erre TETRIS_BOARD_BLOCK_ID_0 eq 0
+    xor ah,ah
     stosw
     loop short @b
-    ; static_assert(TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS == 1)
-    ; static_assert(TETRIS_BOARD_BLOCK_ID_0 == 0)
+    .erre TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS eq 1
+    .erre TETRIS_BOARD_BLOCK_ID_0 eq 0
     xor ax,ax
     mov cx,(TETRIS_BOARD_COLS shr 1)
     rep stosw
@@ -244,7 +245,7 @@ endif
     mov si,bx
     mov bl,ch
     ; Could use a table to multiply faster by 12.
-    ; static_assert(TETRIS_BOARD_COLS == 12)
+    .erre TETRIS_BOARD_COLS eq 12
     ; si = 12 * row = 4 * (row + (2 * row))
     mov bp,si
     shl si,1
@@ -268,7 +269,7 @@ tetrisBoardGetBlockIsEmpty endp
 ; Clobber: bx, si, bp.
 tetrisBoardSetBlockId proc private
 if ASSERT_ENABLED
-    ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
+    .erre TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS eq 2
     cmp ch,TETRIS_BOARD_FIRST_VISIBLE_COL
     jae short @f
     ASSERT
@@ -310,7 +311,7 @@ tetrisUpdateLevelStatePlay proc private
     mov [TetrisFallingPiecePrevRowHI],dh
 
     ; Horizontal movement.
-    ; static_assert(TETRIS_FALLING_PIECE_SPEED_X_LOHI <= 0x100)
+    .erre TETRIS_FALLING_PIECE_SPEED_X_LOHI le 100h
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_LEFT
 	jnz short @f
     sub cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
@@ -337,7 +338,7 @@ nextRow:
     jz short nextRow
     jmp short addPiece
 @@:
-    ; static_assert(TETRIS_FALLING_PIECE_SPEED_Y_LOHI <= 0x100)
+    .erre TETRIS_FALLING_PIECE_SPEED_Y_LOHI le 100h
     add dx,TETRIS_FALLING_PIECE_SPEED_Y_LOHI
     call tetrisBoardGetBlockIsEmpty
 	jz short @f
@@ -374,7 +375,7 @@ tetrisUpdateLevelStateAnim proc private
 if 0
     ; Disable this code temporarily, since the matching code to render the blocks that moved is not done yet.
 @@:
-    ; static_assert(offset TetrisBoardBlockIdArray > TETRIS_BOARD_COLS)
+    .erre offset TetrisBoardBlockIdArray gt TETRIS_BOARD_COLS
     lea si,[bx-TETRIS_BOARD_COLS]
     cmp si,offset TetrisBoardBlockIdArray
     jb short clearRow
@@ -428,7 +429,7 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
-    ; static_assert(TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT > 1)
+    .erre TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT gt 1
     mov cl,TETRIS_BOARD_FIRST_VISIBLE_COL
     mov bl,[TetrisLevelStateAnimRowToClear]
     cmp bl,TETRIS_BOARD_ROWS
@@ -441,8 +442,8 @@ tetrisRenderLevelStateAnim proc private
     call tetrisRenderGetVideoOffset
     mov ax,TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR
 tmpLabel:
-    ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
-    ; static_assert(TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES == 2)
+    .erre TETRIS_BLOCK_HALF_SIZE eq 4
+    .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES eq 2
     ; Highlight the four even lines.
 repeat (TETRIS_BLOCK_HALF_SIZE - 1)
     mov cx,TETRIS_BOARD_VISIBLE_COLS
@@ -496,7 +497,7 @@ tetrisRenderLevelStateOver endp
 ; Clobber: bx.
 tetrisRenderGetVideoOffset proc private
 if ASSERT_ENABLED
-    ; static_assert(TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS == 2)
+    .erre TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS eq 2
     cmp cl,TETRIS_BOARD_FIRST_VISIBLE_COL
     jae short @f
     ASSERT
@@ -546,7 +547,7 @@ endif
     mov ax,[TetrisBlockIdColor + bx]
     mov bp,ax
 
-    ; static_assert(TETRIS_BLOCK_HALF_SIZE == 4)
+    .erre TETRIS_BLOCK_HALF_SIZE eq 4
     ; Render the four even lines.
     stosw
     add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET

@@ -31,7 +31,6 @@ MASM
 - If I use movzx, an opcode not available on the 8086, I get an error as I'm supposed to, but not when I use it inside a macro. Is this a bug in masm? Would it happen with other opcodes?
 - How does the "assume" keyword works exactly? I'm trying to use it in the keyboard code but doesn't seem to work the way I expect.
 - How to detect if a macro argument is a register? Should be used to optimize KEYBOARD_IS_KEY_PRESSED.
-- Is there a way to have a static assert or any other way to force an assembly error on a condition? I tagged code that needs this with a comment with "static_assert(...)".
 - Look into how to remove INC_HACK flags, seems like variables don't work with externdef like procedures do.
 
 IBM PC
