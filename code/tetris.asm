@@ -48,10 +48,10 @@ TETRIS_LEVEL_STATE_ANIM                 equ 1
 TETRIS_LEVEL_STATE_OVER                 equ 2
 TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT     equ 25
 ; Color names have to be short or the macro where they are used will not parse correctly. I guess it hits some sort of limit.
-T_CLR_BKGRND                            equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_BACKGROUND
-T_CLR_GREEN                             equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_GREEN
-T_CLR_RED                               equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
-T_CLR_YELLOW                            equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_YELLOW
+T_BKGRND                                equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_BACKGROUND
+T_GREEN                                 equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_GREEN
+T_RED                                   equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
+T_YELLOW                                equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_YELLOW
 
 if TETRIS_BOARD_INIT_BLOCKS
 TetrisBoardInitBlock struct
@@ -61,13 +61,15 @@ TetrisBoardInitBlock struct
 TetrisBoardInitBlock ends
 endif
 
-TETRIS_BLOCK_COLOR macro aName:req, aLimitColor:req, aCenterColor:req
-    ; static_assert(aLimit < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
-    ; static_assert(aCenter < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
-    aName byte (aLimitColor shl 6) or (aLimitColor shl 4) or (aLimitColor shl 2) or aLimitColor,    ; LLLLLLLL
-               (aLimitColor shl 6) or (aLimitColor shl 4) or (aLimitColor shl 2) or aLimitColor,    
-               (aLimitColor shl 6) or (aCenterColor shl 4) or (aCenterColor shl 2) or aCenterColor, ; LCCCCCCL
-               (aCenterColor shl 6) or (aCenterColor shl 4) or (aCenterColor shl 2) or aLimitColor  
+TETRIS_BLOCK_COLOR macro aIdStr:req, aLmtClr:req, aCtrClr:req
+    ;; static_assert(aLimit < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
+    ;; static_assert(aCenter < BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT);
+    ;; LLLL,LLLL,
+    ;; LCCC,CCCL
+    TetrisBlockIdColor&aIdStr byte (aLmtClr shl 6) or (aLmtClr shl 4) or (aLmtClr shl 2) or aLmtClr,
+                                   (aLmtClr shl 6) or (aLmtClr shl 4) or (aLmtClr shl 2) or aLmtClr,    
+                                   (aLmtClr shl 6) or (aCtrClr shl 4) or (aCtrClr shl 2) or aCtrClr,
+                                   (aCtrClr shl 6) or (aCtrClr shl 4) or (aCtrClr shl 2) or aLmtClr
 endm
 
 code segment readonly public
@@ -591,17 +593,17 @@ endif
 code ends
 
 constData segment readonly public
-    TetrisBlockIdColor                 label word
-                                                         ; Limit,           Center.
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor0,          T_CLR_GREEN,        T_CLR_RED
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor1,          T_CLR_GREEN,     T_CLR_YELLOW
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor2,            T_CLR_RED,     T_CLR_BKGRND
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor3,            T_CLR_RED,      T_CLR_GREEN
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor4,            T_CLR_RED,     T_CLR_YELLOW
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor5,         T_CLR_YELLOW,     T_CLR_BKGRND
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor6,         T_CLR_YELLOW,      T_CLR_GREEN
-    TETRIS_BLOCK_COLOR TetrisBlockIdColor7,         T_CLR_YELLOW,        T_CLR_RED
-    TETRIS_BLOCK_COLOR TetrisBlockIdColorEmpty,     T_CLR_BKGRND,     T_CLR_BKGRND
+    TetrisBlockIdColor                     label word
+                      ; IdStr,     LmtClr,     CtrClr.
+    TETRIS_BLOCK_COLOR      0,    T_GREEN,      T_RED
+    TETRIS_BLOCK_COLOR      1,    T_GREEN,   T_YELLOW
+    TETRIS_BLOCK_COLOR      2,      T_RED,   T_BKGRND
+    TETRIS_BLOCK_COLOR      3,      T_RED,    T_GREEN
+    TETRIS_BLOCK_COLOR      4,      T_RED,   T_YELLOW
+    TETRIS_BLOCK_COLOR      5,   T_YELLOW,   T_BKGRND
+    TETRIS_BLOCK_COLOR      6,   T_YELLOW,    T_GREEN
+    TETRIS_BLOCK_COLOR      7,   T_YELLOW,      T_RED
+    TETRIS_BLOCK_COLOR  Empty,   T_BKGRND,   T_BKGRND
                                             
 if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
     TetrisBoardInitBlocks              label byte
