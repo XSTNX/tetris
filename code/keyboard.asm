@@ -3,6 +3,8 @@ KEYBOARD_INC_HACK equ 1
 include code\keyboard.inc
 include code\bios.inc
 
+KEYBOARD_KEY_PRESSED_MASK       equ KEYBOARD_KEY_PRESSED_COUNT - 1
+
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
@@ -86,19 +88,32 @@ if KEYBOARD_ENABLED
 assume cs:allSegments, ds:nothing, es:nothing
 keyboardIntHandler proc private
     ; Should I enable interrupts here somewhere??????????????
-    ; Wolfenstein 3D tells the XT keyboard to clear the key, which I'm not doing but probably should?????????
-
-    ; Read scancode.
     push ax
-    in al,60h
-    ; Store key state.
     push bx
-    mov bx,ax
-    and bx,KEYBOARD_KEY_PRESSED_COUNT - 1
-    mov cs:[KeyboardKeyPressed + bx],al
+    push dx
+    ; Read scancode.
+    in al,60h
+    mov dl,al
+    ; The code to clear the key is taken from INL_KeyService(void) of WOLFSRC/ID_IN.C in https://github.com/id-Software/wolf3d.
+    ; Would be nice to find proper documentation on how this works exactly. Without clearing the key, the game doesn't respond
+    ; to input properly in MartyPC, which is likely what will happen on a real IBM PC. DosBox works fine without it.
+	; outportb(0x61,(temp = inportb(0x61)) | 0x80);
+	; outportb(0x61,temp);
+    ; Clear key.
+    in al,61h
+    mov bl,al
+    or al,80h
+    out 61h,al
+    mov al,bl
+    out 61h,al
+    ; Store key state.
+    mov bl,dl
+    and bx,KEYBOARD_KEY_PRESSED_MASK
+    mov cs:[KeyboardKeyPressed + bx],dl
     ; Send end of interrupt.
     mov al,20h
     out 20h,al
+    pop dx
     pop bx
     pop ax
     iret
@@ -110,7 +125,7 @@ endif
     ; Should I align the data?
     public KeyboardKeyPressed
     ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(080h)
+    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(80h)
 code ends
 
 data segment public
