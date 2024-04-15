@@ -3,7 +3,7 @@ KEYBOARD_INC_HACK equ 1
 include code\keyboard.inc
 include code\bios.inc
 
-KEYBOARD_KEY_PRESSED_MASK       equ KEYBOARD_KEY_PRESSED_COUNT - 1
+KEYBOARD_KEY_PRESSED_INDEX_MASK     equ KEYBOARD_KEY_PRESSED_COUNT - 1
 
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
@@ -17,6 +17,7 @@ code segment public
 ; Code public ;
 ;-------------;
 
+; Clobber: ax, dx, di, es.
 keyboardStart proc
 if KEYBOARD_ENABLED
     cmp [KeyboardAlreadyInitialized],0
@@ -30,9 +31,8 @@ if KEYBOARD_ENABLED
     mov [KeyboardPrevIntHandlerOffset],ax
     mov [KeyboardPrevIntHandlerSegment],es
     ; Set new interrupt handler.
-    push cs
     mov ax,offset allSegments:keyboardIntHandler
-    push ax
+    mov dx,cs
     call keyboardSetIntHandler
     inc [KeyboardAlreadyInitialized]
     pop es
@@ -41,13 +41,14 @@ endif
     ret
 keyboardStart endp
 
+; Clobber: ax, dx, di, es.
 keyboardStop proc
 if KEYBOARD_ENABLED
-    cmp [KeyboardAlreadyInitialized],1
-    jne short @f
-    ; Restore previous interrupt handler
-    push [KeyboardPrevIntHandlerSegment]
-    push [KeyboardPrevIntHandlerOffset]
+    cmp [KeyboardAlreadyInitialized],0
+    je short @f
+    ; Restore previous interrupt handler.
+    mov ax,[KeyboardPrevIntHandlerOffset]
+    mov dx,[KeyboardPrevIntHandlerSegment]
     call keyboardSetIntHandler
     dec [KeyboardAlreadyInitialized]
 @@:
@@ -60,15 +61,9 @@ keyboardStop endp
 ;--------------;
 
 if KEYBOARD_ENABLED
-; Input: stack arg0 (Interrupt handler address, far ptr).
+; Input: ax (offset), dx (segment)
+; Clobber: ax, di, es
 keyboardSetIntHandler proc private
-    ; Source is in the stack, set si only, since ds is equal to ss.
-    mov si,sp
-    ; Handler is a far ptr, two words must be copied.
-    mov cx,2
-    ; Stack arg0 is two bytes past sp.
-    add si,cx
-
     ; Destination.
     xor di,di
     mov es,di
@@ -77,14 +72,14 @@ keyboardSetIntHandler proc private
     ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
     ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
     cli
-    rep movsw
+    stosw
+    mov ax,dx
+    stosw
     sti
 
-    ret 4
+    ret
 keyboardSetIntHandler endp
-endif
 
-if KEYBOARD_ENABLED
 assume cs:allSegments, ds:nothing, es:nothing
 keyboardIntHandler proc private
     ; Should I enable interrupts here somewhere??????????????
@@ -108,7 +103,7 @@ keyboardIntHandler proc private
     out 61h,al
     ; Store key state.
     mov bl,dl
-    and bx,KEYBOARD_KEY_PRESSED_MASK
+    and bx,KEYBOARD_KEY_PRESSED_INDEX_MASK
     mov cs:[KeyboardKeyPressed + bx],dl
     ; Send end of interrupt.
     mov al,20h
@@ -124,8 +119,10 @@ endif
     ; This data is stored in the code segment since it needs to be accesible to the interrupt handler.
     ; Should I align the data?
     public KeyboardKeyPressed
-    ; The scancode of the key is used as an index into the array. If the msb is clear, the key is pressed.
-    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(80h)
+    ; The scancode of the key is used as an index into the array. The key is pressed when the msb is clear.
+    ; Does the array really need to be in the code segment? I should be able to address it from the code segment even if it's in the data segment.
+    ; This would only work if the offset to the array is within 64KB, but this can be validated at assembly time.
+    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(KEYBOARD_KEY_PRESSED_VALUE_MASK)
 code ends
 
 data segment public
