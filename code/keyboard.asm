@@ -95,8 +95,8 @@ keyboardIntHandler proc private
     in al,60h
     mov dl,al
     ; The code to clear the key is taken from INL_KeyService(void) of WOLFSRC/ID_IN.C in https://github.com/id-Software/wolf3d.
-    ; Would be nice to find proper documentation on how this works exactly. Without clearing the key, the game doesn't respond
-    ; to input properly in MartyPC, which is likely what will happen on a real IBM PC. DosBox works fine without it.
+    ; Would be nice to find documentation on how this works exactly. Without clearing the key, the game doesn't respond
+    ; to input properly in MartyPC, which is likely what will happen on a real IBM PC, but DosBox works fine without it.
 	; outportb(0x61,(temp = inportb(0x61)) | 0x80);
 	; outportb(0x61,temp);
     ; Clear key.
