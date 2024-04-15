@@ -1,4 +1,4 @@
-; I need to use RENDER_INC_HACK or there will be some sort of error in KeyboardKeyPressed, figure out!!!????
+; I need to use KEYBOARD_INC_HACK or there will be some sort of error in KeyboardKeyPressed, figure out!!!????
 KEYBOARD_INC_HACK equ 1
 include code\keyboard.inc
 include code\bios.inc
@@ -8,10 +8,7 @@ KEYBOARD_KEY_PRESSED_INDEX_MASK     equ KEYBOARD_KEY_PRESSED_COUNT - 1
 allSegments group code, data
     assume cs:allSegments, ds:allSegments, es:nothing
 
-; The code is written to run in a COM file, so all procedures but keyboardSystemInt assume all segment registers have
-; the same value on enter.
-; The code segment is not readonly because the data is stored there as well and it will be modified by the interrupt handler.
-code segment public
+code segment readonly public
 
 ;-------------;
 ; Code public ;
@@ -22,6 +19,12 @@ keyboardStart proc
 if KEYBOARD_ENABLED
     cmp [KeyboardAlreadyInitialized],0
     jne short @f
+    ; Initialize KeyboardKeyPressed array so that no key is pressed.
+    mov ax,KEYBOARD_KEY_PRESSED_VALUE_MASK or (KEYBOARD_KEY_PRESSED_VALUE_MASK shl 8)
+    .errnz KEYBOARD_KEY_PRESSED_COUNT and 1
+    mov cx,KEYBOARD_KEY_PRESSED_COUNT shr 1
+    mov di,offset allSegments:KeyboardKeyPressed
+    rep stosw
     push es
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     xor ax,ax
@@ -64,19 +67,16 @@ if KEYBOARD_ENABLED
 ; Input: ax (offset), dx (segment)
 ; Clobber: ax, di, es
 keyboardSetIntHandler proc private
-    ; Destination.
+    ; Set destination.
     xor di,di
     mov es,di
     mov di,BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
-
-    ; Write vector, interrupts must be disabled, otherwise they could write on the vector themselves after one iteration of the repeat.
-    ; Doesn't take into account that nmi could, in theory, write into the vector as well, but I don't think this would happen in practice.
+    ; Write vector with interrupts disabled, so the operation is atomic.
     cli
     stosw
     mov ax,dx
     stosw
     sti
-
     ret
 keyboardSetIntHandler endp
 
@@ -115,21 +115,15 @@ keyboardIntHandler proc private
 keyboardIntHandler endp
 assume cs:allSegments, ds:allSegments, es:nothing
 endif
-
-    ; This data is stored in the code segment since it needs to be accesible to the interrupt handler.
-    ; Should I align the data?
-    public KeyboardKeyPressed
-    ; The scancode of the key is used as an index into the array. The key is pressed when the msb is clear.
-    ; Does the array really need to be in the code segment? I should be able to address it from the code segment even if it's in the data segment.
-    ; This would only work if the offset to the array is within 64KB, but this can be validated at assembly time.
-    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(KEYBOARD_KEY_PRESSED_VALUE_MASK)
 code ends
 
 data segment public
 if KEYBOARD_ENABLED
-    KeyboardPrevIntHandlerFarPtr        label dword
     KeyboardPrevIntHandlerOffset        word ?
     KeyboardPrevIntHandlerSegment       word ?
+    ; The scancode of the key is used as an index into the array. The key is pressed when the msb is clear.
+    public KeyboardKeyPressed
+    KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(?)
     KeyboardAlreadyInitialized          byte 0
 endif
 data ends
