@@ -80,15 +80,15 @@ keyboardSetIntHandler proc private
     ret
 keyboardSetIntHandler endp
 
+; Clobber: nothing.
 assume cs:allSegments, ds:nothing, es:nothing
 keyboardIntHandler proc private
     ; Should I enable interrupts here somewhere??????????????
-    push ax
-    push bx
-    push dx
     ; Read scancode.
+    push ax
     in al,60h
-    mov dl,al
+    push bx
+    mov bl,al
     ; The code to clear the key is taken from INL_KeyService(void) of WOLFSRC/ID_IN.C in https://github.com/id-Software/wolf3d.
     ; Would be nice to find documentation on how this works exactly. Without clearing the key, the game doesn't respond
     ; to input properly in MartyPC, which is likely what will happen on a real IBM PC, but DosBox works fine without it.
@@ -96,21 +96,21 @@ keyboardIntHandler proc private
 	; outportb(0x61,temp);
     ; Clear key.
     in al,61h
-    mov bl,al
+    mov bh,al
     or al,80h
     out 61h,al
-    mov al,bl
+    mov al,bh
     out 61h,al
     ; Store key state.
-    mov bl,dl
+    ; This procedure is an interrupt handler, so the array has to be accessed through cs, since the contents of ds are unknown.    
+    mov al,bl
     and bx,KEYBOARD_KEY_PRESSED_INDEX_MASK
-    mov cs:[KeyboardKeyPressed + bx],dl
+    mov cs:[KeyboardKeyPressed + bx],al
+    pop bx
     ; Send end of interrupt.
     mov al,20h
     out 20h,al
-    pop dx
-    pop bx
-    pop ax
+    pop ax    
     iret
 keyboardIntHandler endp
 assume cs:allSegments, ds:allSegments, es:nothing
