@@ -76,25 +76,12 @@ GAME_SET_GAME_STATE_TETRIS macro
 	call gameSetState
 endm
 
-VIDEO_SET_VIDEO_MODE macro
-	; Set new video mode.
-	mov ax,BIOS_VIDEO_MODE_320_200_4_COLOR or (BIOS_VIDEO_FUNC_SET_VIDEO_MODE shl 8)
-	int BIOS_VIDEO_INT
-	; Set palette num.
-	RENDER_SET_PALETTE_320x200x4 0
-if CONSOLE_ENABLED
-	; Set console cursor pos.
-	call readCurrentCursorPosAndSetConsoleCursorColRow
-endif
-endm
-
 VIDEO_START macro
 local skip, skipNotValid
 	cmp [GameVideoAlreadyInitalized],0
 	jne short skip
 	;; Read current video mode.
-	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
-	int BIOS_VIDEO_INT
+	RENDER_GET_VIDEO_MODE
 	;; Check if video mode is valid.
 	cmp al,BIOS_VIDEO_MODE_80_25_TEXT_MONO
 	jne short skipNotValid
@@ -102,7 +89,14 @@ local skip, skipNotValid
 skipNotValid:
 	;; Save and set current video mode.
 	mov [GamePrevVideoMode],al
-	VIDEO_SET_VIDEO_MODE
+	;; Set new video mode
+	RENDER_SET_VIDEO_MODE BIOS_VIDEO_MODE_320_200_4_COLOR
+	;; Set new palette num.
+	RENDER_SET_PALETTE_NUM BIOS_VIDEO_MODE_320_200_4_PALETTE_0
+if CONSOLE_ENABLED
+	; Set console cursor pos.
+	call readCurrentCursorPosAndSetConsoleCursorColRow
+endif
 	inc [GameVideoAlreadyInitalized]
 skip:
 endm
@@ -259,13 +253,13 @@ endif
 testPaletteChange proc private
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_1
 	jnz short skipChangePaletteNum0
-	RENDER_SET_PALETTE_320x200x4 0
+	RENDER_SET_PALETTE_NUM BIOS_VIDEO_MODE_320_200_4_PALETTE_0
 	; Returns here just in case, so the palette can't be changed two times in the same frame.
 	ret
 skipChangePaletteNum0:
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_2
 	jnz short skipChangePaletteNum1
-	RENDER_SET_PALETTE_320x200x4 1
+	RENDER_SET_PALETTE_NUM BIOS_VIDEO_MODE_320_200_4_PALETTE_1
 skipChangePaletteNum1:
 	ret
 testPaletteChange endp

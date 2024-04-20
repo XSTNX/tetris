@@ -15,8 +15,20 @@ ifndef RENDER_INC_HACK
 externdef RenderMultiplyRowBy80Table:word
 endif
 
-; Input: aPaletteNum, has to be a literal (unsigned byte).
-RENDER_SET_PALETTE_320x200x4 macro aPaletteNum:req
+; Input: aVideoMode (constant unsigned byte).
+RENDER_SET_VIDEO_MODE macro aVideoMode:req
+	mov ax,aVideoMode or (BIOS_VIDEO_FUNC_SET_VIDEO_MODE shl 8)
+	int BIOS_VIDEO_INT
+endm
+
+; Output: al (unsigned byte video mode).
+RENDER_GET_VIDEO_MODE macro
+	mov ah,BIOS_VIDEO_FUNC_GET_VIDEO_MODE
+	int BIOS_VIDEO_INT
+endm
+
+; Input: aPaletteNum (constant unsigned byte).
+RENDER_SET_PALETTE_NUM macro aPaletteNum:req
 	mov ah,BIOS_VIDEO_FUNC_SET_PLT_BKG_BDR
     mov bx,aPaletteNum or (BIOS_VIDEO_SET_PLT_BKG_BDR_PALETTE shl 8)
 	int BIOS_VIDEO_INT
