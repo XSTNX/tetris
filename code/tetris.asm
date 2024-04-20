@@ -587,9 +587,15 @@ tetrisInitRenderDebug proc private
     CONSOLE_SET_CURSOR_COL_ROW 0, 3
 	mov si,offset allSegments:strCol
 	call consolePrintString
+    CONSOLE_SET_CURSOR_COL_ROW 6, 3
+	mov al,","
+	call consolePrintChar
     CONSOLE_SET_CURSOR_COL_ROW 0, 4
 	mov si,offset allSegments:strRow
 	call consolePrintString
+    CONSOLE_SET_CURSOR_COL_ROW 6, 4
+	mov al,","
+	call consolePrintChar
     ret
 strLeft:
     byte "Lft:", 0
@@ -613,12 +619,18 @@ tetrisRenderDebug proc private
 	CONSOLE_SET_CURSOR_COL_ROW 4, 2
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DROP_PIECE
     call consolePrintZeroFlag
-    CONSOLE_SET_CURSOR_COL_ROW 4, 3
+    CONSOLE_SET_CURSOR_COL_ROW 7, 3    
     mov ax,[TetrisFallingPieceCol]
-    call consolePrintWordHex
-    CONSOLE_SET_CURSOR_COL_ROW 4, 4
+    call consolePrintByteHex
+    CONSOLE_SET_CURSOR_COL_ROW 4, 3
+    mov al,ah
+    call consolePrintByteHex
+    CONSOLE_SET_CURSOR_COL_ROW 7, 4
     mov ax,[TetrisFallingPieceRow]
-    call consolePrintWordHex
+    call consolePrintByteHex
+    CONSOLE_SET_CURSOR_COL_ROW 4, 4
+    mov al,ah
+    call consolePrintByteHex
     ret
 tetrisRenderDebug endp
 endif
