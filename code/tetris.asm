@@ -160,6 +160,9 @@ if TETRIS_BOARD_INIT_BLOCKS
     jmp short @b
 @@:
 endif
+if CONSOLE_ENABLED
+    call tetrisInitRenderDebug
+endif
     ret
 tetrisInitRender endp
 
@@ -571,20 +574,49 @@ endm
 tetrisRenderBlock endp
 
 if CONSOLE_ENABLED
+tetrisInitRenderDebug proc private
+    CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	mov si,offset allSegments:strLeft
+	call consolePrintString
+    CONSOLE_SET_CURSOR_COL_ROW 0, 1
+	mov si,offset allSegments:strRight
+	call consolePrintString
+    CONSOLE_SET_CURSOR_COL_ROW 0, 2
+	mov si,offset allSegments:strDrop
+	call consolePrintString
+    CONSOLE_SET_CURSOR_COL_ROW 0, 3
+	mov si,offset allSegments:strCol
+	call consolePrintString
+    CONSOLE_SET_CURSOR_COL_ROW 0, 4
+	mov si,offset allSegments:strRow
+	call consolePrintString
+    ret
+strLeft:
+    byte "Lft:", 0
+strRight:
+    byte "Rth:", 0
+strDrop:
+    byte "Drp:", 0
+strCol:
+    byte "Col:", 0
+strRow:
+    byte "Row:", 0
+tetrisInitRenderDebug endp
+
 tetrisRenderDebug proc private
-	CONSOLE_SET_CURSOR_COL_ROW 0, 0
+	CONSOLE_SET_CURSOR_COL_ROW 4, 0
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_MOVE_PIECE_LEFT
 	call consolePrintZeroFlag
+	CONSOLE_SET_CURSOR_COL_ROW 4, 1
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_MOVE_PIECE_RIGHT
     call consolePrintZeroFlag
+	CONSOLE_SET_CURSOR_COL_ROW 4, 2
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DROP_PIECE
     call consolePrintZeroFlag
-    
-    CONSOLE_SET_CURSOR_COL_ROW 0, 1
+    CONSOLE_SET_CURSOR_COL_ROW 4, 3
     mov ax,[TetrisFallingPieceCol]
     call consolePrintWordHex
-    mov al,"-"
-    call consolePrintChar
+    CONSOLE_SET_CURSOR_COL_ROW 4, 4
     mov ax,[TetrisFallingPieceRow]
     call consolePrintWordHex
     ret
