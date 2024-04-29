@@ -52,34 +52,38 @@ renderStart endp
 ; ds (data).
 ; es (video ram).
 ;
-; Clobber: ax, bx, cx, dx, si.
+; Clobber: ax, bx, cx, dh, si.
 renderPixel320x200x4 proc
 if ASSERT_ENABLED
     cmp cx,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    jae short error
+    jb short @f
+	ASSERT
+@@:
     cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
-    jae short error
+    jb short @f
+	ASSERT
+@@:
 	cmp dh,BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
-	jb short skipError
-error:
-    ASSERT
-skipError:
+    jb short @f
+	ASSERT
+@@:
 endif
+	.erre BIOS_VIDEO_MODE_320_200_4_BANK0_OFFSET eq 0
 	xor bx,bx
-	; Check if posY is even or odd, since even rows go in one bank and odd rows in another.
+	; Check if posY is even or odd, since even rows go in bank0 and odd rows in bank1.
 	test dl,1
-	jz skipOddRow
-	; If it's an odd row, the bank starts at offset 2000h instead of 0000h.
-	mov bh,20h
-skipOddRow:
-	; Multiply posY by 80 to obtain the offset in video memory to the row the pixel belongs to.
+	jz short @f
+	.erre low BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET eq 0
+	mov bh,high BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET
+@@:
+	; Multiply posY by 80 to obtain the offset in video memory of the row the pixel belongs to.
 	mov si,dx
 	and si,0feh
 	or bx,[RenderMultiplyRowBy80Table + si]
-	; Save the last two bits of posX, since they decide which bits in the video memory byte the pixel belong to.
+	; Save the low order two bits of posX, to decide which bits in a video memory byte the pixel belong to.
 	mov si,cx
 	and si,11b
-	; Divide posX by four to obtain the offset in video memory to the column the pixel belongs to.
+	; Divide posX by four to obtain the offset in video memory of the col the pixel belongs to.
 	shr cx,1
 	shr cx,1
 	add bx,cx
@@ -88,7 +92,7 @@ skipOddRow:
 	shl si,1
 	mov cx,word ptr [RenderPixelShiftMask320x200x4 + si]
 	and al,ch
-	; Add the new pixel.
+	; Put the new pixel in the right place within the byte.
 	shl dh,cl
 	or al,dh
 	; Write the updated byte to video memory.
@@ -253,7 +257,7 @@ constData ends
 data segment public
 	; Each line in video memory uses 80 bytes and there are two banks with half of the lines each.
 	public RenderMultiplyRowBy80Table
-	RenderMultiplyRowBy80Table		word (BIOS_VIDEO_MODE_320_200_4_HEIGHT shr 1) dup(?)
+	RenderMultiplyRowBy80Table		word BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT dup(?)
 data ends
 
 end
