@@ -27,8 +27,12 @@ scaler=normal3x
 cputype=386_slow
 [autoexec]
 @echo off
+# windows
 MOUNT C C:\j\msdos
 MOUNT D C:\Users\USERNAME\project\ibmpc
+# mac
+MOUNT C ~/j/msdos
+MOUNT D ~/project/ibmpc
 SET PATH=Z:\;D:\MASM611\BIN;D:\debugx
 SET TMP=D:\TMP
 d:
