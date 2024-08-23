@@ -15,7 +15,7 @@ Software
 
 MASM
 ----
-- Apply 6.11d patch by copying ML611D.exe to C:\MASM611\BIN and executing it, the file can be deleted after the patch is applied.
+- Apply 6.11d patch by copying PATCHES\ML611D.EXE to D:\MASM611\BIN and executing it, the file can be deleted after the patch is applied.
 
 DOSBox Conf
 -----------
