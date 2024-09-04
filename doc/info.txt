@@ -76,6 +76,7 @@ GAME
 - It would be better for the drawing functions like line and rect that the low coordinate is stored in a register that can be used with lea, so it's faster to compute the high.
 - Modify CONSOLE_SET_CURSOR_POS so it does xor dx,dx when col and row are zero.
 - Added one .gitignore file per folder inside obj and bin, this is needed because git doesn't backup folders unless there are files in them, and neither ml nor link will create the folder by itself. Maybe the creation of these folders could be done in the makefile?
+- I should add a configuration with minimal debug information. Could check if at the end of the rendering function we are still in vsync, print framerate, etc.
 
 LINKS
 -----
@@ -99,6 +100,7 @@ LINKS
 - https://www.youtube.com/@hydrantdude3642/videos
 - https://tetris.fandom.com/wiki/Tetromino
 - https://github.com/microsoft/MS-DOS
+- https://github.com/wanda-phi/pfr/blob/main/TECH.md (Pinball Fantasies technical details)
 
 ROMS
 ----

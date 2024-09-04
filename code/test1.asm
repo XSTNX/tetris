@@ -13,6 +13,8 @@ TEST_BOX_LOWX                   equ TEST_BOX_POSX - TEST_BOX_HALF_SIDE
 TEST_BOX_HIGHX                  equ TEST_BOX_POSX + TEST_BOX_HALF_SIDE
 TEST_BOX_SPEEDY_PACKED 			equ 100h
 
+; Change the code of how the block disappears from the screen.
+
 code segment readonly public
 
 ;-------------;

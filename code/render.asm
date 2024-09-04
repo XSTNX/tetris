@@ -4,6 +4,7 @@ include code\render.inc
 include code\assert.inc
 include code\bios.inc
 
+; Check how the address is computed compared to render pixel and how it's done in tetris.
 COMPUTE_VIDEO_ADDR_320x200x4 macro
 local l
 	mov bl,dl
