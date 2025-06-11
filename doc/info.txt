@@ -102,6 +102,10 @@ LINKS
 - https://github.com/microsoft/MS-DOS
 - https://github.com/wanda-phi/pfr/blob/main/TECH.md (Pinball Fantasies technical details)
 
+BOOKS
+-----
+- https://archive.org/details/ps2pcassemblylan0000holz/page/144/mode/2up (Screen explained well)
+
 ROMS
 ----
 - https://github.com/86Box/roms/releases

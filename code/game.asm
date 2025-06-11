@@ -147,11 +147,11 @@ endif
 
 	call [GameStateInitProc]
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
-	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
+	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
 	RENDER_WAIT_FOR_VSYNC
 	call [GameStateInitRenderProc]
-	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
+	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
 	call [GameStateRenderProc]
 	; Point the extra segment back to start.
@@ -161,7 +161,7 @@ gameLoop:
 	call [GameStateUpdateProc]
 	call testPaletteChange
 	; Game states should assume the extra segment points to video memory at the start of the render functions.
-	mov ax,BIOS_VIDEO_MODE_320_200_4_START_ADDR
+	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
 	RENDER_WAIT_FOR_VSYNC
 	call [GameStateRenderProc]
@@ -223,6 +223,8 @@ gameSetState endp
 if CONSOLE_ENABLED
 readCurrentCursorPosAndSetConsoleCursorColRow proc private
 	mov ah,BIOS_VIDEO_FUNC_GET_CURSOR_POS_SIZE
+    ; Use page number 0.
+    xor bh,bh
 	int BIOS_VIDEO_INT
 	call consoleSetCursorColRow
 	ret
