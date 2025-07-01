@@ -114,11 +114,11 @@ tetrisInit proc
 if TETRIS_BOARD_INIT_BLOCKS
     mov di,offset TetrisBoardInitBlocks
 @@:
-    mov al,[di+TetrisBoardInitBlock.BlockId]
-    cmp al,TETRIS_BOARD_BLOCK_ID_EMPTY
+    cmp di,offset TetrisBoardInitBlocksEnd
     je short @f
-    mov ch,[di+TetrisBoardInitBlock.Col]
-    mov dh,[di+TetrisBoardInitBlock.Row]
+    mov al,[di].TetrisBoardInitBlock.BlockId
+    mov ch,[di].TetrisBoardInitBlock.Col
+    mov dh,[di].TetrisBoardInitBlock.Row
     call tetrisBoardSetBlockId
     add di,sizeof TetrisBoardInitBlock
     jmp short @b
@@ -156,11 +156,11 @@ tetrisInitRender proc
 if TETRIS_BOARD_INIT_BLOCKS
     mov si,offset TetrisBoardInitBlocks
 @@:
-    mov al,[si+TetrisBoardInitBlock.BlockId]
-    cmp al,TETRIS_BOARD_BLOCK_ID_EMPTY
+    cmp si,offset TetrisBoardInitBlocksEnd
     je short @f
-    mov cl,[si+TetrisBoardInitBlock.Col]
-    mov dl,[si+TetrisBoardInitBlock.Row]
+    mov al,[si].TetrisBoardInitBlock.BlockId
+    mov cl,[si].TetrisBoardInitBlock.Col
+    mov dl,[si].TetrisBoardInitBlock.Row
     call tetrisRenderBlock
     add si,sizeof TetrisBoardInitBlock
     jmp short @b
@@ -656,33 +656,33 @@ constData segment readonly public
     TETRIS_BLOCK_COLOR      7,   T_YELLOW,      T_RED
     TETRIS_BLOCK_COLOR  Empty,   T_BKGRND,   T_BKGRND
                                             
-if TETRIS_BOARD_INIT_BLOCKS            ; BlockId, Col, Row.
-    TetrisBoardInitBlocks              label byte
-    TetrisBoardInitBlockHorizLine0     byte    3,   1,  19,
-                                               3,   2,  19,
-                                               3,   3,  19,
-                                               3,   4,  19
-    TetrisBoardInitBlockShape0         byte    1,   2,  18,
-                                               1,   3,  17,
-                                               1,   3,  18,
-                                               1,   4,  17
-    TetrisBoardInitBlockShape1         byte    0,   5,  17,
-                                               0,   4,  18,
-                                               0,   5,  18,
-                                               0,   5,  19
-    TetrisBoardInitBlockShape2         byte    4,   7,  17,
-                                               4,   8,  17,
-                                               4,   7,  18,
-                                               4,   7,  19
-    TetrisBoardInitBlockCube0          byte    1,   8,  18,
-                                               1,   9,  18,
-                                               1,   8,  19,
-                                               1,   9,  19
-    TetrisBoardInitBlockShape3         byte    0,   9,  17,
-                                               0,  10,  17,
-                                               0,  10,  18,
-                                               0,  10,  19
-    TetrisBoardInitBlocksEnd           byte    TETRIS_BOARD_BLOCK_ID_EMPTY
+if TETRIS_BOARD_INIT_BLOCKS                            ; BlockId, Col, Row.
+    TetrisBoardInitBlocks               label TetrisBoardInitBlock
+    TetrisBoardInitBlockHorizLine0      TetrisBoardInitBlock { 3,   1,  19 }
+                                        TetrisBoardInitBlock { 3,   2,  19 }
+                                        TetrisBoardInitBlock { 3,   3,  19 }
+                                        TetrisBoardInitBlock { 3,   4,  19 }
+    TetrisBoardInitBlockShape0          TetrisBoardInitBlock { 1,   2,  18 }
+                                        TetrisBoardInitBlock { 1,   3,  17 }
+                                        TetrisBoardInitBlock { 1,   3,  18 }
+                                        TetrisBoardInitBlock { 1,   4,  17 }
+    TetrisBoardInitBlockShape1          TetrisBoardInitBlock { 0,   5,  17 }
+                                        TetrisBoardInitBlock { 0,   4,  18 }
+                                        TetrisBoardInitBlock { 0,   5,  18 }
+                                        TetrisBoardInitBlock { 0,   5,  19 }
+    TetrisBoardInitBlockShape2          TetrisBoardInitBlock { 4,   7,  17 }
+                                        TetrisBoardInitBlock { 4,   8,  17 }
+                                        TetrisBoardInitBlock { 4,   7,  18 }
+                                        TetrisBoardInitBlock { 4,   7,  19 }
+    TetrisBoardInitBlockCube0           TetrisBoardInitBlock { 1,   8,  18 }
+                                        TetrisBoardInitBlock { 1,   9,  18 }
+                                        TetrisBoardInitBlock { 1,   8,  19 }
+                                        TetrisBoardInitBlock { 1,   9,  19 }
+    TetrisBoardInitBlockShape3          TetrisBoardInitBlock { 0,   9,  17 }
+                                        TetrisBoardInitBlock { 0,  10,  17 }
+                                        TetrisBoardInitBlock { 0,  10,  18 }
+                                        TetrisBoardInitBlock { 0,  10,  19 }
+    TetrisBoardInitBlocksEnd            label TetrisBoardInitBlock
 endif
 constData ends
 
