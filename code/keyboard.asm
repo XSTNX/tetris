@@ -14,7 +14,7 @@ code segment readonly public
 ; Code public ;
 ;-------------;
 
-; Clobber: ax, dx, di, es.
+; Clobber: ax, cx, dx, di.
 keyboardStart proc
 if KEYBOARD_ENABLED
     cmp [KeyboardAlreadyInitialized],0
@@ -25,10 +25,9 @@ if KEYBOARD_ENABLED
     mov cx,KEYBOARD_KEY_PRESSED_COUNT shr 1
     mov di,offset allSegments:KeyboardKeyPressed
     rep stosw
-    push es
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
-    xor ax,ax
-    mov es,ax
+    push es
+    mov es,cx
     les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
     ; Save current interrupt handler.
     mov [KeyboardPrevIntHandlerOffset],ax

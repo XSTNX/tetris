@@ -126,7 +126,7 @@ code segment readonly public
 ; This procedure is in the public area just because a com file requires the main function to be at the begining of the code segment,
 ; but it will not be called by anyone else, so it's not in the include file.
 gameMain proc
-	; All procedures should assume the direction flag is reset.
+	; All procedures should assume the direction flag is clear.
 	cld
 if CONSOLE_ENABLED
 	; Make sure console can print on the right place even before setting the video mode.
@@ -146,26 +146,27 @@ endif
 	GAME_SET_GAME_STATE_TETRIS
 
 	call [GameStateInitProc]
-	; Game states should assume the extra segment points to video memory at the start of the render functions.
+	; Game states should assume es points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
 	RENDER_WAIT_FOR_VSYNC
 	call [GameStateInitRenderProc]
+	; Game states should assume es points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
 	call [GameStateRenderProc]
-	; Point the extra segment back to start.
+	; Restore es.
 	mov ax,ds
 	mov es,ax
 gameLoop:
 	call [GameStateUpdateProc]
 	call testPaletteChange
-	; Game states should assume the extra segment points to video memory at the start of the render functions.
+	; Game states should assume es points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
 	RENDER_WAIT_FOR_VSYNC
 	call [GameStateRenderProc]
-	; Point the extra segment back to start.
+	; Restore es.
 	mov ax,ds
 	mov es,ax
 
