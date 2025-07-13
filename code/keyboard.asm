@@ -25,8 +25,9 @@ keyboardStart proc
     mov di,offset allSegments:KeyboardKeyPressed
     rep stosw
 if KEYBOARD_ENABLED
-    ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
+    ; Read current interrupt handler with one instruction, so an interrupt can't modify it while it's being read.
     push es
+    ; Zero is in cx already from previous rep stosw.
     mov es,cx
     les ax,es:[BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET]
     ; Save current interrupt handler.
@@ -43,15 +44,17 @@ endif
     ret
 keyboardStart endp
 
-; Clobber: ax, dx, di, es.
+; Clobber: ax, dx, di.
 keyboardStop proc
-    cmp [KeyboardAlreadyInitialized],0
-    je short @f
+    cmp [KeyboardAlreadyInitialized],1
+    jne short @f
 if KEYBOARD_ENABLED
     ; Restore previous interrupt handler.
     mov ax,[KeyboardPrevIntHandlerOffset]
     mov dx,[KeyboardPrevIntHandlerSegment]
+    push es
     call keyboardSetIntHandler
+    pop es
 endif
     dec [KeyboardAlreadyInitialized]
 @@:
@@ -64,9 +67,9 @@ keyboardStop endp
 
 if KEYBOARD_ENABLED
 ; Input: ax (offset), dx (segment)
-; Clobber: ax, di, es
+; Clobber: ax, di, es.
 keyboardSetIntHandler proc private
-    ; Set destination.
+    ; Set destination.    
     xor di,di
     mov es,di
     mov di,BIOS_KEYBOARD_REQUIRED_INT_ADDR_OFFSET
