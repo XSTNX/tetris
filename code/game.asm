@@ -95,7 +95,7 @@ skipNotValid:
 	RENDER_SET_PALETTE_NUM BIOS_VIDEO_MODE_320_200_4_PALETTE_0
 if CONSOLE_ENABLED
 	; Set console cursor pos.
-	call readCurrentCursorPosAndSetConsoleCursorColRow
+	call gameReadCurrentCursorPosAndSetConsoleCursorColRow
 endif
 	inc [GameVideoAlreadyInitialized]
 skip:
@@ -126,11 +126,14 @@ code segment readonly public
 ; This procedure is in the public area just because a com file requires the main function to be at the begining of the code segment,
 ; but it will not be called by anyone else, so it's not in the include file.
 gameMain proc
-	; All procedures should assume the direction flag is clear.
+	; All procs, but rendering game states, should assume ds and es point to the data segment.
+	mov ax,ds
+	mov es,ax
+	; All procs should assume the direction flag is clear.
 	cld
 if CONSOLE_ENABLED
-	; Make sure console can print on the right place even before setting the video mode.
-	call readCurrentCursorPosAndSetConsoleCursorColRow
+	; Make sure the console can print to the right place even before setting the video mode.
+	call gameReadCurrentCursorPosAndSetConsoleCursorColRow
 endif
 	call renderStart
 	call keyboardStart
@@ -222,14 +225,14 @@ gameSetState proc private
 gameSetState endp
 
 if CONSOLE_ENABLED
-readCurrentCursorPosAndSetConsoleCursorColRow proc private
+gameReadCurrentCursorPosAndSetConsoleCursorColRow proc private
 	mov ah,BIOS_VIDEO_FUNC_GET_CURSOR_POS_SIZE
     ; Use page number 0.
     xor bh,bh
 	int BIOS_VIDEO_INT
 	call consoleSetCursorColRow
 	ret
-readCurrentCursorPosAndSetConsoleCursorColRow endp
+gameReadCurrentCursorPosAndSetConsoleCursorColRow endp
 endif
 
 ife KEYBOARD_ENABLED
