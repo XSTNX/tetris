@@ -4,11 +4,8 @@ include code\keyboard.inc
 include code\render.inc
 
 ; Config.
-if KEYBOARD_ENABLED
-PLAYER_AUTO_MOVE                equ 0
-else
-PLAYER_AUTO_MOVE                equ 1
-endif
+.erre (KEYBOARD_ENABLED eq 0) or (KEYBOARD_ENABLED eq 1)
+PLAYER_AUTO_MOVE                equ (KEYBOARD_ENABLED xor 1)
 PLAYER_USE_TILES				equ 1
 
 ; Constants.

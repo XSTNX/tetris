@@ -253,7 +253,6 @@ endif
 	ret
 consoleSetCursorColRow endp
 
-; Input: nothing.
 ; Clobber: nothing.
 consoleNextLine proc
 	push dx
