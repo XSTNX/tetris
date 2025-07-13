@@ -616,6 +616,7 @@ strRow:
 tetrisInitRenderDebug endp
 
 tetrisRenderDebug proc private
+    ; Technically I should store if the keys were pressed in variables, but it doesn't matter for a debug feature.
 	CONSOLE_SET_CURSOR_COL_ROW 4, 0
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_MOVE_PIECE_LEFT
 	call consolePrintZeroFlag

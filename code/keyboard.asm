@@ -16,15 +16,15 @@ code segment readonly public
 
 ; Clobber: ax, cx, dx, di.
 keyboardStart proc
-if KEYBOARD_ENABLED
     cmp [KeyboardAlreadyInitialized],0
     jne short @f
-    ; Initialize KeyboardKeyPressed array so that no key is pressed.
+    ; Initialize KeyboardKeyPressed array with no key pressed.
     mov ax,KEYBOARD_KEY_PRESSED_VALUE_MASK or (KEYBOARD_KEY_PRESSED_VALUE_MASK shl 8)
     .errnz KEYBOARD_KEY_PRESSED_COUNT and 1
     mov cx,KEYBOARD_KEY_PRESSED_COUNT shr 1
     mov di,offset allSegments:KeyboardKeyPressed
     rep stosw
+if KEYBOARD_ENABLED
     ; Read current interrupt handler with one instruction, so an interrupt can't modify it while the memory is fetched.
     push es
     mov es,cx
@@ -36,25 +36,25 @@ if KEYBOARD_ENABLED
     mov ax,offset allSegments:keyboardIntHandler
     mov dx,cs
     call keyboardSetIntHandler
-    inc [KeyboardAlreadyInitialized]
     pop es
-@@:
 endif
+    inc [KeyboardAlreadyInitialized]
+@@:
     ret
 keyboardStart endp
 
 ; Clobber: ax, dx, di, es.
 keyboardStop proc
-if KEYBOARD_ENABLED
     cmp [KeyboardAlreadyInitialized],0
     je short @f
+if KEYBOARD_ENABLED
     ; Restore previous interrupt handler.
     mov ax,[KeyboardPrevIntHandlerOffset]
     mov dx,[KeyboardPrevIntHandlerSegment]
     call keyboardSetIntHandler
+endif
     dec [KeyboardAlreadyInitialized]
 @@:
-endif
     ret
 keyboardStop endp
 
@@ -120,11 +120,11 @@ data segment public
 if KEYBOARD_ENABLED
     KeyboardPrevIntHandlerOffset        word ?
     KeyboardPrevIntHandlerSegment       word ?
+endif
     ; The scancode of the key is used as an index into the array. The key is pressed when the msb is clear.
     public KeyboardKeyPressed
     KeyboardKeyPressed                  byte KEYBOARD_KEY_PRESSED_COUNT dup(?)
     KeyboardAlreadyInitialized          byte 0
-endif
 data ends
 
 end

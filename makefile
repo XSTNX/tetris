@@ -15,7 +15,6 @@ $**, $@;
 
 $(SRC_FOLDER)\assert.inc : $(SRC_FOLDER)\errcode.inc
 $(SRC_FOLDER)\console.inc : $(SRC_FOLDER)\ascii.inc
-$(SRC_FOLDER)\keyboard.inc : $(SRC_FOLDER)\assert.inc
 $(SRC_FOLDER)\render.inc : $(SRC_FOLDER)\bios.inc
 
 $(TMP_FOLDER)\assert.obj : $(SRC_FOLDER)\assert.asm $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\game.inc

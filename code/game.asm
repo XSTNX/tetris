@@ -160,7 +160,7 @@ endif
 	mov es,ax
 gameLoop:
 	call [GameStateUpdateProc]
-	call testPaletteChange
+	call gameUpdateVideoPalette
 	; Game states should assume es points to video memory at the start of the render functions.
 	mov ax,BIOS_VIDEO_CGA_SEGMENT
 	mov es,ax
@@ -175,7 +175,7 @@ if KEYBOARD_ENABLED
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_ESC
 else
 	; If keyboard is disabled, a different way to check for ESC is needed.
-	call testCheckKeyboardBufferForESCKey
+	call gameCheckKeyboardBufferForESCKey
 endif
 	jnz short gameLoop
 	
@@ -233,14 +233,14 @@ readCurrentCursorPosAndSetConsoleCursorColRow endp
 endif
 
 ife KEYBOARD_ENABLED
-; Output: zf (zero flag set if ESC is pressed).
-testCheckKeyboardBufferForESCKey proc private
+; Output: zf (set if ESC is pressed).
+gameCheckKeyboardBufferForESCKey proc private
 checkBuffer:
 	mov ah,BIOS_KEYBOARD_FUNC_CHECK_KEY
 	int BIOS_KEYBOARD_INT
 	jnz short getKey
 	; Clear zero flag and return, since the buffer is empty.
-	or ah,0ffh
+	or ah,1
 	ret
 getKey:
 	; Remove key from buffer.
@@ -250,22 +250,22 @@ getKey:
 	; If key is not ESC, look in the buffer again.
 	jne short checkBuffer
 	ret
-testCheckKeyboardBufferForESCKey endp
+gameCheckKeyboardBufferForESCKey endp
 endif
 
-testPaletteChange proc private
+gameUpdateVideoPalette proc private
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_1
-	jnz short skipChangePaletteNum0
+	jnz short @f
 	RENDER_SET_PALETTE_NUM BIOS_VIDEO_MODE_320_200_4_PALETTE_0
 	; Returns here just in case, so the palette can't be changed two times in the same frame.
 	ret
-skipChangePaletteNum0:
+@@:
 	KEYBOARD_IS_KEY_PRESSED BIOS_KEYBOARD_SCANCODE_2
-	jnz short skipChangePaletteNum1
+	jnz short @f
 	RENDER_SET_PALETTE_NUM BIOS_VIDEO_MODE_320_200_4_PALETTE_1
-skipChangePaletteNum1:
+@@:
 	ret
-testPaletteChange endp
+gameUpdateVideoPalette endp
 
 if CONSOLE_ENABLED
 
