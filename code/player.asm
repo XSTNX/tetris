@@ -133,7 +133,7 @@ autoMoveDone:
 	; Check if need to flip direction to right.
 else
 	; Read keyboard and store the direction of movement in al.
-	mov al,0
+	xor al,al
 	KEYBOARD_IS_KEY_PRESSED PLAYER_KEY_LEFT
 	jnz short skipKeyLeftPressed
 	dec ax
@@ -155,7 +155,7 @@ endif
 	; Limit posX if needed.
 	cmp dx,PLAYER_POSX_LIMIT_LOW
 	jae short skipLimitPosXLeft
-	mov cl,0
+	xor cl,cl
 	mov dx,PLAYER_POSX_LIMIT_LOW
 skipLimitPosXLeft:
 	; Save new posX.
@@ -176,7 +176,7 @@ skipMoveLeft:
 	; Limit posX if needed.
 	cmp dx,PLAYER_POSX_LIMIT_HIGH
 	jb short skipLimitPosXRight
-	mov cl,0
+	xor cl,cl
 	mov dx,PLAYER_POSX_LIMIT_HIGH
 skipLimitPosXRight:
 	; Save new posX.
@@ -225,7 +225,7 @@ loopDelete:
 	mov dl,byte ptr [PlayerRenderDeletePosY + di]
 	mov dh,dl
 	add dh,byte ptr [PlayerRenderDeleteHeight + di]
-	mov al,0
+	xor al,al
 	call renderRect320x200x4
 
 	inc di

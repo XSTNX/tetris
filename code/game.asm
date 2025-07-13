@@ -78,7 +78,7 @@ endm
 
 VIDEO_START macro
 local skip, skipNotValid
-	cmp [GameVideoAlreadyInitalized],0
+	cmp [GameVideoAlreadyInitialized],0
 	jne short skip
 	;; Read current video mode.
 	RENDER_GET_VIDEO_MODE
@@ -97,19 +97,19 @@ if CONSOLE_ENABLED
 	; Set console cursor pos.
 	call readCurrentCursorPosAndSetConsoleCursorColRow
 endif
-	inc [GameVideoAlreadyInitalized]
+	inc [GameVideoAlreadyInitialized]
 skip:
 endm
 
 VIDEO_STOP macro
 local l
-	cmp [GameVideoAlreadyInitalized],1
+	cmp [GameVideoAlreadyInitialized],1
 	jne short l
 	;; Restore previous video mode.
 	mov al,[GamePrevVideoMode]
 	mov ah,BIOS_VIDEO_FUNC_SET_VIDEO_MODE
 	int BIOS_VIDEO_INT
-	dec [GameVideoAlreadyInitalized]
+	dec [GameVideoAlreadyInitialized]
 l:
 endm
 
@@ -362,7 +362,7 @@ data segment public
 	GameStateInitRenderProc			word ?
 	GameStateUpdateProc				word ?
 	GameStateRenderProc				word ?
-	GameVideoAlreadyInitalized		byte 0
+	GameVideoAlreadyInitialized		byte 0
 	GamePrevVideoMode				byte ?
 data ends
 
