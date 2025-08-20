@@ -11,9 +11,6 @@ RENDER_CGA_STATUS_MASK_VSYNC		equ (1 shl 3)
 externdef renderStart:proc
 externdef renderPixel320x200x4:proc, renderHorizLine320x200x4:proc, renderVertLine320x200x4:proc, renderRect320x200x4:proc
 externdef renderTile8x8:proc, renderEmptyTile8x8:proc
-ifndef RENDER_INC_HACK
-externdef RenderMultiplyRowBy80Table:word
-endif
 
 ; Input: aVideoMode (constant unsigned byte).
 RENDER_SET_VIDEO_MODE macro aVideoMode:req

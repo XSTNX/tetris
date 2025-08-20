@@ -16,7 +16,7 @@ externdef consolePrintZeroFlag:proc, consolePrintChar:proc, consolePrintString:p
 
 endif
 
-; Input: aCol (unsigned byte), aRow (unsigned byte).
+; Input: aCol (byte), aRow (byte).
 ; Clobber: nothing.
 CONSOLE_SET_CURSOR_COL_ROW macro aCol:req, aRow:req
 if CONSOLE_ENABLED

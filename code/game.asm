@@ -137,6 +137,7 @@ if CONSOLE_ENABLED
 endif
 	call renderStart
 	call keyboardStart
+	call tetrisStart
 	VIDEO_START
 
 	; Start the game directly on the level for now.

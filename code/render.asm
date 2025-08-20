@@ -1,5 +1,3 @@
-; I need to use RENDER_INC_HACK or there will be some sort of error in RenderMultiplyRowBy80Table, figure out!!!????
-RENDER_INC_HACK equ 1
 include code\render.inc
 include code\assert.inc
 include code\bios.inc
@@ -257,7 +255,6 @@ constData ends
 
 data segment public
 	; Each line in video memory uses 80 bytes and there are two banks with half of the lines each.
-	public RenderMultiplyRowBy80Table
 	RenderMultiplyRowBy80Table		word BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT dup(?)
 data ends
 

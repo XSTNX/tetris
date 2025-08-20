@@ -6,18 +6,25 @@ include code\keyboard.inc
 include code\render.inc
 include code\timer.inc
 
+; Get rid of!!!!!!!!
+TETRIS_FLAG                             equ 0
+TETRIS_BOARD_FIRST_VISIBLE_COL          equ 0
+TETRIS_BOARD_VISIBLE_COLS               equ 10
+TETRIS_BOARD_VISIBLE_ROWS               equ 20
+;;;;;;;;;;;;;;;;;;;;;
+
 TETRIS_BOARD_INIT_BLOCKS                equ 1
-TETRIS_BOARD_COLS                       equ 12
-TETRIS_BOARD_ROWS                       equ 21
-TETRIS_BOARD_FIRST_VISIBLE_COL          equ 1
-TETRIS_BOARD_VISIBLE_COLS               equ TETRIS_BOARD_COLS - 2
-.errnz TETRIS_BOARD_VISIBLE_COLS and 1
-TETRIS_BOARD_VISIBLE_ROWS               equ TETRIS_BOARD_ROWS - 1
+TETRIS_BOARD_COLS                       equ 10
+TETRIS_BOARD_ROWS                       equ 20
 TETRIS_BOARD_COUNT                      equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                       equ 8
 TETRIS_BLOCK_HALF_SIZE                  equ (TETRIS_BLOCK_SIZE shr 1)
 TETRIS_BLOCK_START_COL                  equ ((TETRIS_BOARD_COLS shr 1) - 1)
 TETRIS_BLOCK_START_COL_LOHI             equ 80h or (TETRIS_BLOCK_START_COL shl 8)
+TETRIS_BLOCK_COLOR_BKGRND               equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_BACKGROUND
+TETRIS_BLOCK_COLOR_GREEN                equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_GREEN
+TETRIS_BLOCK_COLOR_RED                  equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
+TETRIS_BLOCK_COLOR_YELLOW               equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_YELLOW
 TETRIS_BOARD_BLOCK_ID_0                 equ 0
 TETRIS_BOARD_BLOCK_ID_1                 equ 1
 TETRIS_BOARD_BLOCK_ID_2                 equ 2
@@ -37,7 +44,11 @@ TETRIS_BOARD_START_POS_X                equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
 .errnz TETRIS_BOARD_START_POS_X and (BIOS_VIDEO_MODE_320_200_4_PIXELS_P_BYTE - 1)
 TETRIS_BOARD_START_POS_Y                equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT - ((TETRIS_BOARD_VISIBLE_ROWS shr 1) * TETRIS_BLOCK_SIZE)
 .errnz TETRIS_BOARD_START_POS_Y and 1
+if TETRIS_FLAG
 TETRIS_BOARD_BANK_START_OFFSET          equ ((TETRIS_BOARD_START_POS_Y shr 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + (((TETRIS_BOARD_START_POS_X - TETRIS_BLOCK_SIZE) / TETRIS_BLOCK_SIZE) shl 1)
+else
+TETRIS_BOARD_BANK_START_OFFSET          equ 0
+endif
 TETRIS_BOARD_BORDER_COLOR               equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
 TETRIS_BOARD_BORDER_COLOR_BYTE          equ (TETRIS_BOARD_BORDER_COLOR shl 6) or (TETRIS_BOARD_BORDER_COLOR shl 4) or (TETRIS_BOARD_BORDER_COLOR shl 2) or TETRIS_BOARD_BORDER_COLOR
 TETRIS_BOARD_BORDER_COLOR_WORD          equ TETRIS_BOARD_BORDER_COLOR_BYTE or (TETRIS_BOARD_BORDER_COLOR_BYTE shl 8)
@@ -53,11 +64,25 @@ TETRIS_LEVEL_STATE_PLAY                 equ 0
 TETRIS_LEVEL_STATE_ANIM                 equ 1
 TETRIS_LEVEL_STATE_OVER                 equ 2
 TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT     equ 25
-; Color names have to be short or the macro where they are used will not parse correctly. I guess it hits some sort of limit.
-T_BKGRND                                equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_BACKGROUND
-T_GREEN                                 equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_GREEN
-T_RED                                   equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
-T_YELLOW                                equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_YELLOW
+
+TetrisBlockColor struct
+    Limit       word ?
+    Center      word ?
+TetrisBlockColor ends
+
+TETRIS_BLOCK_COLOR macro aIdStr:req, aLimitColor:req, aCenterColor:req
+    .erre aLimitColor lt BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
+    .erre aCenterColor lt BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
+    TetrisBlockIdColor&aIdStr   label TetrisBlockColor
+                                ; Limit left.
+                                byte (aLimitColor shl 6) or (aLimitColor shl 4) or (aLimitColor shl 2) or aLimitColor
+                                ; Limit right.
+                                byte (aLimitColor shl 6) or (aLimitColor shl 4) or (aLimitColor shl 2) or aLimitColor
+                                ; Center left.
+                                byte (aLimitColor shl 6) or (aCenterColor shl 4) or (aCenterColor shl 2) or aCenterColor
+                                ; Center right. 
+                                byte (aCenterColor shl 6) or (aCenterColor shl 4) or (aCenterColor shl 2) or aLimitColor
+endm
 
 if TETRIS_BOARD_INIT_BLOCKS
 TetrisBoardInitBlock struct
@@ -67,17 +92,6 @@ TetrisBoardInitBlock struct
 TetrisBoardInitBlock ends
 endif
 
-TETRIS_BLOCK_COLOR macro aIdStr:req, aLmtClr:req, aCtrClr:req
-    .erre aLmtClr lt BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
-    .erre aCtrClr lt BIOS_VIDEO_MODE_320_200_4_COLOR_COUNT
-    ;; LLLL,LLLL,
-    ;; LCCC,CCCL
-    TetrisBlockIdColor&aIdStr byte (aLmtClr shl 6) or (aLmtClr shl 4) or (aLmtClr shl 2) or aLmtClr,
-                                   (aLmtClr shl 6) or (aLmtClr shl 4) or (aLmtClr shl 2) or aLmtClr,    
-                                   (aLmtClr shl 6) or (aCtrClr shl 4) or (aCtrClr shl 2) or aCtrClr,
-                                   (aCtrClr shl 6) or (aCtrClr shl 4) or (aCtrClr shl 2) or aLmtClr
-endm
-
 code segment readonly public
 
 ;-------------;
@@ -85,31 +99,39 @@ code segment readonly public
 ;-------------;
 
 ; Clobber: everything.
+tetrisStart proc
+    .erre (lengthof TetrisBoardBlockIdRowAddrs) eq (lengthof TetrisBoardBlockRowVideoBankOffsets)
+    
+    mov ax,offset TetrisBoardBlockIds
+    mov cx,lengthof TetrisBoardBlockIdRowAddrs 
+    mov di,offset TetrisBoardBlockIdRowAddrs
+@@:
+    stosw
+    add ax,TETRIS_BOARD_COLS
+    loop short @b
+
+    mov ax,TETRIS_BOARD_BANK_START_OFFSET
+    mov cx,lengthof TetrisBoardBlockRowVideoBankOffsets
+    mov di,offset TetrisBoardBlockRowVideoBankOffsets
+@@:
+    stosw
+    add ax,TETRIS_BLOCK_HALF_SIZE * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
+    loop short @b
+
+    ret
+tetrisStart endp
+
+; Clobber: everything.
 tetrisInit proc
     mov [TetrisLevelState],TETRIS_LEVEL_STATE_PLAY
     mov [TetrisLevelNextStateSet],0
     mov [TetrisFallingPieceBlockId],TETRIS_BOARD_BLOCK_ID_MASK
     call tetrisBoardInitFallingPiece
-    ; Init board.
-    .erre TETRIS_BOARD_COLS eq 12
-    mov cx,TETRIS_BOARD_VISIBLE_ROWS
-    mov di,offset TetrisBoardBlockIdArray
-@@:
-    mov ax,TETRIS_BOARD_BLOCK_ID_0 or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8)
-    stosw
-    mov al,TETRIS_BOARD_BLOCK_ID_EMPTY
-    stosw
-    stosw
-    stosw
-    stosw
-    .erre TETRIS_BOARD_BLOCK_ID_0 eq 0
-    xor ah,ah
-    stosw
-    loop short @b
-    .erre TETRIS_BOARD_ROWS - TETRIS_BOARD_VISIBLE_ROWS eq 1
-    .erre TETRIS_BOARD_BLOCK_ID_0 eq 0
-    xor ax,ax
-    mov cx,(TETRIS_BOARD_COLS shr 1)
+    ; Empty the board.
+    mov ax,TETRIS_BOARD_BLOCK_ID_EMPTY or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8)
+    .errnz TETRIS_BOARD_COUNT and 1
+    mov cx,(TETRIS_BOARD_COUNT shr 1)
+    mov di,offset TetrisBoardBlockIds
     rep stosw
 if TETRIS_BOARD_INIT_BLOCKS
     mov di,offset TetrisBoardInitBlocks
@@ -129,16 +151,17 @@ tetrisInit endp
 
 ; Clobber: everything.
 tetrisInitRender proc
+if TETRIS_FLAG
     ; Stop calling the generic render functions to draw lines, which are very slow, and do it efficiently!
     .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES eq 2
     .errnz TETRIS_BOARD_START_POS_Y and 1
     mov ax,TETRIS_BOARD_BORDER_COLOR_WORD
     ; Top border.
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    mov cx,TETRIS_BOARD_COLS
     mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + (TETRIS_BOARD_BANK_START_OFFSET + (TETRIS_BOARD_FIRST_VISIBLE_COL * TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES)) - BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
     rep stosw
     ; Bottom border.
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    mov cx,TETRIS_BOARD_COLS
     mov di,(TETRIS_BOARD_BANK_START_OFFSET + (TETRIS_BOARD_FIRST_VISIBLE_COL * TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES)) - BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE + (TETRIS_BOARD_VISIBLE_COLS * TETRIS_BLOCK_SIZE * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE) + BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
     rep stosw
     ; Left border.
@@ -153,6 +176,7 @@ tetrisInitRender proc
     pop bx
     pop dx
     call renderVertLine320x200x4
+endif    
 if TETRIS_BOARD_INIT_BLOCKS
     mov si,offset TetrisBoardInitBlocks
 @@:
@@ -166,14 +190,17 @@ if TETRIS_BOARD_INIT_BLOCKS
     jmp short @b
 @@:
 endif
+if TETRIS_FLAG
 if CONSOLE_ENABLED
     call tetrisInitRenderDebug
+endif
 endif
     ret
 tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
+if TETRIS_FLAG
     ; Change state if needed.
     cmp [TetrisLevelNextStateSet],1
     jne short @f
@@ -192,10 +219,14 @@ tetrisUpdate proc
     jmp tetrisUpdateLevelStateAnim
 @@:
     jmp tetrisUpdateLevelStateOver
+else
+    ret
+endif
 tetrisUpdate endp
 
 ; Clobber: everything.
 tetrisRender proc
+if TETRIS_FLAG
     ; Render state.
     mov al,[TetrisLevelState]
     cmp al,TETRIS_LEVEL_STATE_PLAY
@@ -213,6 +244,7 @@ done:
 
 if CONSOLE_ENABLED
     call tetrisRenderDebug
+endif
 endif
     ret
 tetrisRender endp
@@ -235,9 +267,9 @@ endif
     ret
 tetrisSetLevelNextState endp
 
-; Input: ch (unsigned col), dh (unsigned row).
+; Input: ch (col), dh (row).
 ; Output: bx (addr).
-; Clobber: si, bp.
+; Clobber: si.
 tetrisBoardGetBlockAddr proc private
 if ASSERT_ENABLED
     cmp ch,TETRIS_BOARD_COLS
@@ -249,51 +281,35 @@ if ASSERT_ENABLED
     ASSERT
 @@:
 endif
-    mov bl,dh
     xor bh,bh
-    mov si,bx
+    mov bl,dh
+    shl bl,1
+    mov si,[TetrisBoardBlockIdRowAddrs+bx]
     mov bl,ch
-    ; Could use a table to multiply faster by 12.
-    .erre TETRIS_BOARD_COLS eq 12
-    ; si = 12 * row = 4 * (row + (2 * row))
-    mov bp,si
-    shl si,1
-    add si,bp
-    shl si,1
-    shl si,1
-    lea bx,[TetrisBoardBlockIdArray + bx + si]
+    add bx,si
     ret
 tetrisBoardGetBlockAddr endp
 
-; Input: ch (unsigned col), dh (unsigned row).
+; Input: ch (col), dh (row).
 ; Output: zf (set if true).
-; Clobber: bx, si, bp.
+; Clobber: bx, si.
 tetrisBoardGetBlockIsEmpty proc private
     call tetrisBoardGetBlockAddr
     cmp byte ptr [bx],TETRIS_BOARD_BLOCK_ID_EMPTY
     ret
 tetrisBoardGetBlockIsEmpty endp
 
-; Input: al (block id), ch (unsigned col), dh (unsigned row).
-; Clobber: bx, si, bp.
+; Input: al (block id), ch (col), dh (row).
+; Clobber: bx, si.
 tetrisBoardSetBlockId proc private
 if ASSERT_ENABLED
-    .erre TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS eq 2
-    cmp ch,TETRIS_BOARD_FIRST_VISIBLE_COL
-    jae short @f
-    ASSERT
-@@:
-    cmp ch,TETRIS_BOARD_COLS - 1
-    jb short @f
-    ASSERT
-@@:
-    cmp dh,TETRIS_BOARD_VISIBLE_ROWS
+    cmp al,TETRIS_BOARD_BLOCK_ID_COUNT
     jb short @f
     ASSERT
 @@:
 endif
     call tetrisBoardGetBlockAddr
-    mov byte ptr [bx],al
+    mov [bx],al
     ret
 tetrisBoardSetBlockId endp
 
@@ -384,9 +400,9 @@ tetrisUpdateLevelStateAnim proc private
 if 0
     ; Disable this code temporarily, since the matching code to render the blocks that moved is not done yet.
 @@:
-    .erre offset TetrisBoardBlockIdArray gt TETRIS_BOARD_COLS
+    .erre offset TetrisBoardBlockIds gt TETRIS_BOARD_COLS
     lea si,[bx-TETRIS_BOARD_COLS]
-    cmp si,offset TetrisBoardBlockIdArray
+    cmp si,offset TetrisBoardBlockIds
     jb short clearRow
     ; If there is a row above this one, copy it here.
     mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
@@ -448,7 +464,7 @@ tetrisRenderLevelStateAnim proc private
     cmp al,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT - 1
     jne short highlightSkip
     mov dl,bl
-    call tetrisRenderGetVideoOffset
+    call tetrisRenderGetBlockVideoBankOffset
     mov ax,TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR_WORD
 tmpLabel:
     .erre TETRIS_BLOCK_HALF_SIZE eq 4
@@ -480,7 +496,7 @@ highlightSkip:
     jne short done
     ; This code should redraw the pieces that moved instead of clearing the current row.
     mov dl,bl
-    call tetrisRenderGetVideoOffset
+    call tetrisRenderGetBlockVideoBankOffset
     xor ah,ah
     jmp short tmpLabel
 done:
@@ -501,44 +517,32 @@ endif
     ret
 tetrisRenderLevelStateOver endp
 
-; Input: cl (unsigned col), dl (unsigned row).
-; Output: di (offset).
+; Input: cl (col), dl (row).
+; Output: di (video bank offset).
 ; Clobber: bx.
-tetrisRenderGetVideoOffset proc private
+tetrisRenderGetBlockVideoBankOffset proc private
 if ASSERT_ENABLED
-    .erre TETRIS_BOARD_COLS - TETRIS_BOARD_VISIBLE_COLS eq 2
-    cmp cl,TETRIS_BOARD_FIRST_VISIBLE_COL
-    jae short @f
-    ASSERT
-@@:
-    cmp cl,TETRIS_BOARD_COLS - 1
+    cmp cl,TETRIS_BOARD_COLS
     jb short @f
     ASSERT
 @@:
-    cmp dl,TETRIS_BOARD_VISIBLE_ROWS
+    cmp dl,TETRIS_BOARD_ROWS
     jb short @f
     ASSERT
 @@:
 endif
-    mov bl,dl
     xor bh,bh
-    mov di,bx
+    mov bl,dl
+    shl bl,1
+    mov di,[TetrisBoardBlockRowVideoBankOffsets+bx]
+    ; Each col is 8 pixels, an a pixel is 2 bits, so one word per col.
     mov bl,cl
-    ; Each row contains four lines per bank.
-    shl di,1
-    shl di,1
-    ; Multiply lines by two to obtain index into the multiplication table.
-    shl di,1
-    ; Load the offset into the bank for the start of the line.
-    mov di,[RenderMultiplyRowBy80Table + di]
-    ; Each col is 8 pixels, so it uses a word.
-    shl bx,1
-    ; Add row and column offsets to obtain the word in memory where the block starts.
-    lea di,[TETRIS_BOARD_BANK_START_OFFSET + di + bx]
+    shl bl,1
+    add di,bx
     ret
-tetrisRenderGetVideoOffset endp
+tetrisRenderGetBlockVideoBankOffset endp
 
-; Input: al (block id), cl (unsigned col), dl (unsigned row).
+; Input: al (block id), cl (col), dl (row).
 ; Clobber: ax, bx, di, bp.
 tetrisRenderBlock proc private
 if ASSERT_ENABLED
@@ -547,26 +551,27 @@ if ASSERT_ENABLED
     ASSERT
 @@:
 endif
-    call tetrisRenderGetVideoOffset
-    ; Get limit color.
-    mov bl,al
+    call tetrisRenderGetBlockVideoBankOffset
+    ; Set bx to the correct offset into the color array.
     xor bh,bh
-    shl bx,1
-    shl bx,1
-    mov ax,[TetrisBlockIdColor + bx]
+    mov bl,al
+    .erre sizeof TetrisBlockColor eq 4
+    shl bl,1
+    shl bl,1
+    mov ax,[TetrisBlockColors+bx].TetrisBlockColor.Limit
     mov bp,ax
 
-    .erre TETRIS_BLOCK_HALF_SIZE eq 4
     ; Render the four even lines.
+    .erre TETRIS_BLOCK_HALF_SIZE eq 4
     stosw
     add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
-    ; Get center color.
-    mov ax,[TetrisBlockIdColor + (type TetrisBlockIdColor) + bx]
+    mov ax,[TetrisBlockColors+bx].TetrisBlockColor.Center
 repeat 2
     stosw
     add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
 endm
     stosw
+
     ; Render the four odd lines.
     add di,TETRIS_RENDER_NEXT_BANK_OFFSET
 repeat 3
@@ -645,66 +650,69 @@ endif
 code ends
 
 constData segment readonly public
-    TetrisBlockIdColor                     label word
-                      ; IdStr,     LmtClr,     CtrClr.
-    TETRIS_BLOCK_COLOR      0,    T_GREEN,      T_RED
-    TETRIS_BLOCK_COLOR      1,    T_GREEN,   T_YELLOW
-    TETRIS_BLOCK_COLOR      2,      T_RED,   T_BKGRND
-    TETRIS_BLOCK_COLOR      3,      T_RED,    T_GREEN
-    TETRIS_BLOCK_COLOR      4,      T_RED,   T_YELLOW
-    TETRIS_BLOCK_COLOR      5,   T_YELLOW,   T_BKGRND
-    TETRIS_BLOCK_COLOR      6,   T_YELLOW,    T_GREEN
-    TETRIS_BLOCK_COLOR      7,   T_YELLOW,      T_RED
-    TETRIS_BLOCK_COLOR  Empty,   T_BKGRND,   T_BKGRND
+    TetrisBlockColors label TetrisBlockColor
+                      ; IdStr,                LimitColor,               CenterColor.
+    TETRIS_BLOCK_COLOR      0,  TETRIS_BLOCK_COLOR_GREEN,    TETRIS_BLOCK_COLOR_RED
+    TETRIS_BLOCK_COLOR      1,  TETRIS_BLOCK_COLOR_GREEN, TETRIS_BLOCK_COLOR_YELLOW
+    TETRIS_BLOCK_COLOR      2,    TETRIS_BLOCK_COLOR_RED, TETRIS_BLOCK_COLOR_BKGRND
+    TETRIS_BLOCK_COLOR      3,    TETRIS_BLOCK_COLOR_RED,  TETRIS_BLOCK_COLOR_GREEN
+    TETRIS_BLOCK_COLOR      4,    TETRIS_BLOCK_COLOR_RED, TETRIS_BLOCK_COLOR_YELLOW
+    TETRIS_BLOCK_COLOR      5, TETRIS_BLOCK_COLOR_YELLOW, TETRIS_BLOCK_COLOR_BKGRND
+    TETRIS_BLOCK_COLOR      6, TETRIS_BLOCK_COLOR_YELLOW,  TETRIS_BLOCK_COLOR_GREEN
+    TETRIS_BLOCK_COLOR      7, TETRIS_BLOCK_COLOR_YELLOW,    TETRIS_BLOCK_COLOR_RED
+    TETRIS_BLOCK_COLOR  Empty, TETRIS_BLOCK_COLOR_BKGRND, TETRIS_BLOCK_COLOR_BKGRND
                                             
-if TETRIS_BOARD_INIT_BLOCKS                            ; BlockId, Col, Row.
-    TetrisBoardInitBlocks               label TetrisBoardInitBlock
-    TetrisBoardInitBlockHorizLine0      TetrisBoardInitBlock { 3,   1,  19 }
+if TETRIS_BOARD_INIT_BLOCKS
+    TetrisBoardInitBlocks label TetrisBoardInitBlock
+                                                       ; BlockId, Col, Row.
+    TetrisBoardInitBlockHorizLine0      TetrisBoardInitBlock { 3,   0,  19 }
+                                        TetrisBoardInitBlock { 3,   1,  19 }
                                         TetrisBoardInitBlock { 3,   2,  19 }
                                         TetrisBoardInitBlock { 3,   3,  19 }
-                                        TetrisBoardInitBlock { 3,   4,  19 }
-    TetrisBoardInitBlockShape0          TetrisBoardInitBlock { 1,   2,  18 }
+    TetrisBoardInitBlockShape0          TetrisBoardInitBlock { 1,   1,  18 }
+                                        TetrisBoardInitBlock { 1,   2,  17 }
+                                        TetrisBoardInitBlock { 1,   2,  18 }
                                         TetrisBoardInitBlock { 1,   3,  17 }
-                                        TetrisBoardInitBlock { 1,   3,  18 }
-                                        TetrisBoardInitBlock { 1,   4,  17 }
-    TetrisBoardInitBlockShape1          TetrisBoardInitBlock { 0,   5,  17 }
+    TetrisBoardInitBlockShape1          TetrisBoardInitBlock { 0,   4,  17 }
+                                        TetrisBoardInitBlock { 0,   3,  18 }
                                         TetrisBoardInitBlock { 0,   4,  18 }
-                                        TetrisBoardInitBlock { 0,   5,  18 }
-                                        TetrisBoardInitBlock { 0,   5,  19 }
-    TetrisBoardInitBlockShape2          TetrisBoardInitBlock { 4,   7,  17 }
-                                        TetrisBoardInitBlock { 4,   8,  17 }
-                                        TetrisBoardInitBlock { 4,   7,  18 }
-                                        TetrisBoardInitBlock { 4,   7,  19 }
-    TetrisBoardInitBlockCube0           TetrisBoardInitBlock { 1,   8,  18 }
-                                        TetrisBoardInitBlock { 1,   9,  18 }
+                                        TetrisBoardInitBlock { 0,   4,  19 }
+    TetrisBoardInitBlockShape2          TetrisBoardInitBlock { 4,   6,  17 }
+                                        TetrisBoardInitBlock { 4,   7,  17 }
+                                        TetrisBoardInitBlock { 4,   6,  18 }
+                                        TetrisBoardInitBlock { 4,   6,  19 }
+    TetrisBoardInitBlockCube0           TetrisBoardInitBlock { 1,   7,  18 }
+                                        TetrisBoardInitBlock { 1,   8,  18 }
+                                        TetrisBoardInitBlock { 1,   7,  19 }
                                         TetrisBoardInitBlock { 1,   8,  19 }
-                                        TetrisBoardInitBlock { 1,   9,  19 }
-    TetrisBoardInitBlockShape3          TetrisBoardInitBlock { 0,   9,  17 }
-                                        TetrisBoardInitBlock { 0,  10,  17 }
-                                        TetrisBoardInitBlock { 0,  10,  18 }
-                                        TetrisBoardInitBlock { 0,  10,  19 }
-    TetrisBoardInitBlocksEnd            label TetrisBoardInitBlock
+    TetrisBoardInitBlockShape3          TetrisBoardInitBlock { 0,   8,  17 }
+                                        TetrisBoardInitBlock { 0,   9,  17 }
+                                        TetrisBoardInitBlock { 0,   9,  18 }
+                                        TetrisBoardInitBlock { 0,   9,  19 }
+    TetrisBoardInitBlocksEnd label TetrisBoardInitBlock
 endif
 constData ends
 
 data segment public
-    TetrisLevelState                byte ?
-    TetrisLevelNextStateSet         byte ?
-    TetrisLevelNextState            byte ?
-    TetrisLevelStateAnimFramesLeft  byte ?
-    TetrisLevelStateAnimRowToClear  byte ?
-    TetrisFallingPieceBlockId       byte ?
-    TetrisFallingPieceCol           label word
-    TetrisFallingPieceColLO         byte ?
-    TetrisFallingPieceColHI         byte ?
-    TetrisFallingPieceRow           label word
-    TetrisFallingPieceRowLO         byte ?
-    TetrisFallingPieceRowHI         byte ?
-    TetrisFallingPiecePrevColHI     byte ?
-    TetrisFallingPiecePrevRowHI     byte ?
+    TetrisLevelState                    byte ?
+    TetrisLevelNextStateSet             byte ?
+    TetrisLevelNextState                byte ?
+    TetrisLevelStateAnimFramesLeft      byte ?
+    TetrisLevelStateAnimRowToClear      byte ?
+    TetrisFallingPieceBlockId           byte ?
+    TetrisFallingPieceCol               label word
+    TetrisFallingPieceColLO             byte ?
+    TetrisFallingPieceColHI             byte ?
+    TetrisFallingPieceRow               label word
+    TetrisFallingPieceRowLO             byte ?
+    TetrisFallingPieceRowHI             byte ?
+    TetrisFallingPiecePrevColHI         byte ?
+    TetrisFallingPiecePrevRowHI         byte ?
     ; Align array to a word boundary so the initialization code can run faster on the 80286 and up. But maybe it's better to have separate data segments for bytes and words.
     align word
-    TetrisBoardBlockIdArray         byte TETRIS_BOARD_COUNT dup(?)
+    TetrisBoardBlockIdRowAddrs          word TETRIS_BOARD_ROWS dup(?)
+    TetrisBoardBlockRowVideoBankOffsets word TETRIS_BOARD_ROWS dup(?)
+    TetrisBoardBlockIds                 byte TETRIS_BOARD_COUNT dup(?)
 data ends
 
 end
