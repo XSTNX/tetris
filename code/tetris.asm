@@ -65,13 +65,8 @@ TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES      equ TETRIS_RENDER_BLOCK_WIDTH_IN_BITS / 
 .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES eq 2
 TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET    equ BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES
 TETRIS_RENDER_NEXT_BANK_OFFSET          equ (BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
-if TETRIS_FLAG
 TETRIS_FALLING_PIECE_SPEED_X_LOHI       equ 00040h
 TETRIS_FALLING_PIECE_SPEED_Y_LOHI       equ 00010h
-else
-TETRIS_FALLING_PIECE_SPEED_X_LOHI       equ 00010h
-TETRIS_FALLING_PIECE_SPEED_Y_LOHI       equ 00004h
-endif
 TETRIS_KEY_MOVE_PIECE_LEFT			    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_MOVE_PIECE_RIGHT				equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DROP_PIECE                   equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
@@ -379,18 +374,30 @@ moveBackLeft:
     ; Vertical movement.
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_DROP_PIECE
 	jnz short @f
+    ; Keep moving down, one row at a time until a piece or the board's end is found.
+    call tetrisBoardGetBlockAddr
 nextRow:
     inc dh
-    call tetrisBoardGetBlockIsEmpty
-    jz short nextRow
-    jmp short addPiece
+    ; Moved past the board's end?
+    cmp dh,TETRIS_BOARD_ROWS
+    jae short addPieceToBoard
+    add bx,TETRIS_BOARD_COLS
+    ; Found a piece?
+    cmp byte ptr [bx],TETRIS_BOARD_BLOCK_ID_EMPTY
+    je short nextRow
+    jmp short addPieceToBoard
 @@:
+    ; If the piece was not dropped, use its speed to move it down.
     .erre TETRIS_FALLING_PIECE_SPEED_Y_LOHI le 100h
     add dx,TETRIS_FALLING_PIECE_SPEED_Y_LOHI
+    ; Moved past the board's end?
+    cmp dh,TETRIS_BOARD_ROWS
+    jae short addPieceToBoard
+    ; Found a piece?
     call tetrisBoardGetBlockIsEmpty
 	jz short @f
-addPiece:
-    ; Decrement row so we go back to the free cell above this one.
+addPieceToBoard:
+    ; Decrement row so we go back to the empty cell above this one.
     dec dh
     mov al,TetrisFallingPieceBlockId
     call tetrisBoardSetBlockId
@@ -399,6 +406,7 @@ addPiece:
     mov [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
 @@:
 
+    ; Set new falling piece pos.
     mov [TetrisFallingPieceCol],cx
     mov [TetrisFallingPieceRow],dx
     ret
