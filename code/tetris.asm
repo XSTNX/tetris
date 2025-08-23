@@ -16,15 +16,15 @@ TETRIS_BOARD_VISIBLE_ROWS               equ 20
 TETRIS_BOARD_INIT_BLOCKS                equ 1
 TETRIS_BOARD_COLS                       equ 10
 .errnz TETRIS_BOARD_COLS and 1
-TETRIS_BOARD_HALF_COLS                  equ (TETRIS_BOARD_COLS shr 1)
+TETRIS_BOARD_HALF_COLS                  equ TETRIS_BOARD_COLS shr 1
 TETRIS_BOARD_ROWS                       equ 20
 .errnz TETRIS_BOARD_ROWS and 1
-TETRIS_BOARD_HALF_ROWS                  equ (TETRIS_BOARD_ROWS shr 1)
+TETRIS_BOARD_HALF_ROWS                  equ TETRIS_BOARD_ROWS shr 1
 TETRIS_BOARD_COUNT                      equ TETRIS_BOARD_COLS * TETRIS_BOARD_ROWS
 TETRIS_BLOCK_SIZE                       equ 8
 .errnz TETRIS_BLOCK_SIZE and 1
-TETRIS_BLOCK_HALF_SIZE                  equ (TETRIS_BLOCK_SIZE shr 1)
-TETRIS_BLOCK_START_COL                  equ ((TETRIS_BOARD_COLS shr 1) - 1)
+TETRIS_BLOCK_HALF_SIZE                  equ TETRIS_BLOCK_SIZE shr 1
+TETRIS_BLOCK_START_COL                  equ TETRIS_BOARD_HALF_COLS
 TETRIS_BLOCK_START_COL_LOHI             equ 80h or (TETRIS_BLOCK_START_COL shl 8)
 TETRIS_BLOCK_COLOR_BKGRND               equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_BACKGROUND
 TETRIS_BLOCK_COLOR_GREEN                equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_GREEN
@@ -204,7 +204,6 @@ tetrisInitRender endp
 
 ; Clobber: everything.
 tetrisUpdate proc
-if TETRIS_FLAG
     ; Change state if needed.
     cmp [TetrisLevelNextStateSet],1
     jne short @f
@@ -223,31 +222,24 @@ if TETRIS_FLAG
     jmp tetrisUpdateLevelStateAnim
 @@:
     jmp tetrisUpdateLevelStateOver
-else
-    ret
-endif
 tetrisUpdate endp
 
 ; Clobber: everything.
 tetrisRender proc
-if TETRIS_FLAG
+if CONSOLE_ENABLED
+    call tetrisRenderDebug
+endif
     ; Render state.
     mov al,[TetrisLevelState]
     cmp al,TETRIS_LEVEL_STATE_PLAY
     jne short @f
-    call tetrisRenderLevelStatePlay
-    jmp short done
+    jmp tetrisRenderLevelStatePlay
 @@:
     cmp al,TETRIS_LEVEL_STATE_ANIM
     jne short @f
-    call tetrisRenderLevelStateAnim
-    jmp short done
+    jmp tetrisRenderLevelStateAnim
 @@:
-    call tetrisRenderLevelStateOver
-done:
-endif
-    call tetrisRenderDebug
-    ret
+    jmp tetrisRenderLevelStateOver
 tetrisRender endp
 
 ;--------------;
@@ -331,6 +323,7 @@ tetrisBoardInitFallingPiece endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStatePlay proc private
+    ; Save falling piece previous pos.
     mov cx,[TetrisFallingPieceCol]
     mov [TetrisFallingPiecePrevColHI],ch
     mov dx,[TetrisFallingPieceRow]
@@ -385,6 +378,7 @@ tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
+if TETRIS_FLAG
     cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     jne short clearDone
     mov [TetrisLevelStateAnimRowToClear],TETRIS_BOARD_ROWS
@@ -431,6 +425,7 @@ clearDone:
 @@:
     call tetrisSetLevelNextState
 nextStateDone:
+endif
     ret
 tetrisUpdateLevelStateAnim endp
 
@@ -455,6 +450,7 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
+if TETRIS_FLAG
     .erre TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT gt 1
     mov cl,TETRIS_BOARD_FIRST_VISIBLE_COL
     mov bl,[TetrisLevelStateAnimRowToClear]
@@ -501,11 +497,13 @@ highlightSkip:
     xor ah,ah
     jmp short tmpLabel
 done:
+endif
     ret
 tetrisRenderLevelStateAnim endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateOver proc private
+if TETRIS_FLAG
 if CONSOLE_ENABLED
     CONSOLE_SET_CURSOR_COL_ROW 15, 1
 	mov si,offset allSegments:tmpText
@@ -514,6 +512,7 @@ if CONSOLE_ENABLED
 tmpText:
 	byte "Game Over!", 0
 @@:
+endif
 endif
     ret
 tetrisRenderLevelStateOver endp
