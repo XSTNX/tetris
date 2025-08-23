@@ -65,8 +65,13 @@ TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES      equ TETRIS_RENDER_BLOCK_WIDTH_IN_BITS / 
 .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES eq 2
 TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET    equ BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES
 TETRIS_RENDER_NEXT_BANK_OFFSET          equ (BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
+if TETRIS_FLAG
 TETRIS_FALLING_PIECE_SPEED_X_LOHI       equ 00040h
 TETRIS_FALLING_PIECE_SPEED_Y_LOHI       equ 00010h
+else
+TETRIS_FALLING_PIECE_SPEED_X_LOHI       equ 00010h
+TETRIS_FALLING_PIECE_SPEED_Y_LOHI       equ 00004h
+endif
 TETRIS_KEY_MOVE_PIECE_LEFT			    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
 TETRIS_KEY_MOVE_PIECE_RIGHT				equ BIOS_KEYBOARD_SCANCODE_ARROW_RIGHT
 TETRIS_KEY_DROP_PIECE                   equ BIOS_KEYBOARD_SCANCODE_ARROW_DOWN
@@ -329,21 +334,44 @@ tetrisUpdateLevelStatePlay proc private
     mov dx,[TetrisFallingPieceRow]
     mov [TetrisFallingPiecePrevRowHI],dh
 
-    ; Horizontal movement.
-    .erre TETRIS_FALLING_PIECE_SPEED_X_LOHI le 100h
-	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_MOVE_PIECE_LEFT
+    ; Check both left and right keys before deciding if there should be horizontal movement.
+    xor al,al
+  	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_MOVE_PIECE_LEFT
 	jnz short @f
-    sub cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
-    call tetrisBoardGetBlockIsEmpty
-	jz short @f
-    inc ch
-    xor cl,cl
+    dec al
 @@:
 	KEYBOARD_IS_KEY_PRESSED TETRIS_KEY_MOVE_PIECE_RIGHT
     jnz short @f
-    add cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
+    inc al
+@@:
+    .erre TETRIS_FALLING_PIECE_SPEED_X_LOHI le 100h
+    ; Moved left?
+	cmp al,0ffh
+	jne short @f
+    sub cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
+    ; Moved past the left border?
+    cmp ch,TETRIS_BOARD_COLS
+    jae short moveBackRight
+    ; Hit a block?
     call tetrisBoardGetBlockIsEmpty
 	jz short @f
+moveBackRight:
+    ; Move back to the previous col.
+    inc ch
+    xor cl,cl
+@@:
+    ; Moved right?
+	cmp al,1
+    jne short @f
+    add cx,TETRIS_FALLING_PIECE_SPEED_X_LOHI
+    ; Moved past the right border?
+    cmp ch,TETRIS_BOARD_COLS
+    jae short moveBackLeft
+    ; Hit a block?
+    call tetrisBoardGetBlockIsEmpty
+	jz short @f
+moveBackLeft:
+    ; Move back to the previous col.
     dec ch
     mov cl,0ffh
 @@:
