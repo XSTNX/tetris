@@ -53,7 +53,7 @@ $(TMP_FOLDER)\test4.obj : $(SRC_FOLDER)\test4.asm $(SRC_FOLDER)\test4.inc $(SRC_
 $(TMP_FOLDER)\test5.obj : $(SRC_FOLDER)\test5.asm $(SRC_FOLDER)\test5.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc
 	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
-$(TMP_FOLDER)\tetris.obj : $(SRC_FOLDER)\tetris.asm $(SRC_FOLDER)\tetris.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\render.inc $(SRC_FOLDER)\timer.inc
+$(TMP_FOLDER)\tetris.obj : $(SRC_FOLDER)\tetris.asm $(SRC_FOLDER)\tetris.inc $(SRC_FOLDER)\assert.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\bios.inc $(SRC_FOLDER)\console.inc $(SRC_FOLDER)\keyboard.inc $(SRC_FOLDER)\timer.inc
 	ml $(ML_OPTIONS) /Fo"$@" /Fl"$*.lst" $(SRC_FOLDER)\$(*B).asm
 
 $(TMP_FOLDER)\timer.obj : $(SRC_FOLDER)\timer.asm $(SRC_FOLDER)\timer.inc $(SRC_FOLDER)\assumSeg.inc $(SRC_FOLDER)\bios.inc

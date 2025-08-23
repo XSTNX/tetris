@@ -1,16 +1,15 @@
 include code\tetris.inc
 include code\assert.inc
 include code\assumSeg.inc
+include code\bios.inc
 include code\console.inc
 include code\keyboard.inc
-include code\render.inc
 include code\timer.inc
 
 ; Get rid of!!!!!!!!
 TETRIS_FLAG                             equ 0
 TETRIS_BOARD_FIRST_VISIBLE_COL          equ 0
 TETRIS_BOARD_VISIBLE_COLS               equ 10
-TETRIS_BOARD_VISIBLE_ROWS               equ 20
 ;;;;;;;;;;;;;;;;;;;;;
 
 TETRIS_BOARD_INIT_BLOCKS                equ 1
@@ -170,19 +169,36 @@ tetrisInitRender proc
     mov cx,TETRIS_BOARD_COLS
     mov di,TETRIS_RENDER_BOARD_BANK_OFFSET + (TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
     rep stosw
-    ; Stop calling the generic render functions to draw lines, which are very slow, and do it efficiently!
-    ; Left border.
-    mov cx,TETRIS_RENDER_BOARD_START_POS_X - 1
-    mov dx,TETRIS_RENDER_BOARD_START_POS_Y or (TETRIS_RENDER_BORDER_COLOR shl 8)
-    push dx
-    mov bl,TETRIS_RENDER_BOARD_START_POS_Y + (TETRIS_BOARD_ROWS * TETRIS_BLOCK_SIZE)
-    push bx
-    call renderVertLine320x200x4
-    ; Right border.
-    mov cx,TETRIS_RENDER_BOARD_START_POS_X + (TETRIS_BOARD_COLS * TETRIS_BLOCK_SIZE)
-    pop bx
-    pop dx
-    call renderVertLine320x200x4
+    ; Left border, even lines.
+    mov al,(TETRIS_BLOCK_COLOR_BKGRND shl 6) or (TETRIS_BLOCK_COLOR_BKGRND shl 4) or (TETRIS_BLOCK_COLOR_BKGRND shl 2) or TETRIS_RENDER_BORDER_COLOR
+    mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
+    mov di,TETRIS_RENDER_BOARD_BANK_OFFSET - 1
+@@:
+    stosb
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
+    loop short @b
+    ; Left border, odd lines.
+    mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
+    mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + TETRIS_RENDER_BOARD_BANK_OFFSET - 1
+@@:
+    stosb
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
+    loop short @b
+    ; Right border, even lines.
+    mov al,(TETRIS_RENDER_BORDER_COLOR shl 6) or (TETRIS_BLOCK_COLOR_BKGRND shl 4) or (TETRIS_BLOCK_COLOR_BKGRND shl 2) or TETRIS_BLOCK_COLOR_BKGRND
+    mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
+    mov di,TETRIS_RENDER_BOARD_BANK_OFFSET + (TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES * TETRIS_BOARD_COLS)
+@@:
+    stosb
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
+    loop short @b
+    ; Right border, odd lines.
+    mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
+    mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + TETRIS_RENDER_BOARD_BANK_OFFSET + (TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES * TETRIS_BOARD_COLS)
+@@:
+    stosb
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
+    loop short @b
 if TETRIS_BOARD_INIT_BLOCKS
     mov si,offset TetrisBoardInitBlocks
 @@:
@@ -306,7 +322,7 @@ endif
     ret
 tetrisBoardSetBlockId endp
 
-; Output: al (block id), cx (unsigned colLOHI), dx (unsigned rowLOHI).
+; Output: al (block id), cx (colLOHI), dx (rowLOHI).
 tetrisBoardInitFallingPiece proc private
     mov al,[TetrisFallingPieceBlockId]
     inc al
@@ -622,6 +638,7 @@ endm
 tetrisRenderBlock endp
 
 if CONSOLE_ENABLED
+; Clobber: everything.
 tetrisInitRenderDebug proc private
     CONSOLE_SET_CURSOR_COL_ROW 0, 0
 	mov si,offset allSegments:strLeft
@@ -657,6 +674,7 @@ strRow:
     byte "Row:", 0
 tetrisInitRenderDebug endp
 
+; Clobber: everything.
 tetrisRenderDebug proc private
     ; Technically I should store if the keys were pressed in variables, but it doesn't matter for a debug feature.
 	CONSOLE_SET_CURSOR_COL_ROW 4, 0
