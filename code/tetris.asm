@@ -433,8 +433,8 @@ tetrisUpdateLevelStatePlay endp
 tetrisUpdateLevelStateAnim proc private
     ; Is this the first frame of the state?
     cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
-    jne short clearDone
-    mov [TetrisLevelStateAnimRowToClear],TETRIS_BOARD_ROWS
+    jne short skipFirstFrame
+    mov dh,TETRIS_BOARD_ROWS
     ; Check if the row is full.
     mov dl,[TetrisFallingPieceRowHI]
     mov bl,dl
@@ -466,8 +466,10 @@ clearRow:
     mov cx,TETRIS_BOARD_HALF_COLS
     mov di,bx
     rep stosw
-    mov [TetrisLevelStateAnimRowToClear],dl
+    mov dh,dl
 clearDone:
+    mov [TetrisLevelStateAnimRowToClear],dh
+skipFirstFrame:
     ; Is this the last frame of the state?
     dec [TetrisLevelStateAnimFramesLeft]
     jnz short done
