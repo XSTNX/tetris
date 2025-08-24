@@ -6,12 +6,6 @@ include code\console.inc
 include code\keyboard.inc
 include code\timer.inc
 
-; Get rid of!!!!!!!!
-TETRIS_FLAG                             equ 0
-TETRIS_BOARD_FIRST_VISIBLE_COL          equ 0
-TETRIS_BOARD_VISIBLE_COLS               equ 10
-;;;;;;;;;;;;;;;;;;;;;
-
 TETRIS_BOARD_INIT_BLOCKS                equ 1
 TETRIS_BOARD_COLS                       equ 10
 .errnz TETRIS_BOARD_COLS and 1
@@ -56,14 +50,17 @@ TETRIS_RENDER_BOARD_BANK_COL_OFFSET     equ TETRIS_RENDER_BOARD_START_POS_X / BI
 TETRIS_RENDER_BOARD_BANK_ROW_OFFSET     equ (TETRIS_RENDER_BOARD_START_POS_Y shr 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE
 TETRIS_RENDER_BOARD_BANK_OFFSET         equ TETRIS_RENDER_BOARD_BANK_ROW_OFFSET + TETRIS_RENDER_BOARD_BANK_COL_OFFSET
 TETRIS_RENDER_BORDER_COLOR              equ BIOS_VIDEO_MODE_320_200_4_PALETTE_0_COLOR_RED
+TETRIS_RENDER_BORDER_USE_SOLID_COLOR    equ 0
+if TETRIS_RENDER_BORDER_USE_SOLID_COLOR
 TETRIS_RENDER_BORDER_COLOR_BYTE         equ (TETRIS_RENDER_BORDER_COLOR shl 6) or (TETRIS_RENDER_BORDER_COLOR shl 4) or (TETRIS_RENDER_BORDER_COLOR shl 2) or TETRIS_RENDER_BORDER_COLOR
+else
+TETRIS_RENDER_BORDER_COLOR_BYTE         equ (TETRIS_RENDER_BORDER_COLOR shl 6) or (TETRIS_BLOCK_COLOR_BKGRND shl 4) or (TETRIS_RENDER_BORDER_COLOR shl 2) or TETRIS_BLOCK_COLOR_BKGRND
+endif
 TETRIS_RENDER_BORDER_COLOR_WORD         equ TETRIS_RENDER_BORDER_COLOR_BYTE or (TETRIS_RENDER_BORDER_COLOR_BYTE shl 8)
 TETRIS_RENDER_BLOCK_WIDTH_IN_BITS       equ TETRIS_BLOCK_SIZE * BIOS_VIDEO_MODE_320_200_4_BITS_P_PIXEL
 .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BITS eq 16
 TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES      equ TETRIS_RENDER_BLOCK_WIDTH_IN_BITS / 8
 .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES eq 2
-TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET    equ BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES
-TETRIS_RENDER_NEXT_BANK_OFFSET          equ (BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
 TETRIS_FALLING_PIECE_SPEED_X_LOHI       equ 00040h
 TETRIS_FALLING_PIECE_SPEED_Y_LOHI       equ 00010h
 TETRIS_KEY_MOVE_PIECE_LEFT			    equ BIOS_KEYBOARD_SCANCODE_ARROW_LEFT
@@ -177,6 +174,7 @@ tetrisInitRender proc
     stosb
     add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
     loop short @b
+if TETRIS_RENDER_BORDER_USE_SOLID_COLOR
     ; Left border, odd lines.
     mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
     mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + TETRIS_RENDER_BOARD_BANK_OFFSET - 1
@@ -184,6 +182,7 @@ tetrisInitRender proc
     stosb
     add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
     loop short @b
+endif        
     ; Right border, even lines.
     mov al,(TETRIS_RENDER_BORDER_COLOR shl 6) or (TETRIS_BLOCK_COLOR_BKGRND shl 4) or (TETRIS_BLOCK_COLOR_BKGRND shl 2) or TETRIS_BLOCK_COLOR_BKGRND
     mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
@@ -192,6 +191,7 @@ tetrisInitRender proc
     stosb
     add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
     loop short @b
+if TETRIS_RENDER_BORDER_USE_SOLID_COLOR        
     ; Right border, odd lines.
     mov cx,TETRIS_BOARD_ROWS * TETRIS_BLOCK_HALF_SIZE
     mov di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET + TETRIS_RENDER_BOARD_BANK_OFFSET + (TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES * TETRIS_BOARD_COLS)
@@ -199,6 +199,7 @@ tetrisInitRender proc
     stosb
     add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - 1
     loop short @b
+endif
 if TETRIS_BOARD_INIT_BLOCKS
     mov si,offset TetrisBoardInitBlocks
 @@:
@@ -266,8 +267,8 @@ tetrisRender endp
 tetrisSetLevelNextState proc private
 if ASSERT_ENABLED
     ; The next state should be set only once per frame.
-    cmp [TetrisLevelNextStateSet],1
-    jne short @f
+    cmp [TetrisLevelNextStateSet],0
+    je short @f
     ASSERT
 @@:
 endif
@@ -415,7 +416,7 @@ nextRow:
 addPieceToBoard:
     ; Decrement row so we go back to the empty cell above this one.
     dec dh
-    mov al,TetrisFallingPieceBlockId
+    mov al,[TetrisFallingPieceBlockId]
     call tetrisBoardSetBlockId
     mov al,TETRIS_LEVEL_STATE_ANIM
     call tetrisSetLevelNextState
@@ -430,16 +431,18 @@ tetrisUpdateLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisUpdateLevelStateAnim proc private
-if TETRIS_FLAG
+    ; Is this the first frame of the state?
     cmp [TetrisLevelStateAnimFramesLeft],TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT
     jne short clearDone
     mov [TetrisLevelStateAnimRowToClear],TETRIS_BOARD_ROWS
     ; Check if the row is full.
-    mov ch,TETRIS_BOARD_FIRST_VISIBLE_COL
-    mov dh,[TetrisFallingPieceRowHI]
-    call tetrisBoardGetBlockAddr
-    mov al,TETRIS_BOARD_BLOCK_ID_EMPTY
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    mov dl,[TetrisFallingPieceRowHI]
+    mov bl,dl
+    xor bh,bh
+    shl bl,1
+    mov bx,[TetrisBoardBlockIdRowAddrs+bx]
+    mov ax,TETRIS_BOARD_BLOCK_ID_EMPTY or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8)
+    mov cx,TETRIS_BOARD_COLS
     mov di,bx
     repne scasb
     je short clearDone
@@ -460,14 +463,14 @@ if 0
 endif
 clearRow:
     ; If there are no more rows above this one, clear it.
-    mov ax,(TETRIS_BOARD_BLOCK_ID_EMPTY or (TETRIS_BOARD_BLOCK_ID_EMPTY shl 8))
-    mov cx,(TETRIS_BOARD_VISIBLE_COLS shr 1)
+    mov cx,TETRIS_BOARD_HALF_COLS
     mov di,bx
     rep stosw
-    mov [TetrisLevelStateAnimRowToClear],dh
+    mov [TetrisLevelStateAnimRowToClear],dl
 clearDone:
+    ; Is this the last frame of the state?
     dec [TetrisLevelStateAnimFramesLeft]
-    jnz short nextStateDone
+    jnz short done
     ; Set next state, either the game continues or it's over.
     call tetrisBoardInitFallingPiece
     call tetrisBoardGetBlockIsEmpty
@@ -476,8 +479,7 @@ clearDone:
     mov al,TETRIS_LEVEL_STATE_OVER
 @@:
     call tetrisSetLevelNextState
-nextStateDone:
-endif
+done:
     ret
 tetrisUpdateLevelStateAnim endp
 
@@ -502,60 +504,53 @@ tetrisRenderLevelStatePlay endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateAnim proc private
-if TETRIS_FLAG
-    .erre TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT gt 1
-    mov cl,TETRIS_BOARD_FIRST_VISIBLE_COL
-    mov bl,[TetrisLevelStateAnimRowToClear]
-    cmp bl,TETRIS_BOARD_ROWS
+    mov dl,[TetrisLevelStateAnimRowToClear]
+    cmp dl,TETRIS_BOARD_ROWS
     je short done
+    xor cl,cl    
     mov al,[TetrisLevelStateAnimFramesLeft]
-    ; Check if highlighting the row is needed.
+    ; Is this the first render frame of the state?
+    .erre TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT gt 1
     cmp al,TETRIS_LEVEL_STATE_ANIM_FRAMES_LEFT - 1
-    jne short highlightSkip
-    mov dl,bl
+    jne short skipHighlight
     call tetrisRenderGetBlockVideoBankOffset
     mov ax,TETRIS_BOARD_BLOCK_HIGHLIGHT_COLOR_WORD
-tmpLabel:
-    .erre TETRIS_BLOCK_HALF_SIZE eq 4
-    .erre TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES eq 2
-    ; Highlight the four even lines.
-repeat (TETRIS_BLOCK_HALF_SIZE - 1)
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+@@:
+    ; Render even lines.
+repeat TETRIS_BLOCK_HALF_SIZE - 1
+    mov cx,TETRIS_BOARD_COLS
     rep stosw
-    add di,(BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - (TETRIS_BOARD_VISIBLE_COLS shl 1))
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - (TETRIS_BOARD_COLS shl 1)
 endm
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    mov cx,TETRIS_BOARD_COLS
     rep stosw
-    add di,(BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - (TETRIS_BOARD_VISIBLE_COLS shl 1)) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
-    ; Highlight the four odd lines.
-repeat (TETRIS_BLOCK_HALF_SIZE - 1)
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    add di,BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - (TETRIS_BOARD_COLS shl 1) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
+    ; Render odd lines.
+repeat TETRIS_BLOCK_HALF_SIZE - 1
+    mov cx,TETRIS_BOARD_COLS
     rep stosw
-    add di,(BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - (TETRIS_BOARD_VISIBLE_COLS shl 1))
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - (TETRIS_BOARD_COLS shl 1)
 endm
-    mov cx,TETRIS_BOARD_VISIBLE_COLS
+    mov cx,TETRIS_BOARD_COLS
     rep stosw
     jmp short done
-highlightSkip:
-    ; Check if clearing the row is needed.
+skipHighlight:
+    ; Is this the last render frame of the state?
     cmp al,0
     jne short done
     ; Is this check necessary or an assert is enough?
     cmp [TetrisLevelNextState],TETRIS_LEVEL_STATE_PLAY
     jne short done
     ; This code should redraw the pieces that moved instead of clearing the current row.
-    mov dl,bl
     call tetrisRenderGetBlockVideoBankOffset
     xor ah,ah
-    jmp short tmpLabel
+    jmp short @b
 done:
-endif
     ret
 tetrisRenderLevelStateAnim endp
 
 ; Clobber: everything.
 tetrisRenderLevelStateOver proc private
-if TETRIS_FLAG
 if CONSOLE_ENABLED
     CONSOLE_SET_CURSOR_COL_ROW 15, 1
 	mov si,offset allSegments:tmpText
@@ -564,7 +559,6 @@ if CONSOLE_ENABLED
 tmpText:
 	byte "Game Over!", 0
 @@:
-endif
 endif
     ret
 tetrisRenderLevelStateOver endp
@@ -614,22 +608,21 @@ endif
     mov ax,[TetrisBlockColors+bx].TetrisBlockColor.Limit
     mov bp,ax
 
-    ; Render the four even lines.
-    .erre TETRIS_BLOCK_HALF_SIZE eq 4
+    ; Render even lines.
     stosw
-    add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES
     mov ax,[TetrisBlockColors+bx].TetrisBlockColor.Center
-repeat 2
+repeat TETRIS_BLOCK_HALF_SIZE - 2
     stosw
-    add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES
 endm
     stosw
 
-    ; Render the four odd lines.
-    add di,TETRIS_RENDER_NEXT_BANK_OFFSET
-repeat 3
+    ; Render odd lines.
+    add di,(BIOS_VIDEO_MODE_320_200_4_BANK1_OFFSET - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES) - ((TETRIS_BLOCK_HALF_SIZE - 1) * BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE)
+repeat TETRIS_BLOCK_HALF_SIZE - 1
     stosw
-    add di,TETRIS_RENDER_BLOCK_NEXT_LINE_OFFSET
+    add di,BIOS_VIDEO_MODE_320_200_4_BYTES_P_LINE - TETRIS_RENDER_BLOCK_WIDTH_IN_BYTES
 endm
     mov ax,bp
     stosw
