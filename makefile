@@ -5,7 +5,7 @@ ML_OPTIONS = /AT /c /Cp /D$(DEFINE_TEXT) /I$(INCLUDE_FOLDER) /nologo /Sc /W3 /WX
 SRC_FOLDER = code
 TMP_FOLDER = obj
 OUTPUT_FOLDER = bin
-EXECUTABLE_NAME = invdrs
+EXECUTABLE_NAME = tetris
 EXECUTABLE_EXT = com
 
 $(OUTPUT_FOLDER)\$(EXECUTABLE_NAME).$(EXECUTABLE_EXT) : $(TMP_FOLDER)\game.obj $(TMP_FOLDER)\assert.obj $(TMP_FOLDER)\console.obj $(TMP_FOLDER)\keyboard.obj $(TMP_FOLDER)\level.obj $(TMP_FOLDER)\player.obj $(TMP_FOLDER)\render.obj $(TMP_FOLDER)\test1.obj $(TMP_FOLDER)\test2.obj $(TMP_FOLDER)\test3.obj $(TMP_FOLDER)\test4.obj $(TMP_FOLDER)\test5.obj $(TMP_FOLDER)\tetris.obj $(TMP_FOLDER)\timer.obj
