@@ -5,13 +5,13 @@ include code\console.inc
 include code\keyboard.inc
 include code\render.inc
 
-TEST_BOX_SIDE					equ 16
-TEST_BOX_HALF_SIDE              equ TEST_BOX_SIDE / 2
-TEST_BOX_POSX                   equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
-TEST_BOX_POSY_START             equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
-TEST_BOX_LOWX                   equ TEST_BOX_POSX - TEST_BOX_HALF_SIDE
-TEST_BOX_HIGHX                  equ TEST_BOX_POSX + TEST_BOX_HALF_SIDE
-TEST_BOX_SPEEDY_PACKED 			equ 100h
+TEST1_BOX_SIDE                  equ 16
+TEST1_BOX_HALF_SIDE             equ TEST1_BOX_SIDE shr 1
+TEST1_BOX_POSX                  equ BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH
+TEST1_BOX_POSY_START            equ BIOS_VIDEO_MODE_320_200_4_HALF_HEIGHT
+TEST1_BOX_LOWX                  equ TEST1_BOX_POSX - TEST1_BOX_HALF_SIDE
+TEST1_BOX_HIGHX                 equ TEST1_BOX_POSX + TEST1_BOX_HALF_SIDE
+TEST1_BOX_SPEEDY_PACKED 	    equ 100h
 
 ; Change the code of how the block disappears from the screen.
 
@@ -23,8 +23,8 @@ code segment readonly public
 
 ; Clobber: everything.
 test1Init proc
-    mov [Test1PosYPacked],TEST_BOX_POSY_START shl 8
-	mov [Test1PrevPosY],TEST_BOX_POSY_START
+    mov [Test1PosYPacked],TEST1_BOX_POSY_START shl 8
+	mov [Test1PrevPosY],TEST1_BOX_POSY_START
 
     ret
 test1Init endp
@@ -35,17 +35,17 @@ test1InitRender proc
     xor cx,cx
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
     mov dx,0 or (2 shl 8)
-    mov bl,TEST_BOX_SIDE
+    mov bl,TEST1_BOX_SIDE
 	call renderRect320x200x4
     ; Bottom rect.
     xor cx,cx
     mov di,BIOS_VIDEO_MODE_320_200_4_WIDTH
-    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST_BOX_SIDE) or (2 shl 8)
+    mov dx,(BIOS_VIDEO_MODE_320_200_4_HEIGHT - TEST1_BOX_SIDE) or (2 shl 8)
     mov bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 	call renderRect320x200x4
     ; Vert rect.
-    mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST_BOX_HALF_SIDE
-    mov di,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST_BOX_HALF_SIDE
+    mov cx,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH - TEST1_BOX_HALF_SIDE
+    mov di,BIOS_VIDEO_MODE_320_200_4_HALF_WIDTH + TEST1_BOX_HALF_SIDE
     mov dx,0 or (1 shl 8)
     mov bl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
 	call renderRect320x200x4
@@ -62,7 +62,7 @@ test1InitRender endp
 test1Update proc
     mov ax,[Test1PosYPacked]
     mov [Test1PrevPosY],ah
-    add ax,TEST_BOX_SPEEDY_PACKED
+    add ax,TEST1_BOX_SPEEDY_PACKED
     cmp ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
     jb short @f
     sub ah,BIOS_VIDEO_MODE_320_200_4_HEIGHT
@@ -75,15 +75,15 @@ test1Update endp
 ; Clobber: everything.
 test1Render proc
     ; Erase previous box.
-	mov cx,TEST_BOX_LOWX
-    mov di,TEST_BOX_HIGHX
+	mov cx,TEST1_BOX_LOWX
+    mov di,TEST1_BOX_HIGHX
     ; Save lowX and highX to reuse them when drawing the current box.
     push cx
     push di
     mov dl,[Test1PrevPosY]
-	sub dl,TEST_BOX_HALF_SIDE
+	sub dl,TEST1_BOX_HALF_SIDE
 	mov bl,dl
-    add bl,TEST_BOX_SIDE
+    add bl,TEST1_BOX_SIDE
     mov dh,1
     ; Keep lowY and highY within screen bounds.
     cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT
@@ -100,9 +100,9 @@ test1Render proc
     pop di
     pop cx
     mov dl,byte ptr [Test1PosYPacked + 1]
-	sub dl,TEST_BOX_HALF_SIDE
+	sub dl,TEST1_BOX_HALF_SIDE
 	mov bl,dl
-    add bl,TEST_BOX_SIDE
+    add bl,TEST1_BOX_SIDE
     mov dh,3
     ; Keep lowY and highY within screen bounds.
     cmp dl,BIOS_VIDEO_MODE_320_200_4_HEIGHT

@@ -18,7 +18,7 @@ MASM
 ----
 - Apply 6.11d patch by copying PATCHES\ML611D.EXE to D:\MASM611\BIN and executing it, the file can be deleted after the patch is applied.
 
-DOSBox Conf
+DOSBox Conf (macOS location: ~/Library/Preferences/DOSBox 0.74-3-3 Preferences)
 -----------
 [dosbox]
 machine=cga
@@ -37,7 +37,7 @@ MOUNT D ~/project/ibmpc
 SET PATH=Z:\;D:\MASM611\BIN;D:\debugx
 SET TMP=D:\TMP
 d:
-cd invdrs
+cd tetris
 
 NMake
 -----
