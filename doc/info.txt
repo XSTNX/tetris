@@ -100,6 +100,7 @@ LINKS
 - https://tetris.fandom.com/wiki/Tetromino
 - https://github.com/microsoft/MS-DOS
 - https://github.com/wanda-phi/pfr/blob/main/TECH.md (Pinball Fantasies technical details)
+- https://thestarman.pcministry.com/asm/debug/debug.htm (A guide to debug)
 
 BOOKS
 -----
