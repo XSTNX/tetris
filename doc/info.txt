@@ -101,6 +101,7 @@ LINKS
 - https://github.com/microsoft/MS-DOS
 - https://github.com/wanda-phi/pfr/blob/main/TECH.md (Pinball Fantasies technical details)
 - https://thestarman.pcministry.com/asm/debug/debug.htm (A guide to debug)
+- https://www.youtube.com/watch?v=2nzMsgkK-UE (DOS programming with NASM and make)
 
 BOOKS
 -----
