@@ -45,7 +45,7 @@ NMake
 - Clean project with:   c.bat
 - Run binary with:      r.bat
 
-Git BASH
+Git Bash
 --------
 - Add user name and email so you can submit to repository:
     git config --global user.name "USERNAME"
